@@ -6,541 +6,195 @@
 <title>NH농협 IT 작업 업무확인 게시판</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Noto+Serif+KR:wght@600;700&display=swap" rel="stylesheet"/>
 <style>
-:root {
-  --nh-green:   #006633;
-  --nh-green2:  #008844;
-  --nh-green3:  #00aa55;
-  --nh-gold:    #c8a84b;
-  --nh-gold2:   #e8c86e;
-  --nh-light:   #f0f7f2;
-  --nh-white:   #ffffff;
-  --nh-gray1:   #f5f6f7;
-  --nh-gray2:   #e8eaed;
-  --nh-gray3:   #c4c8cc;
-  --nh-gray4:   #8a9099;
-  --nh-text:    #1a2530;
-  --nh-text2:   #3d4a55;
-  --nh-text3:   #6b7a87;
-  --nh-red:     #cc3300;
-  --nh-blue:    #1155aa;
-  --shadow-sm:  0 1px 4px rgba(0,102,51,0.08);
-  --shadow-md:  0 4px 16px rgba(0,102,51,0.12);
-  --shadow-lg:  0 8px 32px rgba(0,102,51,0.16);
-  --radius:     10px;
-  --sans: 'Noto Sans KR', sans-serif;
-  --serif: 'Noto Serif KR', serif;
+:root{
+  --g1:#006633;--g2:#008844;--g3:#00aa55;
+  --gold:#c8a84b;--gold2:#e8c86e;
+  --light:#f0f7f2;--white:#ffffff;
+  --gray1:#f5f6f7;--gray2:#e8eaed;--gray3:#c4c8cc;--gray4:#8a9099;
+  --text:#1a2530;--text2:#3d4a55;--text3:#6b7a87;
+  --red:#cc3300;
+  --ss:0 1px 4px rgba(0,102,51,.08);
+  --sm:0 4px 16px rgba(0,102,51,.12);
+  --sl:0 8px 32px rgba(0,102,51,.16);
+  --r:10px;
+  --sans:'Noto Sans KR',sans-serif;
+  --serif:'Noto Serif KR',serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{
-  font-family:var(--sans);
-  background:var(--nh-gray1);
-  color:var(--nh-text);
-  min-height:100vh;
-}
-
-/* ───── TOP BAND ───── */
-.top-band{
-  background:var(--nh-green);
-  height:4px;
-  background:linear-gradient(90deg,var(--nh-green) 0%,var(--nh-gold) 60%,var(--nh-green2) 100%);
-}
-
-/* ───── HEADER ───── */
-header{
-  background:var(--nh-white);
-  border-bottom:2px solid var(--nh-green);
-  box-shadow:var(--shadow-sm);
-  position:sticky;top:0;z-index:200;
-}
-.header-inner{
-  max-width:1100px;margin:0 auto;
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 1.5rem;height:64px;
-}
+body{font-family:var(--sans);background:var(--gray1);color:var(--text);min-height:100vh}
+.topband{height:4px;background:linear-gradient(90deg,var(--g1) 0%,var(--gold) 60%,var(--g2) 100%)}
+header{background:#fff;border-bottom:2px solid var(--g1);box-shadow:var(--ss);position:sticky;top:0;z-index:200}
+.hi{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;height:64px}
 .logo{display:flex;align-items:center;gap:14px}
-.logo-ci{
-  height:36px;width:auto;
-  object-fit:contain;
-  flex-shrink:0;
-  filter: drop-shadow(0 1px 3px rgba(0,102,51,0.15));
-}
-.logo-divider{
-  width:1px;height:28px;
-  background:var(--nh-gray2);
-  flex-shrink:0;
-}
-.logo-text{line-height:1.2}
-.logo-text strong{
-  display:block;font-size:1rem;font-weight:700;
-  color:var(--nh-green);letter-spacing:-0.02em;
-}
-.logo-text span{
-  font-size:0.7rem;color:var(--nh-text3);letter-spacing:0.02em;
-}
-.header-right{display:flex;align-items:center;gap:10px}
-
-.github-status{
-  font-size:0.72rem;padding:4px 10px;
-  border-radius:20px;border:1px solid;
-  font-weight:500;
-}
-.github-status.connected{
-  background:#e6f4ec;color:var(--nh-green);border-color:#99d4b3;
-}
-.github-status.disconnected{
-  background:#fff3e0;color:#b36a00;border-color:#ffc966;
-}
-
-/* ───── HERO ───── */
-.hero{
-  background:linear-gradient(135deg,var(--nh-green) 0%,var(--nh-green2) 50%,#005522 100%);
-  color:#fff;padding:2rem 1.5rem;
-  position:relative;overflow:hidden;
-}
-.hero::before{
-  content:'';position:absolute;inset:0;
-  background:
-    radial-gradient(ellipse 70% 60% at 90% 50%,rgba(200,168,75,0.15) 0%,transparent 60%),
-    url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-}
-.hero-inner{max-width:1100px;margin:0 auto;position:relative}
-.hero h1{
-  font-family:var(--serif);font-size:1.5rem;font-weight:700;
-  letter-spacing:-0.02em;margin-bottom:4px;
-}
-.hero h1 span{color:var(--nh-gold2)}
-.hero p{font-size:0.8rem;opacity:0.8;margin-bottom:1.2rem}
+.logo img{height:36px;width:auto;object-fit:contain}
+.logo-div{width:1px;height:28px;background:var(--gray2)}
+.logo-text strong{display:block;font-size:1rem;font-weight:700;color:var(--g1);letter-spacing:-.02em}
+.logo-text span{font-size:.7rem;color:var(--text3)}
+.hero{background:linear-gradient(135deg,var(--g1) 0%,var(--g2) 50%,#005522 100%);color:#fff;padding:2rem 1.5rem;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 90% 50%,rgba(200,168,75,.15) 0%,transparent 60%)}
+.hero-in{max-width:1100px;margin:0 auto;position:relative}
+.hero h1{font-family:var(--serif);font-size:1.5rem;font-weight:700;letter-spacing:-.02em;margin-bottom:4px}
+.hero h1 span{color:var(--gold2)}
+.hero p{font-size:.8rem;opacity:.8;margin-bottom:1.2rem}
 .stats-row{display:flex;gap:1rem;flex-wrap:wrap}
-.stat-pill{
-  background:rgba(255,255,255,0.12);
-  border:1px solid rgba(255,255,255,0.2);
-  border-radius:20px;padding:6px 16px;
-  font-size:0.78rem;display:flex;align-items:center;gap:6px;
-}
-.stat-pill b{font-size:1rem;font-weight:700}
-
-/* ───── MAIN LAYOUT ───── */
+.sp{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:6px 16px;font-size:.78rem;display:flex;align-items:center;gap:6px}
+.sp b{font-size:1rem;font-weight:700}
 .main{max-width:1100px;margin:0 auto;padding:1.5rem}
-
-/* ───── SECTION LABEL ───── */
-.sec-label{
-  display:flex;align-items:center;gap:10px;
-  margin-bottom:0.8rem;
-}
-.sec-label h2{
-  font-size:0.78rem;font-weight:700;
-  color:var(--nh-green);text-transform:uppercase;letter-spacing:0.1em;
-}
-.sec-label-line{flex:1;height:1px;background:var(--nh-gray2)}
-
-/* ───── REGISTER CARD ───── */
-.register-card{
-  background:var(--nh-white);
-  border:1px solid var(--nh-gray2);
-  border-top:3px solid var(--nh-green);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow-sm);
-  padding:1.2rem;margin-bottom:1.5rem;
-}
-.reg-row{
-  display:grid;grid-template-columns:150px 1fr auto;
-  gap:0.75rem;align-items:end;
-}
+.sl-row{display:flex;align-items:center;gap:10px;margin-bottom:.8rem}
+.sl-row h2{font-size:.78rem;font-weight:700;color:var(--g1);text-transform:uppercase;letter-spacing:.1em}
+.sl-line{flex:1;height:1px;background:var(--gray2)}
+.reg-card{background:#fff;border:1px solid var(--gray2);border-top:3px solid var(--g1);border-radius:var(--r);box-shadow:var(--ss);padding:1.2rem;margin-bottom:1.5rem}
+.reg-row{display:grid;grid-template-columns:150px 1fr auto;gap:.75rem;align-items:end}
 .fg{display:flex;flex-direction:column;gap:5px}
-.fg label{
-  font-size:0.7rem;font-weight:700;
-  color:var(--nh-green);letter-spacing:0.05em;
-}
-.fg input,.fg select,.fg textarea{
-  border:1px solid var(--nh-gray2);
-  border-radius:6px;
-  padding:0.55rem 0.8rem;
-  font-family:var(--sans);font-size:0.85rem;
-  color:var(--nh-text);
-  background:#fff;outline:none;
-  transition:border-color 0.2s,box-shadow 0.2s;
-}
-.fg input:focus,.fg select:focus,.fg textarea:focus{
-  border-color:var(--nh-green);
-  box-shadow:0 0 0 3px rgba(0,102,51,0.1);
-}
+.fg label{font-size:.7rem;font-weight:700;color:var(--g1);letter-spacing:.05em}
+.fg input,.fg select,.fg textarea{border:1px solid var(--gray2);border-radius:6px;padding:.55rem .8rem;font-family:var(--sans);font-size:.85rem;color:var(--text);background:#fff;outline:none;transition:border-color .2s,box-shadow .2s}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--g1);box-shadow:0 0 0 3px rgba(0,102,51,.1)}
 .fg textarea{resize:vertical;min-height:60px}
-
-/* ───── BUTTONS ───── */
-.btn{
-  padding:0.55rem 1.2rem;border:none;border-radius:6px;
-  font-family:var(--sans);font-size:0.82rem;font-weight:700;
-  cursor:pointer;transition:all 0.2s;letter-spacing:0.01em;
-  white-space:nowrap;
-}
-.btn-primary{background:var(--nh-green);color:#fff}
-.btn-primary:hover{background:var(--nh-green2);box-shadow:var(--shadow-sm)}
-.btn-gold{background:var(--nh-gold);color:#fff}
-.btn-gold:hover{background:var(--nh-gold2);color:var(--nh-text)}
-.btn-ghost{
-  background:transparent;color:var(--nh-text3);
-  border:1px solid var(--nh-gray3);
-}
-.btn-ghost:hover{border-color:var(--nh-green);color:var(--nh-green)}
-.btn-danger{background:#fdf0ed;color:var(--nh-red);border:1px solid #f5c4b8}
-.btn-danger:hover{background:#fbe0d9}
-.btn-sm{padding:0.35rem 0.75rem;font-size:0.72rem}
-.btn-xs{padding:0.25rem 0.6rem;font-size:0.68rem}
-
-/* ───── FILTER BAR ───── */
-.filter-bar{
-  display:flex;align-items:center;gap:0.5rem;
-  margin-bottom:1rem;flex-wrap:wrap;
-}
-.f-btn{
-  font-size:0.75rem;padding:5px 14px;
-  border-radius:20px;border:1px solid var(--nh-gray3);
-  background:#fff;color:var(--nh-text3);
-  cursor:pointer;transition:all 0.2s;font-family:var(--sans);
-}
-.f-btn.active{
-  background:var(--nh-green);color:#fff;border-color:var(--nh-green);
-}
-.f-btn:hover:not(.active){border-color:var(--nh-green);color:var(--nh-green)}
-.search-wrap{margin-left:auto;position:relative}
-.search-wrap input{
-  border:1px solid var(--nh-gray3);border-radius:20px;
-  padding:5px 14px 5px 32px;
-  font-family:var(--sans);font-size:0.78rem;
-  background:#fff;outline:none;width:200px;
-  transition:border-color 0.2s;
-}
-.search-wrap input:focus{border-color:var(--nh-green)}
-.search-wrap::before{
-  content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);
-  font-size:0.72rem;
-}
-
-/* ───── TASK CARDS ───── */
-.board-list{display:flex;flex-direction:column;gap:0.8rem}
-.task-card{
-  background:var(--nh-white);
-  border:1px solid var(--nh-gray2);
-  border-left:4px solid var(--nh-green);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow-sm);
-  overflow:hidden;
-  transition:border-color 0.2s,box-shadow 0.2s;
-  animation:fadeUp 0.35s ease both;
-}
-.task-card:hover{box-shadow:var(--shadow-md)}
-.task-card.done{border-left-color:var(--nh-gold)}
-.task-card.expanded{border-color:var(--nh-green3);box-shadow:var(--shadow-md)}
-
-.task-header{
-  padding:1rem 1.2rem;
-  display:flex;align-items:center;gap:0.8rem;
-  cursor:pointer;user-select:none;
-}
-.task-header:hover{background:var(--nh-light)}
-.task-seq{
-  font-size:0.68rem;font-weight:700;
-  color:var(--nh-gray4);min-width:32px;
-}
-.date-tag{
-  font-size:0.72rem;font-weight:700;
-  background:var(--nh-light);border:1px solid #c8dfd0;
-  color:var(--nh-green);border-radius:6px;
-  padding:3px 10px;white-space:nowrap;
-}
-.task-info{flex:1;min-width:0}
-.task-name{
-  font-size:0.92rem;font-weight:700;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-.task-sub{
-  font-size:0.72rem;color:var(--nh-text3);margin-top:2px;
-}
-.task-actions{display:flex;align-items:center;gap:0.5rem;flex-shrink:0}
-.reply-badge{
-  font-size:0.7rem;background:#e8f4ee;color:var(--nh-green2);
-  border:1px solid #b3d9c0;border-radius:20px;padding:2px 9px;font-weight:700;
-}
-.status-tag{
-  font-size:0.68rem;font-weight:700;padding:3px 10px;
-  border-radius:20px;letter-spacing:0.03em;
-}
-.status-ongoing{background:#fff8e1;color:#a07000;border:1px solid #ffe082}
-.status-done{background:#e8f4ee;color:var(--nh-green);border:1px solid #b3d9c0}
-.chevron{
-  width:16px;height:16px;color:var(--nh-gray4);
-  transition:transform 0.3s;flex-shrink:0;
-}
-.expanded .chevron{transform:rotate(180deg)}
-
-/* ───── TASK BODY ───── */
-.task-body{display:none;border-top:1px solid var(--nh-gray2)}
-.task-body.show{display:block}
-
-.task-desc-box{
-  background:var(--nh-light);
-  border-bottom:1px dashed var(--nh-gray2);
-  padding:0.9rem 1.2rem;
-}
-.task-desc-box .lbl{
-  font-size:0.68rem;font-weight:700;color:var(--nh-green);
-  text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;
-}
-.task-desc-box p{font-size:0.82rem;color:var(--nh-text2);line-height:1.6}
-
-/* ───── REPLIES ───── */
-.replies-wrap{padding:1rem 1.2rem}
-.replies-head{
-  display:flex;align-items:center;gap:8px;
-  margin-bottom:0.8rem;
-}
-.replies-head span{
-  font-size:0.72rem;font-weight:700;color:var(--nh-green);
-  text-transform:uppercase;letter-spacing:0.08em;
-}
-.replies-head small{font-size:0.7rem;color:var(--nh-text3)}
-
-.reply-list{display:flex;flex-direction:column;gap:0.6rem;margin-bottom:1rem}
-.reply-item{
-  background:var(--nh-gray1);border:1px solid var(--nh-gray2);
-  border-radius:8px;padding:0.8rem 1rem;
-  display:grid;grid-template-columns:36px 1fr auto;gap:0.7rem;
-  align-items:start;
-  animation:fadeUp 0.25s ease both;
-}
-.reply-avatar{
-  width:36px;height:36px;border-radius:50%;
-  background:linear-gradient(135deg,var(--nh-green),var(--nh-green2));
-  display:flex;align-items:center;justify-content:center;
-  font-size:0.82rem;font-weight:700;color:#fff;
-  border:2px solid var(--nh-gold);
-  flex-shrink:0;
-}
-.reply-body{}
-.reply-meta{display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap}
-.reply-name{font-size:0.85rem;font-weight:700;color:var(--nh-text)}
-.reply-dept-tag{
-  font-size:0.66rem;background:#e8f4ee;color:var(--nh-green);
-  border:1px solid #b3d9c0;border-radius:4px;padding:1px 6px;font-weight:700;
-}
-.reply-duty-tag{
-  font-size:0.66rem;background:#fff8e1;color:#a07000;
-  border:1px solid #ffe082;border-radius:4px;padding:1px 6px;font-weight:700;
-}
-.reply-time{font-size:0.65rem;color:var(--nh-text3)}
-.reply-text{
-  font-size:0.82rem;color:var(--nh-text2);line-height:1.6;
-  white-space:pre-wrap;
-}
-.reply-confirm-mark{
-  display:inline-flex;align-items:center;gap:3px;
-  font-size:0.66rem;color:var(--nh-green);font-weight:700;margin-top:4px;
-}
-.reply-controls{display:flex;flex-direction:column;gap:3px;flex-shrink:0}
-
-/* inline edit */
-.reply-edit-area{
-  width:100%;border:1px solid var(--nh-green);border-radius:6px;
-  padding:0.5rem;font-family:var(--sans);font-size:0.82rem;
-  color:var(--nh-text);background:#fff;outline:none;resize:vertical;
-  min-height:60px;margin-top:4px;
-}
-.reply-edit-btns{display:flex;gap:4px;margin-top:4px}
-
-/* ───── REPLY FORM ───── */
-.reply-form{
-  background:linear-gradient(135deg,#f0f7f2,#e8f4ee);
-  border:1px solid #c8dfd0;border-radius:8px;padding:1rem;
-}
-.reply-form-title{
-  font-size:0.75rem;font-weight:700;color:var(--nh-green);
-  margin-bottom:0.7rem;letter-spacing:0.05em;
-  display:flex;align-items:center;gap:6px;
-}
-.reply-form-title::before{
-  content:'';display:inline-block;width:3px;height:14px;
-  background:var(--nh-gold);border-radius:2px;
-}
-.rf-grid{
-  display:grid;grid-template-columns:1fr 1fr 1fr;
-  gap:0.5rem;margin-bottom:0.5rem;
-}
-.rf-bottom{
-  display:grid;grid-template-columns:1fr auto;
-  gap:0.5rem;align-items:end;
-}
-
-/* ───── MODAL ───── */
-.modal-backdrop{
-  display:none;position:fixed;inset:0;
-  background:rgba(0,60,20,0.5);backdrop-filter:blur(4px);
-  z-index:400;align-items:center;justify-content:center;padding:1rem;
-}
-.modal-backdrop.show{display:flex}
-.modal{
-  background:#fff;border-radius:12px;
-  box-shadow:var(--shadow-lg);
-  width:100%;max-width:560px;
-  border-top:4px solid var(--nh-green);
-  animation:fadeUp 0.3s ease;
-  max-height:90vh;overflow-y:auto;
-}
-.modal-head{
-  padding:1.2rem 1.5rem 1rem;
-  border-bottom:1px solid var(--nh-gray2);
-  display:flex;align-items:center;gap:10px;
-}
-.modal-head h3{font-size:1rem;font-weight:700;flex:1}
-.modal-head .close-btn{
-  background:none;border:none;font-size:1.3rem;
-  color:var(--nh-gray4);cursor:pointer;
-}
-.modal-body{padding:1.2rem 1.5rem}
-.modal-grid{
-  display:grid;grid-template-columns:1fr 1fr;
-  gap:0.75rem;margin-bottom:0.75rem;
-}
-.modal-full{margin-bottom:0.75rem}
-.modal-foot{
-  padding:1rem 1.5rem;border-top:1px solid var(--nh-gray2);
-  display:flex;justify-content:flex-end;gap:0.5rem;
-}
-
-/* ───── CONFIG MODAL ───── */
-
-
-/* ───── LOADING ───── */
-.loading{
-  text-align:center;padding:3rem;
-  color:var(--nh-text3);font-size:0.85rem;
-}
-.spinner{
-  width:32px;height:32px;border:3px solid var(--nh-gray2);
-  border-top-color:var(--nh-green);border-radius:50%;
-  animation:spin 0.8s linear infinite;margin:0 auto 12px;
-}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* ───── EMPTY ───── */
-.empty{
-  text-align:center;padding:4rem 2rem;
-  color:var(--nh-text3);font-size:0.82rem;
-}
-.empty-icon{font-size:2.5rem;margin-bottom:10px;opacity:0.5}
-
-/* ───── TOAST ───── */
-.toast{
-  position:fixed;bottom:1.5rem;right:1.5rem;
-  background:var(--nh-green);color:#fff;
-  border-radius:8px;padding:0.75rem 1.2rem;
-  font-size:0.8rem;font-weight:500;
-  z-index:500;opacity:0;transform:translateY(8px);
-  transition:all 0.3s;pointer-events:none;
-  box-shadow:var(--shadow-md);max-width:300px;
-}
-.toast.error{background:var(--nh-red)}
+.btn{padding:.55rem 1.2rem;border:none;border-radius:6px;font-family:var(--sans);font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn-p{background:var(--g1);color:#fff}.btn-p:hover{background:var(--g2)}
+.btn-gold{background:var(--gold);color:#fff}.btn-gold:hover{background:var(--gold2);color:var(--text)}
+.btn-ghost{background:transparent;color:var(--text3);border:1px solid var(--gray3)}.btn-ghost:hover{border-color:var(--g1);color:var(--g1)}
+.btn-danger{background:#fdf0ed;color:var(--red);border:1px solid #f5c4b8}.btn-danger:hover{background:#fbe0d9}
+.btn-sm{padding:.35rem .75rem;font-size:.72rem}
+.btn-xs{padding:.25rem .6rem;font-size:.68rem}
+.fbar{display:flex;align-items:center;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap}
+.fb{font-size:.75rem;padding:5px 14px;border-radius:20px;border:1px solid var(--gray3);background:#fff;color:var(--text3);cursor:pointer;transition:all .2s;font-family:var(--sans)}
+.fb.active{background:var(--g1);color:#fff;border-color:var(--g1)}
+.fb:hover:not(.active){border-color:var(--g1);color:var(--g1)}
+.sw{margin-left:auto;position:relative}
+.sw input{border:1px solid var(--gray3);border-radius:20px;padding:5px 14px 5px 32px;font-family:var(--sans);font-size:.78rem;background:#fff;outline:none;width:200px;transition:border-color .2s}
+.sw input:focus{border-color:var(--g1)}
+.sw::before{content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:.72rem}
+.board{display:flex;flex-direction:column;gap:.8rem}
+.tc{background:#fff;border:1px solid var(--gray2);border-left:4px solid var(--g1);border-radius:var(--r);box-shadow:var(--ss);overflow:hidden;transition:box-shadow .2s;animation:fu .35s ease both}
+.tc:hover{box-shadow:var(--sm)}
+.tc.done{border-left-color:var(--gold)}
+.tc.expanded{border-color:var(--g3);box-shadow:var(--sm)}
+.th{padding:1rem 1.2rem;display:flex;align-items:center;gap:.8rem;cursor:pointer;user-select:none}
+.th:hover{background:var(--light)}
+.tseq{font-size:.68rem;font-weight:700;color:var(--gray4);min-width:32px}
+.dtag{font-size:.72rem;font-weight:700;background:var(--light);border:1px solid #c8dfd0;color:var(--g1);border-radius:6px;padding:3px 10px;white-space:nowrap}
+.ti{flex:1;min-width:0}
+.tname{font-size:.92rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tsub{font-size:.72rem;color:var(--text3);margin-top:2px}
+.tact{display:flex;align-items:center;gap:.5rem;flex-shrink:0}
+.rbadge{font-size:.7rem;background:#e8f4ee;color:var(--g2);border:1px solid #b3d9c0;border-radius:20px;padding:2px 9px;font-weight:700}
+.stag{font-size:.68rem;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.03em}
+.s-open{background:#fff8e1;color:#a07000;border:1px solid #ffe082}
+.s-closed{background:#e8f4ee;color:var(--g1);border:1px solid #b3d9c0}
+.chev{width:16px;height:16px;color:var(--gray4);transition:transform .3s;flex-shrink:0}
+.expanded .chev{transform:rotate(180deg)}
+.tbody{display:none;border-top:1px solid var(--gray2)}
+.tbody.show{display:block}
+.tdesc{background:var(--light);border-bottom:1px dashed var(--gray2);padding:.9rem 1.2rem}
+.tdesc .lbl{font-size:.68rem;font-weight:700;color:var(--g1);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.tdesc p{font-size:.82rem;color:var(--text2);line-height:1.6}
+.rw{padding:1rem 1.2rem}
+.rhead{display:flex;align-items:center;gap:8px;margin-bottom:.8rem}
+.rhead span{font-size:.72rem;font-weight:700;color:var(--g1);text-transform:uppercase;letter-spacing:.08em}
+.rhead small{font-size:.7rem;color:var(--text3)}
+.rlist{display:flex;flex-direction:column;gap:.6rem;margin-bottom:1rem}
+.ri{background:var(--gray1);border:1px solid var(--gray2);border-radius:8px;padding:.8rem 1rem;display:grid;grid-template-columns:36px 1fr auto;gap:.7rem;align-items:start;animation:fu .25s ease both}
+.av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--g1),var(--g2));display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:700;color:#fff;border:2px solid var(--gold);flex-shrink:0}
+.rmeta{display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap}
+.rname{font-size:.85rem;font-weight:700}
+.rdept{font-size:.66rem;background:#e8f4ee;color:var(--g1);border:1px solid #b3d9c0;border-radius:4px;padding:1px 6px;font-weight:700}
+.rduty{font-size:.66rem;background:#fff8e1;color:#a07000;border:1px solid #ffe082;border-radius:4px;padding:1px 6px;font-weight:700}
+.rtime{font-size:.65rem;color:var(--text3)}
+.rtxt{font-size:.82rem;color:var(--text2);line-height:1.6;white-space:pre-wrap}
+.rchk{display:inline-flex;align-items:center;gap:3px;font-size:.66rem;color:var(--g1);font-weight:700;margin-top:4px}
+.rctrl{display:flex;flex-direction:column;gap:3px;flex-shrink:0}
+.rea{width:100%;border:1px solid var(--g1);border-radius:6px;padding:.5rem;font-family:var(--sans);font-size:.82rem;color:var(--text);background:#fff;outline:none;resize:vertical;min-height:60px;margin-top:4px}
+.rebtns{display:flex;gap:4px;margin-top:4px}
+.rf{background:linear-gradient(135deg,#f0f7f2,#e8f4ee);border:1px solid #c8dfd0;border-radius:8px;padding:1rem}
+.rft{font-size:.75rem;font-weight:700;color:var(--g1);margin-bottom:.7rem;display:flex;align-items:center;gap:6px}
+.rft::before{content:'';display:inline-block;width:3px;height:14px;background:var(--gold);border-radius:2px}
+.rfg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-bottom:.5rem}
+.rfb{display:grid;grid-template-columns:1fr auto;gap:.5rem;align-items:end}
+.modal-back{display:none;position:fixed;inset:0;background:rgba(0,60,20,.5);backdrop-filter:blur(4px);z-index:400;align-items:center;justify-content:center;padding:1rem}
+.modal-back.show{display:flex}
+.modal{background:#fff;border-radius:12px;box-shadow:var(--sl);width:100%;max-width:560px;border-top:4px solid var(--g1);animation:fu .3s ease;max-height:90vh;overflow-y:auto}
+.mh{padding:1.2rem 1.5rem 1rem;border-bottom:1px solid var(--gray2);display:flex;align-items:center;gap:10px}
+.mh h3{font-size:1rem;font-weight:700;flex:1}
+.mh .xbtn{background:none;border:none;font-size:1.3rem;color:var(--gray4);cursor:pointer}
+.mb{padding:1.2rem 1.5rem}
+.mg{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem}
+.mf{margin-bottom:.75rem}
+.mft{padding:1rem 1.5rem;border-top:1px solid var(--gray2);display:flex;justify-content:flex-end;gap:.5rem}
+.loading{text-align:center;padding:3rem;color:var(--text3);font-size:.85rem}
+.spinner{width:32px;height:32px;border:3px solid var(--gray2);border-top-color:var(--g1);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+.empty{text-align:center;padding:4rem 2rem;color:var(--text3);font-size:.82rem}
+.empty-icon{font-size:2.5rem;margin-bottom:10px;opacity:.5}
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--g1);color:#fff;border-radius:8px;padding:.75rem 1.2rem;font-size:.8rem;font-weight:500;z-index:500;opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none;box-shadow:var(--sm);max-width:300px}
+.toast.err{background:var(--red)}
 .toast.show{opacity:1;transform:translateY(0)}
-
-/* ───── ANIM ───── */
-@keyframes fadeUp{
-  from{opacity:0;transform:translateY(8px)}
-  to{opacity:1;transform:translateY(0)}
-}
-
-/* ───── RESPONSIVE ───── */
+@keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
 @media(max-width:720px){
   .reg-row{grid-template-columns:1fr}
-  .rf-grid{grid-template-columns:1fr 1fr}
-  .modal-grid{grid-template-columns:1fr}
-  .stats-row{gap:0.6rem}
-  .header-inner{padding:0 1rem}
-  .main{padding:1rem}
+  .rfg{grid-template-columns:1fr 1fr}
+  .mg{grid-template-columns:1fr}
+  .stats-row{gap:.6rem}
 }
 </style>
 </head>
 <body>
-
-<div class="top-band"></div>
-
-<!-- HEADER -->
+<div class="topband"></div>
 <header>
-  <div class="header-inner">
+  <div class="hi">
     <div class="logo">
-      <img src="data:image/jpeg;base64,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" class="logo-ci" alt="농협 CI"/>
-      <div class="logo-divider"></div>
+      <img src="data:image/jpeg;base64,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" alt="농협"/>
+      <div class="logo-div"></div>
       <div class="logo-text">
         <strong>IT 업무확인 게시판</strong>
         <span>NH Nonghyup · IT Work Confirmation Board</span>
       </div>
     </div>
-    <div class="header-right">
-      <span class="github-status" id="ghStatus" style="display:none"></span>
-    </div>
   </div>
 </header>
 
-<!-- HERO -->
 <div class="hero">
-  <div class="hero-inner">
+  <div class="hero-in">
     <h1>IT 작업 <span>업무확인</span> 게시판</h1>
     <p>작업 등록 후 담당자가 업무확인 응답을 남기는 협업 시스템 · GitHub Issues 기반 영구저장</p>
     <div class="stats-row">
-      <div class="stat-pill">전체 작업 <b id="sTotal">0</b>건</div>
-      <div class="stat-pill">진행중 <b id="sOngoing">0</b>건</div>
-      <div class="stat-pill">완료 <b id="sDone">0</b>건</div>
-      <div class="stat-pill">업무확인 응답 <b id="sReplies">0</b>건</div>
+      <div class="sp">전체 작업 <b id="sTotal">0</b>건</div>
+      <div class="sp">진행중 <b id="sOngoing">0</b>건</div>
+      <div class="sp">완료 <b id="sDone">0</b>건</div>
+      <div class="sp">업무확인 응답 <b id="sReplies">0</b>건</div>
     </div>
   </div>
 </div>
 
-<!-- MAIN -->
 <div class="main">
-
-  <!-- 등록 -->
-  <div class="sec-label"><h2>작업 등록</h2><div class="sec-label-line"></div></div>
-  <div class="register-card">
+  <div class="sl-row"><h2>작업 등록</h2><div class="sl-line"></div></div>
+  <div class="reg-card">
     <div class="reg-row">
-      <div class="fg">
-        <label>작업 날짜</label>
-        <input type="date" id="qDate"/>
-      </div>
-      <div class="fg">
-        <label>작업명</label>
-        <input type="text" id="qTitle" placeholder="예) 운영서버 보안패치, DB 백업 작업..."/>
-      </div>
-      <button class="btn btn-primary" onclick="openNewModal()">＋ 작업 등록</button>
+      <div class="fg"><label>작업 날짜</label><input type="date" id="qDate"/></div>
+      <div class="fg"><label>작업명</label><input type="text" id="qTitle" placeholder="예) 운영서버 보안패치, DB 백업 작업..."/></div>
+      <button class="btn btn-p" onclick="openNewModal()">＋ 작업 등록</button>
     </div>
   </div>
-
-  <!-- 필터 -->
-  <div class="filter-bar">
-    <button class="f-btn active" onclick="setFilter('all',this)">전체</button>
-    <button class="f-btn" onclick="setFilter('open',this)">진행중</button>
-    <button class="f-btn" onclick="setFilter('closed',this)">완료</button>
-    <div class="search-wrap">
-      <input type="text" placeholder="작업명 검색..." oninput="doSearch(this.value)"/>
-    </div>
+  <div class="fbar">
+    <button class="fb active" onclick="setFilter('all',this)">전체</button>
+    <button class="fb" onclick="setFilter('open',this)">진행중</button>
+    <button class="fb" onclick="setFilter('closed',this)">완료</button>
+    <div class="sw"><input type="text" placeholder="작업명 검색..." oninput="doSearch(this.value)"/></div>
   </div>
-
-  <!-- 게시판 -->
-  <div class="sec-label"><h2>작업 목록</h2><div class="sec-label-line"></div></div>
-  <div class="board-list" id="boardList">
-    <div class="loading"><div class="spinner"></div>GitHub 설정 후 작업 목록이 로드됩니다.</div>
+  <div class="sl-row"><h2>작업 목록</h2><div class="sl-line"></div></div>
+  <div class="board" id="board">
+    <div class="loading"><div class="spinner"></div>불러오는 중...</div>
   </div>
 </div>
 
-<!-- ══════════════════ 작업등록 MODAL ══════════════════ -->
-<div class="modal-backdrop" id="newModal">
+<!-- 작업등록 모달 -->
+<div class="modal-back" id="newModal">
   <div class="modal">
-    <div class="modal-head">
-      <h3>📋 IT 작업 등록</h3>
-      <button class="close-btn" onclick="closeNewModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="modal-grid">
+    <div class="mh"><h3>📋 IT 작업 등록</h3><button class="xbtn" onclick="closeNewModal()">✕</button></div>
+    <div class="mb">
+      <div class="mg">
         <div class="fg"><label>작업 날짜</label><input type="date" id="mDate"/></div>
-        <div class="fg">
-          <label>작업 유형</label>
+        <div class="fg"><label>작업 유형</label>
           <select id="mType">
             <option>서버 작업</option><option>네트워크 작업</option>
             <option>DB 작업</option><option>보안 패치</option>
@@ -549,23 +203,17 @@ header{
           </select>
         </div>
       </div>
-      <div class="modal-full fg"><label>작업명</label>
-        <input type="text" id="mTitle" placeholder="작업명을 입력하세요"/>
-      </div>
-      <div class="modal-full fg"><label>작업 설명 (선택)</label>
-        <textarea id="mDesc" placeholder="작업 내용, 영향 범위, 주의사항..."></textarea>
-      </div>
-      <div class="modal-grid">
+      <div class="mf fg"><label>작업명</label><input type="text" id="mTitle" placeholder="작업명을 입력하세요"/></div>
+      <div class="mf fg"><label>작업 설명 (선택)</label><textarea id="mDesc" placeholder="작업 내용, 영향 범위, 주의사항..."></textarea></div>
+      <div class="mg">
         <div class="fg"><label>시작 시간</label><input type="time" id="mSt"/></div>
         <div class="fg"><label>종료 시간</label><input type="time" id="mEt"/></div>
       </div>
-      <div class="modal-full fg"><label>등록자</label>
-        <input type="text" id="mAuthor" placeholder="등록자 이름"/>
-      </div>
+      <div class="mf fg"><label>등록자</label><input type="text" id="mAuthor" placeholder="등록자 이름"/></div>
     </div>
-    <div class="modal-foot">
+    <div class="mft">
       <button class="btn btn-ghost" onclick="closeNewModal()">취소</button>
-      <button class="btn btn-primary" onclick="submitNewTask()">등록</button>
+      <button class="btn btn-p" onclick="submitTask()">등록</button>
     </div>
   </div>
 </div>
@@ -573,229 +221,129 @@ header{
 <div class="toast" id="toast"></div>
 
 <script>
-// ══════════════════════════════════════════════
-// CONFIG — 하드코딩 or localStorage
-// ══════════════════════════════════════════════
-// ▼▼▼ 여기에 직접 입력하면 설정 화면 없이 바로 동작합니다 ▼▼▼
-const PRESET = {
-  owner: 'get1t',
-  repo:  'systemai',
-  token: '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'
-};
-// ▲▲▲ 세 항목 모두 입력 시 localStorage 설정을 무시하고 PRESET 사용 ▲▲▲
+// ── 설정 (하드코딩) ──────────────────────────
+const OWNER = 'get1t';
+const REPO  = 'systemai';
+const TOKEN = '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';
+const GH    = 'https://api.github.com';
+const BASE  = GH + '/repos/' + OWNER + '/' + REPO;
+// ─────────────────────────────────────────────
 
-const CFG_KEY = 'nh_board_config';
-let cfg = {};
 let allIssues = [];
-let currentFilter = 'all';
-let currentSearch = '';
+let filter = 'all';
+let search = '';
 
-function loadCfg(){
-  // PRESET이 모두 채워져 있으면 우선 사용
-  if(PRESET.owner && PRESET.repo && PRESET.token){
-    cfg = { owner: PRESET.owner, repo: PRESET.repo, token: PRESET.token };
-    return;
-  }
-  try{
-    const ls = localStorage.getItem(CFG_KEY);
-    const ss = sessionStorage.getItem(CFG_KEY);
-    if(ls){ cfg = JSON.parse(ls); }
-    else if(ss){ cfg = JSON.parse(ss); localStorage.setItem(CFG_KEY, ss); }
-    else{ cfg = {}; }
-  }catch{ cfg={}; }
+function hdrs(){
+  return {
+    'Accept':'application/vnd.github+json',
+    'Authorization':'Bearer ' + TOKEN,
+    'X-GitHub-Api-Version':'2022-11-28'
+  };
 }
-function saveCfg(){
-  const s = JSON.stringify(cfg);
-  try{ localStorage.setItem(CFG_KEY, s); }catch{}
-  try{ sessionStorage.setItem(CFG_KEY, s); }catch{}
-}
-
-// ══════════════════════════════════════════════
-// GITHUB API HELPERS
-// ══════════════════════════════════════════════
-const GH = 'https://api.github.com';
-
-function apiHeaders(){
-  const h = { 'Accept':'application/vnd.github+json',
-               'X-GitHub-Api-Version':'2022-11-28' };
-  if(cfg.token) h['Authorization'] = 'Bearer ' + cfg.token;
-  return h;
-}
-
-async function ghGet(path){
-  const r = await fetch(GH+path, {headers:apiHeaders()});
-  if(!r.ok) throw new Error('API 오류: '+r.status+' '+r.statusText);
+async function get(path){
+  const r = await fetch(GH+path, {headers:hdrs()});
+  if(!r.ok) throw new Error(r.status+' '+r.statusText);
   return r.json();
 }
-async function ghPost(path, body){
-  const r = await fetch(GH+path, {
-    method:'POST', headers:{...apiHeaders(),'Content-Type':'application/json'},
-    body: JSON.stringify(body)
-  });
-  if(!r.ok) throw new Error('API 오류: '+r.status+' '+r.statusText);
+async function post(path, body){
+  const r = await fetch(GH+path, {method:'POST',headers:{...hdrs(),'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!r.ok) throw new Error(r.status+' '+r.statusText);
   return r.json();
 }
-async function ghPatch(path, body){
-  const r = await fetch(GH+path, {
-    method:'PATCH', headers:{...apiHeaders(),'Content-Type':'application/json'},
-    body: JSON.stringify(body)
-  });
-  if(!r.ok) throw new Error('API 오류: '+r.status+' '+r.statusText);
+async function patch(path, body){
+  const r = await fetch(GH+path, {method:'PATCH',headers:{...hdrs(),'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!r.ok) throw new Error(r.status+' '+r.statusText);
   return r.json();
 }
-async function ghDelete(path){
-  const r = await fetch(GH+path, {method:'DELETE', headers:apiHeaders()});
+async function del(path){
+  const r = await fetch(GH+path, {method:'DELETE',headers:hdrs()});
   if(r.status===204) return true;
-  throw new Error('삭제 오류: '+r.status);
+  throw new Error(r.status);
 }
 
-function repoPath(){ return `/repos/${cfg.owner}/${cfg.repo}`; }
-function isConfigured(){ return cfg.owner && cfg.repo && cfg.token; }
-
-// ══════════════════════════════════════════════
-// PARSE ISSUE ↔ TASK
-// ══════════════════════════════════════════════
-function issueToTask(issue){
-  // body 파싱: <!-- NH_META: {...} -->
-  let meta = {};
-  const m = (issue.body||'').match(/<!--NH_META:(.*?)-->/s);
-  if(m){ try{ meta = JSON.parse(m[1]); }catch{} }
-  return {
-    id: issue.number,
-    ghId: issue.number,
-    title: issue.title,
-    status: issue.state,          // 'open' | 'closed'
-    date: meta.date||'',
-    type: meta.type||'',
-    desc: meta.desc||'',
-    startTime: meta.startTime||'',
-    endTime: meta.endTime||'',
-    author: meta.author||'',
-    createdAt: issue.created_at,
-    _expanded: false,
-    _replies: []
-  };
+function parseMeta(body, tag){
+  const m = (body||'').match(new RegExp('<!--'+tag+':(.*?)-->','s'));
+  if(m){ try{ return JSON.parse(m[1]); }catch{} }
+  return {};
 }
-
-function taskToBody(meta, desc){
-  return `<!--NH_META:${JSON.stringify(meta)}-->\n\n${desc||''}`;
+function issueToTask(i){
+  const m = parseMeta(i.body,'NH');
+  return { id:i.number, title:i.title, status:i.state,
+    date:m.date||'', type:m.type||'', desc:m.desc||'',
+    st:m.st||'', et:m.et||'', author:m.author||'',
+    createdAt:i.created_at, _replies:[], _loaded:false, _expanded:false };
 }
-
-// ══════════════════════════════════════════════
-// COMMENT ↔ REPLY
-// ══════════════════════════════════════════════
 function commentToReply(c){
-  let meta = {};
-  const m = (c.body||'').match(/<!--REPLY_META:(.*?)-->/s);
-  if(m){ try{ meta = JSON.parse(m[1]); }catch{} }
-  const text = (c.body||'').replace(/<!--REPLY_META:.*?-->/s,'').trim();
-  return {
-    id: c.id,
-    dept: meta.dept||'',
-    name: meta.name||'',
-    duty: meta.duty||'',
-    content: text,
-    createdAt: c.created_at,
-    updatedAt: c.updated_at
-  };
+  const m = parseMeta(c.body,'RP');
+  const txt = (c.body||'').replace(/<!--RP:.*?-->/s,'').trim();
+  return { id:c.id, dept:m.dept||'', name:m.name||'', duty:m.duty||'',
+    content:txt, createdAt:c.created_at, updatedAt:c.updated_at };
 }
 
-function replyToBody(meta, content){
-  return `<!--REPLY_META:${JSON.stringify(meta)}-->\n${content}`;
-}
-
-// ══════════════════════════════════════════════
-// LOAD ISSUES
-// ══════════════════════════════════════════════
-async function loadIssues(){
-  const list = document.getElementById('boardList');
-  if(!isConfigured()){
-    list.innerHTML = `<div class="empty"><div class="empty-icon">🔗</div>
-      <p>연결 정보가 없습니다.<br/>코드 상단 <strong>PRESET</strong> 항목을 확인해주세요.</p></div>`;
-    updateStats([]);
-    return;
-  }
-  list.innerHTML = `<div class="loading"><div class="spinner"></div>작업 목록 불러오는 중...</div>`;
+async function loadBoard(){
+  const el = document.getElementById('board');
+  el.innerHTML = '<div class="loading"><div class="spinner"></div>작업 목록 불러오는 중...</div>';
   try{
-    // 최대 100개
-    const issues = await ghGet(repoPath()+'/issues?state=all&per_page=100');
+    const issues = await get('/repos/'+OWNER+'/'+REPO+'/issues?state=all&per_page=100');
     allIssues = issues.filter(i=>!i.pull_request).map(issueToTask);
     renderBoard();
-    updateStats(allIssues);
-    updateGhStatus(true);
+    updateStats();
   }catch(e){
-    list.innerHTML = `<div class="empty"><div class="empty-icon">⚠</div>
-      <p>불러오기 실패: ${e.message}<br/>GitHub 설정을 확인해주세요.</p></div>`;
-    updateGhStatus(false);
+    el.innerHTML = '<div class="empty"><div class="empty-icon">⚠</div><p>불러오기 실패: '+e.message+'</p></div>';
   }
 }
 
-// ══════════════════════════════════════════════
-// RENDER
-// ══════════════════════════════════════════════
 function renderBoard(){
-  let tasks = [...allIssues].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
-  if(currentFilter==='open') tasks=tasks.filter(t=>t.status==='open');
-  if(currentFilter==='closed') tasks=tasks.filter(t=>t.status==='closed');
-  if(currentSearch) tasks=tasks.filter(t=>t.title.includes(currentSearch)||(t.type||'').includes(currentSearch));
-  const list=document.getElementById('boardList');
-  if(!tasks.length){
-    list.innerHTML=`<div class="empty"><div class="empty-icon">📭</div><p>등록된 작업이 없습니다.</p></div>`;
-    return;
-  }
-  list.innerHTML=tasks.map((t,i)=>renderTaskCard(t,i+1)).join('');
+  let list = [...allIssues].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  if(filter==='open') list=list.filter(t=>t.status==='open');
+  if(filter==='closed') list=list.filter(t=>t.status==='closed');
+  if(search) list=list.filter(t=>t.title.includes(search)||(t.type||'').includes(search));
+  const el=document.getElementById('board');
+  if(!list.length){ el.innerHTML='<div class="empty"><div class="empty-icon">📭</div><p>등록된 작업이 없습니다.</p></div>'; return; }
+  el.innerHTML = list.map((t,i)=>cardHTML(t,i+1)).join('');
+  updateStats();
 }
 
-function renderTaskCard(t, num){
-  const exp = t._expanded;
-  const dateStr = t.date ? formatDate(t.date) : '날짜미정';
-  const statusLabel = t.status==='open' ? '진행중' : '완료';
-  const statusClass = t.status==='open' ? 'status-ongoing' : 'status-done';
-  const cardClass = t.status==='closed' ? 'done' : '';
+function cardHTML(t,n){
+  const exp=t._expanded;
+  const ds=t.date?fmtDate(t.date):'날짜미정';
+  const sl=t.status==='open'?'진행중':'완료';
+  const sc=t.status==='open'?'s-open':'s-closed';
   return `
-<div class="task-card ${cardClass} ${exp?'expanded':''}" id="card_${t.id}">
-  <div class="task-header" onclick="toggleCard(${t.id})">
-    <span class="task-seq">#${String(num).padStart(3,'0')}</span>
-    <span class="date-tag">📅 ${dateStr}</span>
-    <div class="task-info">
-      <div class="task-name">${esc(t.title)}</div>
-      <div class="task-sub">${esc(t.type)} ${t.startTime?'· '+t.startTime+(t.endTime?' ~ '+t.endTime:''):''} ${t.author?'· 등록: '+esc(t.author):''}</div>
+<div class="tc ${t.status==='closed'?'done':''} ${exp?'expanded':''}" id="tc_${t.id}">
+  <div class="th" onclick="toggle(${t.id})">
+    <span class="tseq">#${String(n).padStart(3,'0')}</span>
+    <span class="dtag">📅 ${ds}</span>
+    <div class="ti">
+      <div class="tname">${esc(t.title)}</div>
+      <div class="tsub">${esc(t.type)} ${t.st?'· '+t.st+(t.et?' ~ '+t.et:''):''} ${t.author?'· 등록: '+esc(t.author):''}</div>
     </div>
-    <div class="task-actions">
-      <span class="reply-badge" id="rc_${t.id}">💬 ${t._replies.length}</span>
-      <span class="status-tag ${statusClass}">${statusLabel}</span>
+    <div class="tact">
+      <span class="rbadge" id="rc_${t.id}">💬 ${t._replies.length}</span>
+      <span class="stag ${sc}">${sl}</span>
       ${t.status==='open'
-        ? `<button class="btn btn-gold btn-sm" onclick="event.stopPropagation();closeTask(${t.id})">✓ 완료</button>`
-        : `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();reopenTask(${t.id})">↺ 재개</button>`}
-      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <polyline points="6,9 12,15 18,9"/>
-      </svg>
+        ?`<button class="btn btn-gold btn-sm" onclick="event.stopPropagation();closeTask(${t.id})">✓ 완료</button>`
+        :`<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();reopenTask(${t.id})">↺ 재개</button>`}
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6,9 12,15 18,9"/></svg>
     </div>
   </div>
-  <div class="task-body ${exp?'show':''}" id="body_${t.id}">
-    ${t.desc?`<div class="task-desc-box"><div class="lbl">작업 설명</div><p>${esc(t.desc).replace(/\n/g,'<br>')}</p></div>`:''}
-    <div class="replies-wrap">
-      <div class="replies-head">
-        <span>업무확인 응답</span>
-        <small id="rcount_${t.id}">${t._replies.length}건</small>
+  <div class="tbody ${exp?'show':''}" id="tb_${t.id}">
+    ${t.desc?`<div class="tdesc"><div class="lbl">작업 설명</div><p>${esc(t.desc).replace(/\n/g,'<br>')}</p></div>`:''}
+    <div class="rw">
+      <div class="rhead"><span>업무확인 응답</span><small id="rcount_${t.id}">${t._replies.length}건</small></div>
+      <div class="rlist" id="rl_${t.id}">
+        ${t._replies.length ? t._replies.map(r=>replyHTML(r,t.id)).join('') : '<div style="font-size:.78rem;color:var(--text3);padding:.4rem 0">아직 업무확인 응답이 없습니다.</div>'}
       </div>
-      <div class="reply-list" id="rlist_${t.id}">
-        ${t._replies.length
-          ? t._replies.map(r=>renderReply(r,t.id)).join('')
-          : `<div style="font-size:0.78rem;color:var(--nh-text3);padding:0.4rem 0">아직 업무확인 응답이 없습니다.</div>`}
-      </div>
-      <div class="reply-form" id="rform_${t.id}">
-        <div class="reply-form-title">업무확인 응답 작성</div>
-        <div class="rf-grid">
-          <div class="fg"><label>소속 부서</label><input type="text" id="fdept_${t.id}" placeholder="인프라팀"/></div>
-          <div class="fg"><label>이름</label><input type="text" id="fname_${t.id}" placeholder="홍길동"/></div>
-          <div class="fg"><label>담당 업무</label><input type="text" id="fduty_${t.id}" placeholder="서버 담당"/></div>
+      <div class="rf">
+        <div class="rft">업무확인 응답 작성</div>
+        <div class="rfg">
+          <div class="fg"><label>소속 부서</label><input type="text" id="fd_${t.id}" placeholder="인프라팀"/></div>
+          <div class="fg"><label>이름</label><input type="text" id="fn_${t.id}" placeholder="홍길동"/></div>
+          <div class="fg"><label>담당 업무</label><input type="text" id="fu_${t.id}" placeholder="서버 담당"/></div>
         </div>
-        <div class="rf-bottom">
-          <div class="fg"><label>확인 내용</label>
-            <textarea id="fcont_${t.id}" placeholder="담당 업무 확인 내용을 입력하세요..."></textarea>
-          </div>
-          <button class="btn btn-primary" onclick="submitReply(${t.id})">확인 등록</button>
+        <div class="rfb">
+          <div class="fg"><label>확인 내용</label><textarea id="fc_${t.id}" placeholder="담당 업무 확인 내용을 입력하세요..."></textarea></div>
+          <button class="btn btn-p" onclick="submitReply(${t.id})">확인 등록</button>
         </div>
       </div>
     </div>
@@ -803,95 +351,67 @@ function renderTaskCard(t, num){
 </div>`;
 }
 
-function renderReply(r, taskId){
-  const init = r.name ? r.name.charAt(0) : '?';
-  const edited = r.updatedAt && r.updatedAt !== r.createdAt ? ' (수정됨)' : '';
+function replyHTML(r,tid){
+  const init=r.name?r.name.charAt(0):'?';
+  const edited=r.updatedAt&&r.updatedAt!==r.createdAt?' (수정됨)':'';
   return `
-<div class="reply-item" id="ri_${r.id}">
-  <div class="reply-avatar">${esc(init)}</div>
-  <div class="reply-body">
-    <div class="reply-meta">
-      <span class="reply-name">${esc(r.name)}</span>
-      <span class="reply-dept-tag">${esc(r.dept)}</span>
-      <span class="reply-duty-tag">${esc(r.duty)}</span>
-      <span class="reply-time">${formatDt(r.createdAt)}${edited}</span>
+<div class="ri" id="ri_${r.id}">
+  <div class="av">${esc(init)}</div>
+  <div>
+    <div class="rmeta">
+      <span class="rname">${esc(r.name)}</span>
+      <span class="rdept">${esc(r.dept)}</span>
+      <span class="rduty">${esc(r.duty)}</span>
+      <span class="rtime">${fmtDt(r.createdAt)}${edited}</span>
     </div>
-    <div class="reply-text" id="rtext_${r.id}">${esc(r.content).replace(/\n/g,'<br>')}</div>
-    <div class="reply-confirm-mark">✅ 업무확인 완료</div>
-    <!-- 인라인 수정 영역 (숨김) -->
-    <div id="redit_${r.id}" style="display:none">
-      <textarea class="reply-edit-area" id="retxt_${r.id}">${esc(r.content)}</textarea>
-      <div class="reply-edit-btns">
-        <button class="btn btn-primary btn-xs" onclick="saveEdit(${taskId},${r.id})">저장</button>
+    <div class="rtxt" id="rt_${r.id}">${esc(r.content).replace(/\n/g,'<br>')}</div>
+    <div class="rchk">✅ 업무확인 완료</div>
+    <div id="re_${r.id}" style="display:none">
+      <textarea class="rea" id="retxt_${r.id}">${esc(r.content)}</textarea>
+      <div class="rebtns">
+        <button class="btn btn-p btn-xs" onclick="saveEdit(${tid},${r.id})">저장</button>
         <button class="btn btn-ghost btn-xs" onclick="cancelEdit(${r.id})">취소</button>
       </div>
     </div>
   </div>
-  <div class="reply-controls">
-    <button class="btn btn-ghost btn-xs" onclick="startEdit(${r.id})" title="수정">✏</button>
-    <button class="btn btn-danger btn-xs" onclick="deleteReply(${taskId},${r.id})" title="삭제">✕</button>
+  <div class="rctrl">
+    <button class="btn btn-ghost btn-xs" onclick="startEdit(${r.id})">✏</button>
+    <button class="btn btn-danger btn-xs" onclick="delReply(${tid},${r.id})">✕</button>
   </div>
 </div>`;
 }
 
-// ══════════════════════════════════════════════
-// TOGGLE CARD + LOAD REPLIES
-// ══════════════════════════════════════════════
-async function toggleCard(id){
-  const task = allIssues.find(t=>t.id===id);
-  if(!task) return;
-  task._expanded = !task._expanded;
-  const card = document.getElementById('card_'+id);
-  const body = document.getElementById('body_'+id);
-  if(task._expanded){
-    card.classList.add('expanded');
-    body.classList.add('show');
-    // 댓글 로드 (처음 열 때)
-    if(!task._loaded){
-      await loadReplies(task);
-    }
-  } else {
-    card.classList.remove('expanded');
-    body.classList.remove('show');
-  }
+async function toggle(id){
+  const t=allIssues.find(t=>t.id===id); if(!t) return;
+  t._expanded=!t._expanded;
+  const card=document.getElementById('tc_'+id);
+  const body=document.getElementById('tb_'+id);
+  if(t._expanded){ card.classList.add('expanded'); body.classList.add('show'); if(!t._loaded) await loadReplies(t); }
+  else { card.classList.remove('expanded'); body.classList.remove('show'); }
 }
 
-async function loadReplies(task){
-  const listEl = document.getElementById('rlist_'+task.id);
-  listEl.innerHTML = `<div style="font-size:0.78rem;color:var(--nh-text3)">댓글 불러오는 중...</div>`;
+async function loadReplies(t){
+  const el=document.getElementById('rl_'+t.id);
+  el.innerHTML='<div style="font-size:.78rem;color:var(--text3)">댓글 불러오는 중...</div>';
   try{
-    const comments = await ghGet(repoPath()+'/issues/'+task.id+'/comments');
-    task._replies = comments.map(commentToReply);
-    task._loaded = true;
-    refreshReplies(task);
-    updateStats(allIssues);
-  }catch(e){
-    listEl.innerHTML = `<div style="font-size:0.78rem;color:var(--nh-red)">댓글 로드 실패: ${e.message}</div>`;
-  }
+    const cs=await get('/repos/'+OWNER+'/'+REPO+'/issues/'+t.id+'/comments');
+    t._replies=cs.map(commentToReply); t._loaded=true;
+    refreshReplies(t); updateStats();
+  }catch(e){ el.innerHTML='<div style="font-size:.78rem;color:var(--red)">로드 실패: '+e.message+'</div>'; }
 }
 
-function refreshReplies(task){
-  const listEl = document.getElementById('rlist_'+task.id);
-  const rcEl = document.getElementById('rc_'+task.id);
-  const rcountEl = document.getElementById('rcount_'+task.id);
-  if(listEl){
-    listEl.innerHTML = task._replies.length
-      ? task._replies.map(r=>renderReply(r,task.id)).join('')
-      : `<div style="font-size:0.78rem;color:var(--nh-text3);padding:0.4rem 0">아직 업무확인 응답이 없습니다.</div>`;
-  }
-  if(rcEl) rcEl.textContent = '💬 '+task._replies.length;
-  if(rcountEl) rcountEl.textContent = task._replies.length+'건';
+function refreshReplies(t){
+  const el=document.getElementById('rl_'+t.id);
+  const rc=document.getElementById('rc_'+t.id);
+  const rcount=document.getElementById('rcount_'+t.id);
+  if(el) el.innerHTML=t._replies.length?t._replies.map(r=>replyHTML(r,t.id)).join(''):'<div style="font-size:.78rem;color:var(--text3);padding:.4rem 0">아직 업무확인 응답이 없습니다.</div>';
+  if(rc) rc.textContent='💬 '+t._replies.length;
+  if(rcount) rcount.textContent=t._replies.length+'건';
 }
 
-// ══════════════════════════════════════════════
-// NEW TASK
-// ══════════════════════════════════════════════
 function openNewModal(){
-  if(!isConfigured()){
-    showToast('코드 상단 PRESET에 토큰을 입력해주세요.','error'); return;
-  }
-  const dv = document.getElementById('qDate').value;
-  const tv = document.getElementById('qTitle').value;
+  const dv=document.getElementById('qDate').value;
+  const tv=document.getElementById('qTitle').value;
   if(dv) document.getElementById('mDate').value=dv;
   if(tv) document.getElementById('mTitle').value=tv;
   document.getElementById('newModal').classList.add('show');
@@ -899,204 +419,113 @@ function openNewModal(){
 function closeNewModal(){ document.getElementById('newModal').classList.remove('show'); }
 document.getElementById('newModal').addEventListener('click',e=>{ if(e.target===e.currentTarget) closeNewModal(); });
 
-async function submitNewTask(){
-  const date=v('mDate'), title=v('mTitle').trim(), type=v('mType'),
-        desc=v('mDesc').trim(), st=v('mSt'), et=v('mEt'), author=v('mAuthor').trim();
-  if(!date||!title){ showToast('날짜와 작업명은 필수입니다.','error'); return; }
-  const meta = {date,type,desc,startTime:st,endTime:et,author};
-  const btn = document.querySelector('#newModal .btn-primary');
+async function submitTask(){
+  const date=v('mDate'),title=v('mTitle').trim(),type=v('mType'),
+        desc=v('mDesc').trim(),st=v('mSt'),et=v('mEt'),author=v('mAuthor').trim();
+  if(!date||!title){ toast('날짜와 작업명은 필수입니다.','err'); return; }
+  const btn=document.querySelector('#newModal .btn-p');
   btn.textContent='등록중...'; btn.disabled=true;
   try{
-    const issue = await ghPost(repoPath()+'/issues',{
-      title: title,
-      body: taskToBody(meta, desc)
-    });
-    const task = issueToTask(issue);
-    task._replies=[];task._loaded=true;
+    const meta={date,type,desc,st,et,author};
+    const body='<!--NH:'+JSON.stringify(meta)+'-->\n\n'+desc;
+    const issue=await post('/repos/'+OWNER+'/'+REPO+'/issues',{title,body});
+    const task=issueToTask(issue); task._replies=[]; task._loaded=true;
     allIssues.unshift(task);
-    renderBoard(); updateStats(allIssues);
-    ['mDate','mTitle','mDesc','mSt','mEt','mAuthor'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+    renderBoard(); updateStats();
+    ['mDate','mTitle','mDesc','mSt','mEt','mAuthor'].forEach(id=>{ const e=document.getElementById(id); if(e) e.value=''; });
     document.getElementById('qTitle').value='';
-    closeNewModal();
-    showToast('✓ 작업이 등록되었습니다.');
-  }catch(e){ showToast('등록 실패: '+e.message,'error'); }
+    closeNewModal(); toast('✓ 작업이 등록되었습니다.');
+  }catch(e){ toast('등록 실패: '+e.message,'err'); }
   finally{ btn.textContent='등록'; btn.disabled=false; }
 }
 
-// ══════════════════════════════════════════════
-// TASK STATUS
-// ══════════════════════════════════════════════
 async function closeTask(id){
   if(!confirm('작업을 완료 처리하시겠습니까?')) return;
-  try{
-    await ghPatch(repoPath()+'/issues/'+id,{state:'closed'});
-    const t=allIssues.find(t=>t.id===id);
-    if(t){ t.status='closed'; }
-    renderBoard(); updateStats(allIssues);
-    showToast('✓ 완료 처리되었습니다.');
-  }catch(e){ showToast('오류: '+e.message,'error'); }
+  try{ await patch('/repos/'+OWNER+'/'+REPO+'/issues/'+id,{state:'closed'});
+    const t=allIssues.find(t=>t.id===id); if(t) t.status='closed';
+    renderBoard(); updateStats(); toast('✓ 완료 처리되었습니다.');
+  }catch(e){ toast('오류: '+e.message,'err'); }
 }
 async function reopenTask(id){
+  try{ await patch('/repos/'+OWNER+'/'+REPO+'/issues/'+id,{state:'open'});
+    const t=allIssues.find(t=>t.id===id); if(t) t.status='open';
+    renderBoard(); updateStats(); toast('✓ 재개 처리되었습니다.');
+  }catch(e){ toast('오류: '+e.message,'err'); }
+}
+
+async function submitReply(tid){
+  const dept=v('fd_'+tid).trim(),name=v('fn_'+tid).trim(),
+        duty=v('fu_'+tid).trim(),content=v('fc_'+tid).trim();
+  if(!dept||!name||!duty||!content){ toast('모든 항목을 입력해주세요.','err'); return; }
+  const btn=document.querySelector(`#tc_${tid} .rf .btn-p`);
+  if(btn){ btn.textContent='등록중...'; btn.disabled=true; }
   try{
-    await ghPatch(repoPath()+'/issues/'+id,{state:'open'});
-    const t=allIssues.find(t=>t.id===id);
-    if(t){ t.status='open'; }
-    renderBoard(); updateStats(allIssues);
-    showToast('✓ 재개 처리되었습니다.');
-  }catch(e){ showToast('오류: '+e.message,'error'); }
+    const body='<!--RP:'+JSON.stringify({dept,name,duty})+'-->\n'+content;
+    const c=await post('/repos/'+OWNER+'/'+REPO+'/issues/'+tid+'/comments',{body});
+    const t=allIssues.find(t=>t.id===tid);
+    if(t){ t._replies.push(commentToReply(c)); refreshReplies(t); }
+    ['fd_','fn_','fu_','fc_'].forEach(p=>{ const e=document.getElementById(p+tid); if(e) e.value=''; });
+    updateStats(); toast('✓ 업무확인 응답이 등록되었습니다.');
+  }catch(e){ toast('등록 실패: '+e.message,'err'); }
+  finally{ if(btn){ btn.textContent='확인 등록'; btn.disabled=false; } }
 }
 
-// ══════════════════════════════════════════════
-// SUBMIT REPLY
-// ══════════════════════════════════════════════
-async function submitReply(taskId){
-  const dept=v('fdept_'+taskId).trim(), name=v('fname_'+taskId).trim(),
-        duty=v('fduty_'+taskId).trim(), content=v('fcont_'+taskId).trim();
-  if(!dept||!name||!duty||!content){ showToast('모든 항목을 입력해주세요.','error'); return; }
-  const meta = {dept,name,duty};
-  const btn = document.querySelector(`#rform_${taskId} .btn-primary`);
-  btn.textContent='등록중...'; btn.disabled=true;
+function startEdit(rid){
+  const t=allIssues.find(t=>t._replies&&t._replies.find(r=>r.id===rid));
+  if(t){ const r=t._replies.find(r=>r.id===rid); if(r) document.getElementById('retxt_'+rid).value=r.content; }
+  document.getElementById('rt_'+rid).style.display='none';
+  document.getElementById('re_'+rid).style.display='block';
+}
+function cancelEdit(rid){
+  document.getElementById('rt_'+rid).style.display='';
+  document.getElementById('re_'+rid).style.display='none';
+}
+async function saveEdit(tid,rid){
+  const content=document.getElementById('retxt_'+rid).value.trim();
+  if(!content){ toast('내용을 입력해주세요.','err'); return; }
+  const t=allIssues.find(t=>t.id===tid); if(!t) return;
+  const r=t._replies.find(r=>r.id===rid); if(!r) return;
   try{
-    const comment = await ghPost(repoPath()+'/issues/'+taskId+'/comments',{
-      body: replyToBody(meta,content)
-    });
-    const reply = commentToReply(comment);
-    const task = allIssues.find(t=>t.id===taskId);
-    if(task){ task._replies.push(reply); refreshReplies(task); }
-    ['fdept_','fname_','fduty_','fcont_'].forEach(p=>{ const el=document.getElementById(p+taskId); if(el) el.value=''; });
-    updateStats(allIssues);
-    showToast('✓ 업무확인 응답이 등록되었습니다.');
-  }catch(e){ showToast('등록 실패: '+e.message,'error'); }
-  finally{ btn.textContent='확인 등록'; btn.disabled=false; }
+    const body='<!--RP:'+JSON.stringify({dept:r.dept,name:r.name,duty:r.duty})+'-->\n'+content;
+    const updated=await patch('/repos/'+OWNER+'/'+REPO+'/issues/comments/'+rid,{body});
+    const idx=t._replies.findIndex(rr=>rr.id===rid);
+    if(idx!==-1) t._replies[idx]=commentToReply(updated);
+    refreshReplies(t); toast('✓ 응답이 수정되었습니다.');
+  }catch(e){ toast('수정 실패: '+e.message,'err'); }
 }
-
-// ══════════════════════════════════════════════
-// EDIT REPLY (인라인)
-// ══════════════════════════════════════════════
-function startEdit(replyId){
-  document.getElementById('rtext_'+replyId).style.display='none';
-  document.getElementById('redit_'+replyId).style.display='block';
-  // textarea에 현재 텍스트 (이스케이프 해제)
-  const task = allIssues.find(t=>t._replies&&t._replies.find(r=>r.id===replyId));
-  if(task){
-    const reply = task._replies.find(r=>r.id===replyId);
-    if(reply) document.getElementById('retxt_'+replyId).value = reply.content;
-  }
-}
-function cancelEdit(replyId){
-  document.getElementById('rtext_'+replyId).style.display='';
-  document.getElementById('redit_'+replyId).style.display='none';
-}
-
-async function saveEdit(taskId, replyId){
-  const newContent = document.getElementById('retxt_'+replyId).value.trim();
-  if(!newContent){ showToast('내용을 입력해주세요.','error'); return; }
-  const task = allIssues.find(t=>t.id===taskId);
-  if(!task) return;
-  const reply = task._replies.find(r=>r.id===replyId);
-  if(!reply) return;
-  const meta = {dept:reply.dept, name:reply.name, duty:reply.duty};
-  const btn = document.querySelector(`#ri_${replyId} .btn-primary`);
-  if(btn){ btn.textContent='저장중...'; btn.disabled=true; }
-  try{
-    const updated = await ghPatch(repoPath()+'/issues/comments/'+replyId,{
-      body: replyToBody(meta, newContent)
-    });
-    const r = commentToReply(updated);
-    const idx = task._replies.findIndex(rr=>rr.id===replyId);
-    if(idx!==-1) task._replies[idx]=r;
-    refreshReplies(task);
-    showToast('✓ 응답이 수정되었습니다.');
-  }catch(e){ showToast('수정 실패: '+e.message,'error'); if(btn){btn.textContent='저장';btn.disabled=false;} }
-}
-
-// ══════════════════════════════════════════════
-// DELETE REPLY
-// ══════════════════════════════════════════════
-async function deleteReply(taskId, replyId){
+async function delReply(tid,rid){
   if(!confirm('이 응답을 삭제하시겠습니까?')) return;
   try{
-    await ghDelete(repoPath()+'/issues/comments/'+replyId);
-    const task = allIssues.find(t=>t.id===taskId);
-    if(task){ task._replies = task._replies.filter(r=>r.id!==replyId); refreshReplies(task); }
-    updateStats(allIssues);
-    showToast('✓ 응답이 삭제되었습니다.');
-  }catch(e){ showToast('삭제 실패: '+e.message,'error'); }
+    await del('/repos/'+OWNER+'/'+REPO+'/issues/comments/'+rid);
+    const t=allIssues.find(t=>t.id===tid);
+    if(t){ t._replies=t._replies.filter(r=>r.id!==rid); refreshReplies(t); }
+    updateStats(); toast('✓ 응답이 삭제되었습니다.');
+  }catch(e){ toast('삭제 실패: '+e.message,'err'); }
 }
 
-// ══════════════════════════════════════════════
-// CONFIG
-// ══════════════════════════════════════════════
-
-function updateGhStatus(오케이){
-  const el=document.getElementById('ghStatus');
-  if(ok===null){ el.className='github-status disconnected'; el.textContent='● 연결중...'; return; }
-  if(오케이){ el.className='github-status connected'; el.textContent='● GitHub 연결됨'; }
-  else { el.className='github-status disconnected'; el.textContent='● GitHub 미연결'; }
+function setFilter(f,el){ filter=f; document.querySelectorAll('.fb').forEach(b=>b.classList.remove('active')); el.classList.add('active'); renderBoard(); }
+function doSearch(val){ search=val; renderBoard(); }
+function updateStats(){
+  document.getElementById('sTotal').textContent=allIssues.length;
+  document.getElementById('sOngoing').textContent=allIssues.filter(t=>t.status==='open').length;
+  document.getElementById('sDone').textContent=allIssues.filter(t=>t.status==='closed').length;
+  document.getElementById('sReplies').textContent=allIssues.reduce((s,t)=>s+(t._replies||[]).length,0);
 }
-
-// ══════════════════════════════════════════════
-// FILTER / SEARCH / STATS
-// ══════════════════════════════════════════════
-function setFilter(f,el){
-  currentFilter=f;
-  document.querySelectorAll('.f-btn').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
-  renderBoard();
-}
-function doSearch(val){ currentSearch=val; renderBoard(); }
-
-function updateStats(tasks){
-  tasks=tasks||allIssues;
-  document.getElementById('sTotal').textContent=tasks.length;
-  document.getElementById('sOngoing').textContent=tasks.filter(t=>t.status==='open').length;
-  document.getElementById('sDone').textContent=tasks.filter(t=>t.status==='closed').length;
-  document.getElementById('sReplies').textContent=tasks.reduce((s,t)=>s+(t._replies||[]).length,0);
-}
-
-// ══════════════════════════════════════════════
-// UTILS
-// ══════════════════════════════════════════════
-function v(id){ const el=document.getElementById(id); return el?el.value:''; }
+function v(id){ const e=document.getElementById(id); return e?e.value:''; }
 function esc(s){ if(!s)return''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function formatDate(d){
-  if(!d)return''; const dt=new Date(d+'T00:00:00');
-  return dt.toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit',weekday:'short'});
-}
-function formatDt(iso){
-  if(!iso)return''; const d=new Date(iso);
-  return d.toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
-}
-function showToast(msg,type='ok'){
+function fmtDate(d){ if(!d)return''; const dt=new Date(d+'T00:00:00'); return dt.toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit',weekday:'short'}); }
+function fmtDt(iso){ if(!iso)return''; const d=new Date(iso); return d.toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}); }
+function toast(msg,type=''){
   const t=document.getElementById('toast');
-  t.textContent=msg; t.className='toast'+(type==='error'?' error':'');
-  t.classList.add('show');
-  clearTimeout(t._tid);
-  t._tid=setTimeout(()=>t.classList.remove('show'),2800);
+  t.textContent=msg; t.className='toast'+(type?' '+type:'');
+  t.classList.add('show'); clearTimeout(t._t);
+  t._t=setTimeout(()=>t.classList.remove('show'),2800);
 }
-
-// ══════════════════════════════════════════════
-// INIT
-// ══════════════════════════════════════════════
-
-// loadCfg / saveCfg — PRESET 방식 사용 (상단 정의)
-
 document.addEventListener('DOMContentLoaded',()=>{
-  loadCfg();
   const today=new Date().toISOString().split('T')[0];
   document.getElementById('qDate').value=today;
   document.getElementById('mDate').value=today;
-  updateStats([]);
-
-  if(isConfigured()){
-    updateGhStatus(null);
-    loadIssues();
-  } else {
-    updateGhStatus(false);
-    document.getElementById('boardList').innerHTML=
-      `<div class="empty"><div class="empty-icon">🔗</div>
-      <p>연결 정보가 없습니다.<br/>코드 상단 <strong>PRESET</strong> 항목을 확인해주세요.</p></div>`;
-  }
+  loadBoard();
 });
 </script>
 </body>
