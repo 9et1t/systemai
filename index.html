@@ -759,7 +759,7 @@ async function loadIssues(){
   list.innerHTML = `<div class="loading"><div class="spinner"></div>작업 목록 불러오는 중...</div>`;
   try{
     // 최대 100개
-    const issues = await ghGet(repoPath()+'/issues?state=all&per_page=100&labels=IT작업');
+    const issues = await ghGet(repoPath()+'/issues?state=all&per_page=100');
     allIssues = issues.filter(i=>!i.pull_request).map(issueToTask);
     renderBoard();
     updateStats(allIssues);
@@ -950,8 +950,7 @@ async function submitNewTask(){
   try{
     const issue = await ghPost(repoPath()+'/issues',{
       title: title,
-      body: taskToBody(meta, desc),
-      labels: ['IT작업']
+      body: taskToBody(meta, desc)
     });
     const task = issueToTask(issue);
     task._replies=[];task._loaded=true;
