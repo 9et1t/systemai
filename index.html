@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IT 작업 업무 확인 게시판</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0d0f14;
+      --surface: #14181f;
+      --surface2: #1c2230;
+      --border: #2a3245;
+      --accent: #00d4ff;
+      --accent2: #0095b3;
+      --green: #00e676;
+      --yellow: #ffd740;
+      --red: #ff5252;
+      --text: #e8eaf0;
+      --text2: #8a94a8;
+      --text3: #5a6478;
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'IBM Plex Sans KR', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      background-image:
+        radial-gradient(ellipse 60% 40% at 80% 10%, rgba(0,212,255,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 50% at 10% 80%, rgba(0,149,179,0.04) 0%, transparent 60%);
+    }
+
+    /* HEADER */
+    header {
+      border-bottom: 1px solid var(--border);
+      background: rgba(20,24,31,0.95);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 0 2rem;
+    }
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      color: var(--accent);
+      letter-spacing: 0.05em;
+    }
+    .logo-icon {
+      width: 28px; height: 28px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700; color: #000;
+    }
+    .header-tag {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text3);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    /* MAIN */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    /* PAGE TITLE */
+    .page-title {
+      margin-bottom: 2rem;
+      animation: fadeDown 0.5s ease both;
+    }
+    .page-title h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 4px;
+    }
+    .page-title p {
+      font-size: 0.82rem;
+      color: var(--text3);
+      font-family: var(--mono);
+    }
+
+    /* STATS BAR */
+    .stats-bar {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      animation: fadeDown 0.5s 0.1s ease both;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.8rem 1.2rem;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .stat-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .stat-label {
+      font-size: 0.72rem;
+      color: var(--text3);
+      font-family: var(--mono);
+    }
+    .stat-value {
+      font-size: 1.1rem;
+      font-weight: 700;
+      font-family: var(--mono);
+    }
+
+    /* NEW TASK FORM */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 1rem;
+    }
+    .section-header h2 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text2);
+      font-family: var(--mono);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .section-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .new-task-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      animation: fadeDown 0.5s 0.15s ease both;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 160px 1fr auto;
+      gap: 0.75rem;
+      align-items: end;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-group label {
+      font-size: 0.72rem;
+      font-family: var(--mono);
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 0.88rem;
+      padding: 0.6rem 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(0,212,255,0.08);
+    }
+    .form-group textarea {
+      resize: vertical;
+      min-height: 70px;
+    }
+    select option { background: var(--surface); }
+
+    .btn {
+      padding: 0.6rem 1.4rem;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+    }
+    .btn-primary:hover {
+      background: #33dcff;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(0,212,255,0.3);
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--text2);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .btn-sm {
+      padding: 0.4rem 0.9rem;
+      font-size: 0.75rem;
+    }
+    .btn-green {
+      background: rgba(0,230,118,0.12);
+      color: var(--green);
+      border: 1px solid rgba(0,230,118,0.3);
+    }
+    .btn-green:hover { background: rgba(0,230,118,0.2); }
+
+    /* BOARD LIST */
+    .board-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .task-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      animation: fadeUp 0.4s ease both;
+      transition: border-color 0.2s;
+    }
+    .task-card:hover { border-color: var(--border); }
+    .task-card.expanded { border-color: rgba(0,212,255,0.3); }
+
+    .task-header {
+      padding: 1rem 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    .task-header:hover { background: rgba(255,255,255,0.02); }
+
+    .task-num {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text3);
+      min-width: 36px;
+    }
+
+    .task-date-badge {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 3px 10px;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+
+    .task-title {
+      flex: 1;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+    .task-title small {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--text3);
+      font-weight: 400;
+      margin-top: 1px;
+    }
+
+    .task-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .reply-count {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--text3);
+      background: var(--surface2);
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+
+    .status-badge {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+    .status-ongoing {
+      background: rgba(255,215,64,0.12);
+      color: var(--yellow);
+      border: 1px solid rgba(255,215,64,0.3);
+    }
+    .status-done {
+      background: rgba(0,230,118,0.12);
+      color: var(--green);
+      border: 1px solid rgba(0,230,118,0.3);
+    }
+
+    .chevron {
+      width: 18px; height: 18px;
+      color: var(--text3);
+      transition: transform 0.3s;
+      flex-shrink: 0;
+    }
+    .expanded .chevron { transform: rotate(180deg); }
+
+    /* TASK BODY */
+    .task-body {
+      border-top: 1px solid var(--border);
+      display: none;
+    }
+    .task-body.show { display: block; }
+
+    .task-desc {
+      padding: 1rem 1.4rem;
+      font-size: 0.85rem;
+      color: var(--text2);
+      background: rgba(0,0,0,0.2);
+      border-bottom: 1px dashed var(--border);
+      line-height: 1.6;
+    }
+    .task-desc strong {
+      color: var(--text3);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    /* REPLIES */
+    .replies-section { padding: 1rem 1.4rem; }
+    .replies-title {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.75rem;
+    }
+
+    .reply-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      margin-bottom: 1rem;
+    }
+
+    .reply-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.8rem 1rem;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.75rem;
+      animation: fadeUp 0.3s ease both;
+    }
+    .reply-avatar {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent2), #005f73);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700; color: #fff;
+      flex-shrink: 0;
+    }
+    .reply-content {}
+    .reply-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+      flex-wrap: wrap;
+    }
+    .reply-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .reply-dept {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--text3);
+      background: var(--surface2);
+      padding: 1px 7px;
+      border-radius: 4px;
+    }
+    .reply-duty {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--accent);
+    }
+    .reply-time {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--text3);
+      margin-left: auto;
+    }
+    .reply-text {
+      font-size: 0.83rem;
+      color: var(--text2);
+      line-height: 1.6;
+    }
+    .reply-confirm {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--green);
+      margin-top: 4px;
+    }
+    .reply-confirm::before {
+      content: '✓';
+      font-weight: 700;
+    }
+
+    /* REPLY FORM */
+    .reply-form {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+    }
+    .reply-form-title {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+      letter-spacing: 0.08em;
+    }
+    .reply-form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .reply-form-bottom {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.5rem;
+      align-items: end;
+    }
+
+    /* FILTER BAR */
+    .filter-bar {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      animation: fadeDown 0.5s 0.2s ease both;
+    }
+    .filter-btn {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      padding: 5px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text3);
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.05em;
+    }
+    .filter-btn.active {
+      background: rgba(0,212,255,0.1);
+      border-color: rgba(0,212,255,0.4);
+      color: var(--accent);
+    }
+    .filter-btn:hover:not(.active) { color: var(--text2); border-color: var(--text3); }
+
+    .search-input {
+      margin-left: auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      padding: 5px 14px;
+      outline: none;
+      width: 200px;
+      transition: border-color 0.2s;
+    }
+    .search-input:focus {
+      border-color: var(--accent);
+    }
+    .search-input::placeholder { color: var(--text3); }
+
+    /* EMPTY STATE */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text3);
+      font-family: var(--mono);
+      font-size: 0.82rem;
+    }
+    .empty-state-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      opacity: 0.4;
+    }
+
+    /* MODAL */
+    .modal-backdrop {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-backdrop.show { display: flex; }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 520px;
+      animation: fadeUp 0.3s ease;
+    }
+    .modal h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+    }
+    .modal-form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .modal-form-full { margin-bottom: 0.75rem; }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+    }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--surface2);
+      border: 1px solid var(--green);
+      border-radius: 10px;
+      padding: 0.8rem 1.2rem;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--green);
+      z-index: 300;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s;
+      pointer-events: none;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      .container { padding: 1rem; }
+      .form-row { grid-template-columns: 1fr; }
+      .reply-form-grid { grid-template-columns: 1fr 1fr; }
+      .stats-bar { flex-wrap: wrap; }
+      .modal-form-grid { grid-template-columns: 1fr; }
+      .filter-bar { flex-wrap: wrap; }
+      .search-input { width: 100%; margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">IT</div>
+      WORK · CHECK · BOARD
+    </div>
+    <div class="header-tag">v1.0 · GitHub Pages</div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Page Title -->
+  <div class="page-title">
+    <h1>IT 작업 업무 확인 게시판</h1>
+    <p>// 작업 등록 → 담당자 업무 확인 응답 시스템</p>
+  </div>
+
+  <!-- Stats Bar -->
+  <div class="stats-bar" id="statsBar">
+    <div class="stat-card">
+      <div class="stat-dot" style="background:var(--accent)"></div>
+      <div>
+        <div class="stat-label">전체 작업</div>
+        <div class="stat-value" id="statTotal">0</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-dot" style="background:var(--yellow)"></div>
+      <div>
+        <div class="stat-label">진행중</div>
+        <div class="stat-value" id="statOngoing">0</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-dot" style="background:var(--green)"></div>
+      <div>
+        <div class="stat-label">완료</div>
+        <div class="stat-value" id="statDone">0</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-dot" style="background:var(--accent2)"></div>
+      <div>
+        <div class="stat-label">전체 확인 응답</div>
+        <div class="stat-value" id="statReplies">0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Task Form -->
+  <div class="section-header">
+    <h2>작업 등록</h2>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="new-task-card">
+    <div class="form-row">
+      <div class="form-group">
+        <label>작업 날짜</label>
+        <input type="date" id="newDate"/>
+      </div>
+      <div class="form-group">
+        <label>작업명</label>
+        <input type="text" id="newTitle" placeholder="예) 서버 패치 및 재기동, DB 백업 작업..."/>
+      </div>
+      <button class="btn btn-primary" onclick="openNewTaskModal()">등록</button>
+    </div>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="setFilter('all', this)">전체</button>
+    <button class="filter-btn" onclick="setFilter('ongoing', this)">진행중</button>
+    <button class="filter-btn" onclick="setFilter('done', this)">완료</button>
+    <input type="text" class="search-input" placeholder="작업명 검색..." oninput="searchTasks(this.value)"/>
+  </div>
+
+  <!-- Board List -->
+  <div class="section-header">
+    <h2>작업 목록</h2>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="board-list" id="boardList"></div>
+
+</div>
+
+<!-- New Task Modal -->
+<div class="modal-backdrop" id="newTaskModal">
+  <div class="modal">
+    <h3>📋 새 IT 작업 등록</h3>
+    <div class="modal-form-grid">
+      <div class="form-group">
+        <label>작업 날짜</label>
+        <input type="date" id="modalDate"/>
+      </div>
+      <div class="form-group">
+        <label>작업 유형</label>
+        <select id="modalType">
+          <option>서버 작업</option>
+          <option>네트워크 작업</option>
+          <option>DB 작업</option>
+          <option>보안 패치</option>
+          <option>시스템 점검</option>
+          <option>소프트웨어 배포</option>
+          <option>하드웨어 교체</option>
+          <option>기타</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-form-full form-group">
+      <label>작업명</label>
+      <input type="text" id="modalTitle" placeholder="작업명을 입력하세요"/>
+    </div>
+    <div class="modal-form-full form-group">
+      <label>작업 설명 (선택)</label>
+      <textarea id="modalDesc" placeholder="작업 내용, 영향 범위, 주의사항 등을 입력하세요..."></textarea>
+    </div>
+    <div class="modal-form-grid">
+      <div class="form-group">
+        <label>작업 시작 시간</label>
+        <input type="time" id="modalStartTime"/>
+      </div>
+      <div class="form-group">
+        <label>작업 종료 시간</label>
+        <input type="time" id="modalEndTime"/>
+      </div>
+    </div>
+    <div class="modal-form-full form-group">
+      <label>등록자</label>
+      <input type="text" id="modalAuthor" placeholder="등록자 이름"/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeNewTaskModal()">취소</button>
+      <button class="btn btn-primary" onclick="submitNewTask()">작업 등록</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // ─────────────────────────────────────
+  // DATA STORE (localStorage)
+  // ─────────────────────────────────────
+  const STORAGE_KEY = 'it_work_board_v1';
+
+  function loadData() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { tasks: [] };
+    } catch { return { tasks: [] }; }
+  }
+
+  function saveData(data) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  let data = loadData();
+  let currentFilter = 'all';
+  let currentSearch = '';
+
+  // ─────────────────────────────────────
+  // INIT
+  // ─────────────────────────────────────
+  window.addEventListener('DOMContentLoaded', () => {
+    // Set today's date as default
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('newDate').value = today;
+    document.getElementById('modalDate').value = today;
+
+    // Seed sample data if empty
+    if (data.tasks.length === 0) {
+      data.tasks = getSampleData();
+      saveData(data);
+    }
+
+    renderBoard();
+    updateStats();
+  });
+
+  // ─────────────────────────────────────
+  // SAMPLE DATA
+  // ─────────────────────────────────────
+  function getSampleData() {
+    const today = new Date().toISOString().split('T')[0];
+    return [
+      {
+        id: 'task_001',
+        date: today,
+        title: '운영 서버 보안 패치 및 재기동',
+        type: '보안 패치',
+        desc: 'CVE-2024-XXXX 취약점 패치 적용 및 전체 서버 순차 재기동 작업입니다.\n영향 범위: WEB, WAS, DB 서버 전체\n예상 중단 시간: 각 서버별 3~5분',
+        startTime: '02:00',
+        endTime: '04:00',
+        author: '김철수',
+        status: 'ongoing',
+        createdAt: new Date().toISOString(),
+        replies: [
+          {
+            id: 'r001',
+            dept: '인프라팀',
+            name: '이민준',
+            duty: '서버 담당',
+            content: 'WEB 서버 3대 패치 완료 및 재기동 확인하였습니다. 서비스 정상 응답 확인.',
+            confirmed: true,
+            createdAt: new Date(Date.now() - 1800000).toISOString()
+          }
+        ]
+      },
+      {
+        id: 'task_002',
+        date: today,
+        title: 'MySQL 정기 백업 및 인덱스 최적화',
+        type: 'DB 작업',
+        desc: '월간 정기 DB 백업 및 슬로우 쿼리 원인 인덱스 재구성 작업.',
+        startTime: '01:00',
+        endTime: '03:00',
+        author: '박지영',
+        status: 'done',
+        createdAt: new Date(Date.now() - 86400000).toISOString(),
+        replies: [
+          {
+            id: 'r002',
+            dept: 'DBA팀',
+            name: '최수진',
+            duty: 'DB 관리',
+            content: '백업 완료 (총 324GB, S3 업로드 완료). 인덱스 재구성 후 쿼리 응답속도 40% 개선 확인.',
+            confirmed: true,
+            createdAt: new Date(Date.now() - 82800000).toISOString()
+          },
+          {
+            id: 'r003',
+            dept: '개발팀',
+            name: '홍길동',
+            duty: '백엔드 개발',
+            content: '애플리케이션 측 DB 연결 정상 확인. 슬로우 쿼리 모니터링 중 이상 없음.',
+            confirmed: true,
+            createdAt: new Date(Date.now() - 80000000).toISOString()
+          }
+        ]
+      }
+    ];
+  }
+
+  // ─────────────────────────────────────
+  // RENDER
+  // ─────────────────────────────────────
+  function renderBoard() {
+    const list = document.getElementById('boardList');
+    let tasks = [...data.tasks].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    if (currentFilter === 'ongoing') tasks = tasks.filter(t => t.status === 'ongoing');
+    if (currentFilter === 'done') tasks = tasks.filter(t => t.status === 'done');
+    if (currentSearch) tasks = tasks.filter(t =>
+      t.title.includes(currentSearch) || (t.type||'').includes(currentSearch)
+    );
+
+    if (tasks.length === 0) {
+      list.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">📭</div>
+          <p>등록된 작업이 없습니다.</p>
+        </div>`;
+      return;
+    }
+
+    list.innerHTML = tasks.map((task, i) => renderTaskCard(task, i + 1)).join('');
+    updateStats();
+  }
+
+  function renderTaskCard(task, num) {
+    const isExpanded = task._expanded ? 'expanded' : '';
+    const bodyShow = task._expanded ? 'show' : '';
+    const statusLabel = task.status === 'done' ? '완료' : '진행중';
+    const statusClass = task.status === 'done' ? 'status-done' : 'status-ongoing';
+    const dateStr = formatDate(task.date);
+    const repliesHtml = task.replies.map(r => renderReply(r)).join('');
+
+    return `
+    <div class="task-card ${isExpanded}" id="card_${task.id}">
+      <div class="task-header" onclick="toggleCard('${task.id}')">
+        <span class="task-num">#${String(num).padStart(3,'0')}</span>
+        <span class="task-date-badge">${dateStr}</span>
+        <div class="task-title">
+          ${escHtml(task.title)}
+          <small>${escHtml(task.type||'')} · ${task.startTime||''}${task.endTime?' ~ '+task.endTime:''} · 등록: ${escHtml(task.author||'')}</small>
+        </div>
+        <div class="task-meta">
+          <span class="reply-count">💬 ${task.replies.length}</span>
+          <span class="status-badge ${statusClass}">${statusLabel}</span>
+          ${task.status === 'ongoing'
+            ? `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();completeTask('${task.id}')">완료 처리</button>`
+            : ''}
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6,9 12,15 18,9"/>
+          </svg>
+        </div>
+      </div>
+      <div class="task-body ${bodyShow}" id="body_${task.id}">
+        ${task.desc ? `
+        <div class="task-desc">
+          <strong>작업 설명</strong>
+          ${escHtml(task.desc).replace(/\n/g,'<br>')}
+        </div>` : ''}
+        <div class="replies-section">
+          <div class="replies-title">업무 확인 응답 — ${task.replies.length}건</div>
+          <div class="reply-list" id="replies_${task.id}">
+            ${repliesHtml || '<div style="color:var(--text3);font-size:0.8rem;font-family:var(--mono);padding:0.5rem 0">아직 업무 확인 응답이 없습니다.</div>'}
+          </div>
+          <div class="reply-form">
+            <div class="reply-form-title">▶ 업무 확인 응답 작성</div>
+            <div class="reply-form-grid">
+              <div class="form-group">
+                <label>소속 부서</label>
+                <input type="text" id="rdept_${task.id}" placeholder="예) 인프라팀"/>
+              </div>
+              <div class="form-group">
+                <label>이름</label>
+                <input type="text" id="rname_${task.id}" placeholder="홍길동"/>
+              </div>
+              <div class="form-group">
+                <label>담당 업무명</label>
+                <input type="text" id="rduty_${task.id}" placeholder="예) 서버 담당"/>
+              </div>
+            </div>
+            <div class="reply-form-bottom">
+              <div class="form-group">
+                <label>확인 내용</label>
+                <textarea id="rcontent_${task.id}" placeholder="담당 업무 확인 내용을 입력하세요..."></textarea>
+              </div>
+              <button class="btn btn-green" onclick="submitReply('${task.id}')">확인 등록</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function renderReply(r) {
+    const initials = r.name ? r.name.charAt(0) : '?';
+    const timeStr = formatTime(r.createdAt);
+    return `
+    <div class="reply-item">
+      <div class="reply-avatar">${initials}</div>
+      <div class="reply-content">
+        <div class="reply-meta">
+          <span class="reply-name">${escHtml(r.name)}</span>
+          <span class="reply-dept">${escHtml(r.dept)}</span>
+          <span class="reply-duty">${escHtml(r.duty)}</span>
+          <span class="reply-time">${timeStr}</span>
+        </div>
+        <div class="reply-text">${escHtml(r.content).replace(/\n/g,'<br>')}</div>
+        ${r.confirmed ? '<div class="reply-confirm">업무 확인 완료</div>' : ''}
+      </div>
+    </div>`;
+  }
+
+  // ─────────────────────────────────────
+  // INTERACTIONS
+  // ─────────────────────────────────────
+  function toggleCard(id) {
+    const task = data.tasks.find(t => t.id === id);
+    if (!task) return;
+    task._expanded = !task._expanded;
+    const card = document.getElementById('card_' + id);
+    const body = document.getElementById('body_' + id);
+    if (task._expanded) {
+      card.classList.add('expanded');
+      body.classList.add('show');
+    } else {
+      card.classList.remove('expanded');
+      body.classList.remove('show');
+    }
+  }
+
+  function submitReply(taskId) {
+    const dept = document.getElementById('rdept_' + taskId).value.trim();
+    const name = document.getElementById('rname_' + taskId).value.trim();
+    const duty = document.getElementById('rduty_' + taskId).value.trim();
+    const content = document.getElementById('rcontent_' + taskId).value.trim();
+
+    if (!dept || !name || !duty || !content) {
+      showToast('⚠ 모든 항목을 입력해주세요.');
+      return;
+    }
+
+    const task = data.tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    const reply = {
+      id: 'r' + Date.now(),
+      dept, name, duty, content,
+      confirmed: true,
+      createdAt: new Date().toISOString()
+    };
+    task.replies.push(reply);
+    saveData(data);
+
+    // Append reply
+    const repliesList = document.getElementById('replies_' + taskId);
+    const emptyEl = repliesList.querySelector('div[style]');
+    if (emptyEl) emptyEl.remove();
+    const div = document.createElement('div');
+    div.innerHTML = renderReply(reply);
+    repliesList.appendChild(div.firstElementChild);
+
+    // Update count badge
+    const card = document.getElementById('card_' + taskId);
+    const countEl = card.querySelector('.reply-count');
+    if (countEl) countEl.textContent = '💬 ' + task.replies.length;
+
+    // Clear form
+    ['rdept_','rname_','rduty_','rcontent_'].forEach(p => {
+      document.getElementById(p + taskId).value = '';
+    });
+
+    updateStats();
+    showToast('✓ 업무 확인 응답이 등록되었습니다.');
+  }
+
+  function completeTask(id) {
+    const task = data.tasks.find(t => t.id === id);
+    if (!task) return;
+    task.status = 'done';
+    saveData(data);
+    renderBoard();
+    showToast('✓ 작업이 완료 처리되었습니다.');
+  }
+
+  // ─────────────────────────────────────
+  // NEW TASK MODAL
+  // ─────────────────────────────────────
+  function openNewTaskModal() {
+    const dateVal = document.getElementById('newDate').value;
+    const titleVal = document.getElementById('newTitle').value;
+    if (dateVal) document.getElementById('modalDate').value = dateVal;
+    if (titleVal) document.getElementById('modalTitle').value = titleVal;
+    document.getElementById('newTaskModal').classList.add('show');
+  }
+
+  function closeNewTaskModal() {
+    document.getElementById('newTaskModal').classList.remove('show');
+  }
+
+  document.getElementById('newTaskModal').addEventListener('click', function(e) {
+    if (e.target === this) closeNewTaskModal();
+  });
+
+  function submitNewTask() {
+    const date = document.getElementById('modalDate').value;
+    const title = document.getElementById('modalTitle').value.trim();
+    const type = document.getElementById('modalType').value;
+    const desc = document.getElementById('modalDesc').value.trim();
+    const startTime = document.getElementById('modalStartTime').value;
+    const endTime = document.getElementById('modalEndTime').value;
+    const author = document.getElementById('modalAuthor').value.trim();
+
+    if (!date || !title) {
+      showToast('⚠ 날짜와 작업명은 필수 입력입니다.');
+      return;
+    }
+
+    const task = {
+      id: 'task_' + Date.now(),
+      date, title, type, desc,
+      startTime, endTime, author,
+      status: 'ongoing',
+      createdAt: new Date().toISOString(),
+      replies: [],
+      _expanded: false
+    };
+    data.tasks.unshift(task);
+    saveData(data);
+
+    // Reset modal
+    ['modalTitle','modalDesc','modalStartTime','modalEndTime','modalAuthor'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('newTitle').value = '';
+    closeNewTaskModal();
+    renderBoard();
+    showToast('✓ 작업이 등록되었습니다.');
+  }
+
+  // ─────────────────────────────────────
+  // FILTER & SEARCH
+  // ─────────────────────────────────────
+  function setFilter(f, el) {
+    currentFilter = f;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    renderBoard();
+  }
+
+  function searchTasks(val) {
+    currentSearch = val;
+    renderBoard();
+  }
+
+  // ─────────────────────────────────────
+  // STATS
+  // ─────────────────────────────────────
+  function updateStats() {
+    const tasks = data.tasks;
+    document.getElementById('statTotal').textContent = tasks.length;
+    document.getElementById('statOngoing').textContent = tasks.filter(t => t.status === 'ongoing').length;
+    document.getElementById('statDone').textContent = tasks.filter(t => t.status === 'done').length;
+    document.getElementById('statReplies').textContent = tasks.reduce((s, t) => s + t.replies.length, 0);
+  }
+
+  // ─────────────────────────────────────
+  // UTILS
+  // ─────────────────────────────────────
+  function formatDate(d) {
+    if (!d) return '';
+    const dt = new Date(d + 'T00:00:00');
+    return dt.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short' });
+  }
+
+  function formatTime(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return d.toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+  }
+
+  function escHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+</script>
+</body>
+</html>
