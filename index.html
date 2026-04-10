@@ -30,6 +30,10 @@ header{background:#fff;border-bottom:2px solid var(--g1);box-shadow:var(--ss);po
 .logo-div{width:1px;height:28px;background:var(--gray2)}
 .logo-text strong{display:block;font-size:1rem;font-weight:700;color:var(--g1);letter-spacing:-.02em}
 .logo-text span{font-size:.7rem;color:var(--text3)}
+.conn-bar{display:flex;align-items:center;gap:10px}
+.conn-status{font-size:.72rem;padding:4px 12px;border-radius:20px;border:1px solid;font-weight:600}
+.conn-ok{background:#e6f4ec;color:var(--g1);border-color:#99d4b3}
+.conn-no{background:#fff8e1;color:#a07000;border-color:#ffe082}
 .hero{background:linear-gradient(135deg,var(--g1) 0%,var(--g2) 50%,#005522 100%);color:#fff;padding:2rem 1.5rem;position:relative;overflow:hidden}
 .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 90% 50%,rgba(200,168,75,.15) 0%,transparent 60%)}
 .hero-in{max-width:1100px;margin:0 auto;position:relative}
@@ -134,7 +138,6 @@ header{background:#fff;border-bottom:2px solid var(--g1);box-shadow:var(--ss);po
   .reg-row{grid-template-columns:1fr}
   .rfg{grid-template-columns:1fr 1fr}
   .mg{grid-template-columns:1fr}
-  .stats-row{gap:.6rem}
 }
 </style>
 </head>
@@ -149,6 +152,9 @@ header{background:#fff;border-bottom:2px solid var(--g1);box-shadow:var(--ss);po
         <strong>IT 업무확인 게시판</strong>
         <span>NH Nonghyup · IT Work Confirmation Board</span>
       </div>
+    </div>
+    <div class="conn-bar">
+      <span class="conn-status conn-no" id="connStatus">● 연결중...</span>
     </div>
   </div>
 </header>
@@ -183,7 +189,7 @@ header{background:#fff;border-bottom:2px solid var(--g1);box-shadow:var(--ss);po
   </div>
   <div class="sl-row"><h2>작업 목록</h2><div class="sl-line"></div></div>
   <div class="board" id="board">
-    <div class="loading"><div class="spinner"></div>불러오는 중...</div>
+    <div class="loading"><div class="spinner"></div>작업 목록 불러오는 중...</div>
   </div>
 </div>
 
@@ -221,44 +227,22 @@ header{background:#fff;border-bottom:2px solid var(--g1);box-shadow:var(--ss);po
 <div class="toast" id="toast"></div>
 
 <script>
-// ── 설정 (하드코딩) ──────────────────────────
-const OWNER = 'get1t';
-const REPO  = 'systemai';
-const TOKEN = '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';
-const GH    = 'https://api.github.com';
-const BASE  = GH + '/repos/' + OWNER + '/' + REPO;
-// ─────────────────────────────────────────────
+// Worker URL — 토큰은 Cloudflare 서버에만 존재
+const WORKER = 'https://systemai.hyunwook565.workers.dev';
+const OWNER  = 'get1t';
+const REPO   = 'systemai';
 
 let allIssues = [];
 let filter = 'all';
 let search = '';
 
-function hdrs(){
-  return {
-    'Accept':'application/vnd.github+json',
-    'Authorization':'Bearer ' + TOKEN,
-    'X-GitHub-Api-Version':'2022-11-28'
-  };
-}
-async function get(path){
-  const r = await fetch(GH+path, {headers:hdrs()});
-  if(!r.ok) throw new Error(r.status+' '+r.statusText);
+async function api(method, path, body){
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if(body) opts.body = JSON.stringify(body);
+  const r = await fetch(WORKER + path, opts);
+  if(r.status === 204) return true;
+  if(!r.ok) throw new Error(r.status + ' ' + r.statusText);
   return r.json();
-}
-async function post(path, body){
-  const r = await fetch(GH+path, {method:'POST',headers:{...hdrs(),'Content-Type':'application/json'},body:JSON.stringify(body)});
-  if(!r.ok) throw new Error(r.status+' '+r.statusText);
-  return r.json();
-}
-async function patch(path, body){
-  const r = await fetch(GH+path, {method:'PATCH',headers:{...hdrs(),'Content-Type':'application/json'},body:JSON.stringify(body)});
-  if(!r.ok) throw new Error(r.status+' '+r.statusText);
-  return r.json();
-}
-async function del(path){
-  const r = await fetch(GH+path, {method:'DELETE',headers:hdrs()});
-  if(r.status===204) return true;
-  throw new Error(r.status);
 }
 
 function parseMeta(body, tag){
@@ -284,11 +268,11 @@ async function loadBoard(){
   const el = document.getElementById('board');
   el.innerHTML = '<div class="loading"><div class="spinner"></div>작업 목록 불러오는 중...</div>';
   try{
-    const issues = await get('/repos/'+OWNER+'/'+REPO+'/issues?state=all&per_page=100');
+    const issues = await api('GET', '/repos/'+OWNER+'/'+REPO+'/issues?state=all&per_page=100');
     allIssues = issues.filter(i=>!i.pull_request).map(issueToTask);
-    renderBoard();
-    updateStats();
+    renderBoard(); updateStats(); setStatus(true);
   }catch(e){
+    setStatus(false);
     el.innerHTML = '<div class="empty"><div class="empty-icon">⚠</div><p>불러오기 실패: '+e.message+'</p></div>';
   }
 }
@@ -301,7 +285,6 @@ function renderBoard(){
   const el=document.getElementById('board');
   if(!list.length){ el.innerHTML='<div class="empty"><div class="empty-icon">📭</div><p>등록된 작업이 없습니다.</p></div>'; return; }
   el.innerHTML = list.map((t,i)=>cardHTML(t,i+1)).join('');
-  updateStats();
 }
 
 function cardHTML(t,n){
@@ -332,7 +315,7 @@ function cardHTML(t,n){
     <div class="rw">
       <div class="rhead"><span>업무확인 응답</span><small id="rcount_${t.id}">${t._replies.length}건</small></div>
       <div class="rlist" id="rl_${t.id}">
-        ${t._replies.length ? t._replies.map(r=>replyHTML(r,t.id)).join('') : '<div style="font-size:.78rem;color:var(--text3);padding:.4rem 0">아직 업무확인 응답이 없습니다.</div>'}
+        ${t._replies.length?t._replies.map(r=>replyHTML(r,t.id)).join(''):'<div style="font-size:.78rem;color:var(--text3);padding:.4rem 0">아직 업무확인 응답이 없습니다.</div>'}
       </div>
       <div class="rf">
         <div class="rft">업무확인 응답 작성</div>
@@ -387,14 +370,14 @@ async function toggle(id){
   const card=document.getElementById('tc_'+id);
   const body=document.getElementById('tb_'+id);
   if(t._expanded){ card.classList.add('expanded'); body.classList.add('show'); if(!t._loaded) await loadReplies(t); }
-  else { card.classList.remove('expanded'); body.classList.remove('show'); }
+  else{ card.classList.remove('expanded'); body.classList.remove('show'); }
 }
 
 async function loadReplies(t){
   const el=document.getElementById('rl_'+t.id);
   el.innerHTML='<div style="font-size:.78rem;color:var(--text3)">댓글 불러오는 중...</div>';
   try{
-    const cs=await get('/repos/'+OWNER+'/'+REPO+'/issues/'+t.id+'/comments');
+    const cs=await api('GET','/repos/'+OWNER+'/'+REPO+'/issues/'+t.id+'/comments');
     t._replies=cs.map(commentToReply); t._loaded=true;
     refreshReplies(t); updateStats();
   }catch(e){ el.innerHTML='<div style="font-size:.78rem;color:var(--red)">로드 실패: '+e.message+'</div>'; }
@@ -428,10 +411,9 @@ async function submitTask(){
   try{
     const meta={date,type,desc,st,et,author};
     const body='<!--NH:'+JSON.stringify(meta)+'-->\n\n'+desc;
-    const issue=await post('/repos/'+OWNER+'/'+REPO+'/issues',{title,body});
+    const issue=await api('POST','/repos/'+OWNER+'/'+REPO+'/issues',{title,body});
     const task=issueToTask(issue); task._replies=[]; task._loaded=true;
-    allIssues.unshift(task);
-    renderBoard(); updateStats();
+    allIssues.unshift(task); renderBoard(); updateStats();
     ['mDate','mTitle','mDesc','mSt','mEt','mAuthor'].forEach(id=>{ const e=document.getElementById(id); if(e) e.value=''; });
     document.getElementById('qTitle').value='';
     closeNewModal(); toast('✓ 작업이 등록되었습니다.');
@@ -441,13 +423,15 @@ async function submitTask(){
 
 async function closeTask(id){
   if(!confirm('작업을 완료 처리하시겠습니까?')) return;
-  try{ await patch('/repos/'+OWNER+'/'+REPO+'/issues/'+id,{state:'closed'});
+  try{
+    await api('PATCH','/repos/'+OWNER+'/'+REPO+'/issues/'+id,{state:'closed'});
     const t=allIssues.find(t=>t.id===id); if(t) t.status='closed';
     renderBoard(); updateStats(); toast('✓ 완료 처리되었습니다.');
   }catch(e){ toast('오류: '+e.message,'err'); }
 }
 async function reopenTask(id){
-  try{ await patch('/repos/'+OWNER+'/'+REPO+'/issues/'+id,{state:'open'});
+  try{
+    await api('PATCH','/repos/'+OWNER+'/'+REPO+'/issues/'+id,{state:'open'});
     const t=allIssues.find(t=>t.id===id); if(t) t.status='open';
     renderBoard(); updateStats(); toast('✓ 재개 처리되었습니다.');
   }catch(e){ toast('오류: '+e.message,'err'); }
@@ -461,7 +445,7 @@ async function submitReply(tid){
   if(btn){ btn.textContent='등록중...'; btn.disabled=true; }
   try{
     const body='<!--RP:'+JSON.stringify({dept,name,duty})+'-->\n'+content;
-    const c=await post('/repos/'+OWNER+'/'+REPO+'/issues/'+tid+'/comments',{body});
+    const c=await api('POST','/repos/'+OWNER+'/'+REPO+'/issues/'+tid+'/comments',{body});
     const t=allIssues.find(t=>t.id===tid);
     if(t){ t._replies.push(commentToReply(c)); refreshReplies(t); }
     ['fd_','fn_','fu_','fc_'].forEach(p=>{ const e=document.getElementById(p+tid); if(e) e.value=''; });
@@ -487,7 +471,7 @@ async function saveEdit(tid,rid){
   const r=t._replies.find(r=>r.id===rid); if(!r) return;
   try{
     const body='<!--RP:'+JSON.stringify({dept:r.dept,name:r.name,duty:r.duty})+'-->\n'+content;
-    const updated=await patch('/repos/'+OWNER+'/'+REPO+'/issues/comments/'+rid,{body});
+    const updated=await api('PATCH','/repos/'+OWNER+'/'+REPO+'/issues/comments/'+rid,{body});
     const idx=t._replies.findIndex(rr=>rr.id===rid);
     if(idx!==-1) t._replies[idx]=commentToReply(updated);
     refreshReplies(t); toast('✓ 응답이 수정되었습니다.');
@@ -496,7 +480,7 @@ async function saveEdit(tid,rid){
 async function delReply(tid,rid){
   if(!confirm('이 응답을 삭제하시겠습니까?')) return;
   try{
-    await del('/repos/'+OWNER+'/'+REPO+'/issues/comments/'+rid);
+    await api('DELETE','/repos/'+OWNER+'/'+REPO+'/issues/comments/'+rid);
     const t=allIssues.find(t=>t.id===tid);
     if(t){ t._replies=t._replies.filter(r=>r.id!==rid); refreshReplies(t); }
     updateStats(); toast('✓ 응답이 삭제되었습니다.');
@@ -511,6 +495,11 @@ function updateStats(){
   document.getElementById('sDone').textContent=allIssues.filter(t=>t.status==='closed').length;
   document.getElementById('sReplies').textContent=allIssues.reduce((s,t)=>s+(t._replies||[]).length,0);
 }
+function setStatus(오케이){
+  const el=document.getElementById('connStatus');
+  if(오케이){ el.className='conn-status conn-ok'; el.textContent='● 연결됨'; }
+  else{ el.className='conn-status conn-no'; el.textContent='● 미연결'; }
+}
 function v(id){ const e=document.getElementById(id); return e?e.value:''; }
 function esc(s){ if(!s)return''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function fmtDate(d){ if(!d)return''; const dt=new Date(d+'T00:00:00'); return dt.toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit',weekday:'short'}); }
@@ -521,6 +510,7 @@ function toast(msg,type=''){
   t.classList.add('show'); clearTimeout(t._t);
   t._t=setTimeout(()=>t.classList.remove('show'),2800);
 }
+
 document.addEventListener('DOMContentLoaded',()=>{
   const today=new Date().toISOString().split('T')[0];
   document.getElementById('qDate').value=today;
