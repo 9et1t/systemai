@@ -1,1171 +1,1174 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>IT 작업 업무 확인 게시판</title>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet"/>
-  <style>
-    :root {
-      --bg: #0d0f14;
-      --surface: #14181f;
-      --surface2: #1c2230;
-      --border: #2a3245;
-      --accent: #00d4ff;
-      --accent2: #0095b3;
-      --green: #00e676;
-      --yellow: #ffd740;
-      --red: #ff5252;
-      --text: #e8eaf0;
-      --text2: #8a94a8;
-      --text3: #5a6478;
-      --mono: 'IBM Plex Mono', monospace;
-      --sans: 'IBM Plex Sans KR', sans-serif;
-    }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NH농협 IT 작업 업무확인 게시판</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Noto+Serif+KR:wght@600;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --nh-green:   #006633;
+  --nh-green2:  #008844;
+  --nh-green3:  #00aa55;
+  --nh-gold:    #c8a84b;
+  --nh-gold2:   #e8c86e;
+  --nh-light:   #f0f7f2;
+  --nh-white:   #ffffff;
+  --nh-gray1:   #f5f6f7;
+  --nh-gray2:   #e8eaed;
+  --nh-gray3:   #c4c8cc;
+  --nh-gray4:   #8a9099;
+  --nh-text:    #1a2530;
+  --nh-text2:   #3d4a55;
+  --nh-text3:   #6b7a87;
+  --nh-red:     #cc3300;
+  --nh-blue:    #1155aa;
+  --shadow-sm:  0 1px 4px rgba(0,102,51,0.08);
+  --shadow-md:  0 4px 16px rgba(0,102,51,0.12);
+  --shadow-lg:  0 8px 32px rgba(0,102,51,0.16);
+  --radius:     10px;
+  --sans: 'Noto Sans KR', sans-serif;
+  --serif: 'Noto Serif KR', serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:var(--sans);
+  background:var(--nh-gray1);
+  color:var(--nh-text);
+  min-height:100vh;
+}
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+/* ───── TOP BAND ───── */
+.top-band{
+  background:var(--nh-green);
+  height:4px;
+  background:linear-gradient(90deg,var(--nh-green) 0%,var(--nh-gold) 60%,var(--nh-green2) 100%);
+}
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--sans);
-      min-height: 100vh;
-      background-image:
-        radial-gradient(ellipse 60% 40% at 80% 10%, rgba(0,212,255,0.06) 0%, transparent 60%),
-        radial-gradient(ellipse 40% 50% at 10% 80%, rgba(0,149,179,0.04) 0%, transparent 60%);
-    }
+/* ───── HEADER ───── */
+header{
+  background:var(--nh-white);
+  border-bottom:2px solid var(--nh-green);
+  box-shadow:var(--shadow-sm);
+  position:sticky;top:0;z-index:200;
+}
+.header-inner{
+  max-width:1100px;margin:0 auto;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 1.5rem;height:64px;
+}
+.logo{display:flex;align-items:center;gap:14px}
+.logo-emblem{
+  width:44px;height:44px;
+  background:linear-gradient(135deg,var(--nh-green),var(--nh-green2));
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--serif);font-size:1rem;font-weight:700;
+  color:var(--nh-gold2);
+  border:2px solid var(--nh-gold);
+  box-shadow:0 2px 8px rgba(0,102,51,0.3);
+  flex-shrink:0;
+}
+.logo-text{line-height:1.2}
+.logo-text strong{
+  display:block;font-size:1rem;font-weight:700;
+  color:var(--nh-green);letter-spacing:-0.02em;
+}
+.logo-text span{
+  font-size:0.7rem;color:var(--nh-text3);letter-spacing:0.02em;
+}
+.header-right{display:flex;align-items:center;gap:10px}
+.config-btn{
+  display:flex;align-items:center;gap:6px;
+  background:var(--nh-green);color:#fff;
+  border:none;border-radius:6px;
+  padding:7px 14px;font-size:0.78rem;font-family:var(--sans);
+  font-weight:500;cursor:pointer;transition:all 0.2s;
+}
+.config-btn:hover{background:var(--nh-green2)}
+.github-status{
+  font-size:0.72rem;padding:4px 10px;
+  border-radius:20px;border:1px solid;
+  font-weight:500;
+}
+.github-status.connected{
+  background:#e6f4ec;color:var(--nh-green);border-color:#99d4b3;
+}
+.github-status.disconnected{
+  background:#fff3e0;color:#b36a00;border-color:#ffc966;
+}
 
-    /* HEADER */
-    header {
-      border-bottom: 1px solid var(--border);
-      background: rgba(20,24,31,0.95);
-      backdrop-filter: blur(12px);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      padding: 0 2rem;
-    }
-    .header-inner {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 60px;
-    }
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-family: var(--mono);
-      font-size: 0.85rem;
-      color: var(--accent);
-      letter-spacing: 0.05em;
-    }
-    .logo-icon {
-      width: 28px; height: 28px;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      border-radius: 6px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.75rem; font-weight: 700; color: #000;
-    }
-    .header-tag {
-      font-family: var(--mono);
-      font-size: 0.7rem;
-      color: var(--text3);
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      padding: 3px 10px;
-      border-radius: 20px;
-    }
+/* ───── HERO ───── */
+.hero{
+  background:linear-gradient(135deg,var(--nh-green) 0%,var(--nh-green2) 50%,#005522 100%);
+  color:#fff;padding:2rem 1.5rem;
+  position:relative;overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 70% 60% at 90% 50%,rgba(200,168,75,0.15) 0%,transparent 60%),
+    url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.hero-inner{max-width:1100px;margin:0 auto;position:relative}
+.hero h1{
+  font-family:var(--serif);font-size:1.5rem;font-weight:700;
+  letter-spacing:-0.02em;margin-bottom:4px;
+}
+.hero h1 span{color:var(--nh-gold2)}
+.hero p{font-size:0.8rem;opacity:0.8;margin-bottom:1.2rem}
+.stats-row{display:flex;gap:1rem;flex-wrap:wrap}
+.stat-pill{
+  background:rgba(255,255,255,0.12);
+  border:1px solid rgba(255,255,255,0.2);
+  border-radius:20px;padding:6px 16px;
+  font-size:0.78rem;display:flex;align-items:center;gap:6px;
+}
+.stat-pill b{font-size:1rem;font-weight:700}
 
-    /* MAIN */
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 2rem;
-    }
+/* ───── MAIN LAYOUT ───── */
+.main{max-width:1100px;margin:0 auto;padding:1.5rem}
 
-    /* PAGE TITLE */
-    .page-title {
-      margin-bottom: 2rem;
-      animation: fadeDown 0.5s ease both;
-    }
-    .page-title h1 {
-      font-size: 1.6rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      margin-bottom: 4px;
-    }
-    .page-title p {
-      font-size: 0.82rem;
-      color: var(--text3);
-      font-family: var(--mono);
-    }
+/* ───── SECTION LABEL ───── */
+.sec-label{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:0.8rem;
+}
+.sec-label h2{
+  font-size:0.78rem;font-weight:700;
+  color:var(--nh-green);text-transform:uppercase;letter-spacing:0.1em;
+}
+.sec-label-line{flex:1;height:1px;background:var(--nh-gray2)}
 
-    /* STATS BAR */
-    .stats-bar {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 2rem;
-      animation: fadeDown 0.5s 0.1s ease both;
-    }
-    .stat-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 0.8rem 1.2rem;
-      flex: 1;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .stat-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    .stat-label {
-      font-size: 0.72rem;
-      color: var(--text3);
-      font-family: var(--mono);
-    }
-    .stat-value {
-      font-size: 1.1rem;
-      font-weight: 700;
-      font-family: var(--mono);
-    }
+/* ───── REGISTER CARD ───── */
+.register-card{
+  background:var(--nh-white);
+  border:1px solid var(--nh-gray2);
+  border-top:3px solid var(--nh-green);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow-sm);
+  padding:1.2rem;margin-bottom:1.5rem;
+}
+.reg-row{
+  display:grid;grid-template-columns:150px 1fr auto;
+  gap:0.75rem;align-items:end;
+}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg label{
+  font-size:0.7rem;font-weight:700;
+  color:var(--nh-green);letter-spacing:0.05em;
+}
+.fg input,.fg select,.fg textarea{
+  border:1px solid var(--nh-gray2);
+  border-radius:6px;
+  padding:0.55rem 0.8rem;
+  font-family:var(--sans);font-size:0.85rem;
+  color:var(--nh-text);
+  background:#fff;outline:none;
+  transition:border-color 0.2s,box-shadow 0.2s;
+}
+.fg input:focus,.fg select:focus,.fg textarea:focus{
+  border-color:var(--nh-green);
+  box-shadow:0 0 0 3px rgba(0,102,51,0.1);
+}
+.fg textarea{resize:vertical;min-height:60px}
 
-    /* NEW TASK FORM */
-    .section-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 1rem;
-    }
-    .section-header h2 {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--text2);
-      font-family: var(--mono);
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-    }
-    .section-line {
-      flex: 1;
-      height: 1px;
-      background: var(--border);
-    }
+/* ───── BUTTONS ───── */
+.btn{
+  padding:0.55rem 1.2rem;border:none;border-radius:6px;
+  font-family:var(--sans);font-size:0.82rem;font-weight:700;
+  cursor:pointer;transition:all 0.2s;letter-spacing:0.01em;
+  white-space:nowrap;
+}
+.btn-primary{background:var(--nh-green);color:#fff}
+.btn-primary:hover{background:var(--nh-green2);box-shadow:var(--shadow-sm)}
+.btn-gold{background:var(--nh-gold);color:#fff}
+.btn-gold:hover{background:var(--nh-gold2);color:var(--nh-text)}
+.btn-ghost{
+  background:transparent;color:var(--nh-text3);
+  border:1px solid var(--nh-gray3);
+}
+.btn-ghost:hover{border-color:var(--nh-green);color:var(--nh-green)}
+.btn-danger{background:#fdf0ed;color:var(--nh-red);border:1px solid #f5c4b8}
+.btn-danger:hover{background:#fbe0d9}
+.btn-sm{padding:0.35rem 0.75rem;font-size:0.72rem}
+.btn-xs{padding:0.25rem 0.6rem;font-size:0.68rem}
 
-    .new-task-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-bottom: 2rem;
-      animation: fadeDown 0.5s 0.15s ease both;
-    }
-    .form-row {
-      display: grid;
-      grid-template-columns: 160px 1fr auto;
-      gap: 0.75rem;
-      align-items: end;
-    }
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .form-group label {
-      font-size: 0.72rem;
-      font-family: var(--mono);
-      color: var(--text3);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-    .form-group input, .form-group select, .form-group textarea {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      font-family: var(--sans);
-      font-size: 0.88rem;
-      padding: 0.6rem 0.9rem;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .form-group input:focus,
-    .form-group select:focus,
-    .form-group textarea:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(0,212,255,0.08);
-    }
-    .form-group textarea {
-      resize: vertical;
-      min-height: 70px;
-    }
-    select option { background: var(--surface); }
+/* ───── FILTER BAR ───── */
+.filter-bar{
+  display:flex;align-items:center;gap:0.5rem;
+  margin-bottom:1rem;flex-wrap:wrap;
+}
+.f-btn{
+  font-size:0.75rem;padding:5px 14px;
+  border-radius:20px;border:1px solid var(--nh-gray3);
+  background:#fff;color:var(--nh-text3);
+  cursor:pointer;transition:all 0.2s;font-family:var(--sans);
+}
+.f-btn.active{
+  background:var(--nh-green);color:#fff;border-color:var(--nh-green);
+}
+.f-btn:hover:not(.active){border-color:var(--nh-green);color:var(--nh-green)}
+.search-wrap{margin-left:auto;position:relative}
+.search-wrap input{
+  border:1px solid var(--nh-gray3);border-radius:20px;
+  padding:5px 14px 5px 32px;
+  font-family:var(--sans);font-size:0.78rem;
+  background:#fff;outline:none;width:200px;
+  transition:border-color 0.2s;
+}
+.search-wrap input:focus{border-color:var(--nh-green)}
+.search-wrap::before{
+  content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);
+  font-size:0.72rem;
+}
 
-    .btn {
-      padding: 0.6rem 1.4rem;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      font-family: var(--mono);
-      font-size: 0.82rem;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-      transition: all 0.2s;
-      white-space: nowrap;
-    }
-    .btn-primary {
-      background: var(--accent);
-      color: #000;
-    }
-    .btn-primary:hover {
-      background: #33dcff;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 16px rgba(0,212,255,0.3);
-    }
-    .btn-ghost {
-      background: transparent;
-      color: var(--text2);
-      border: 1px solid var(--border);
-    }
-    .btn-ghost:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-    .btn-sm {
-      padding: 0.4rem 0.9rem;
-      font-size: 0.75rem;
-    }
-    .btn-green {
-      background: rgba(0,230,118,0.12);
-      color: var(--green);
-      border: 1px solid rgba(0,230,118,0.3);
-    }
-    .btn-green:hover { background: rgba(0,230,118,0.2); }
+/* ───── TASK CARDS ───── */
+.board-list{display:flex;flex-direction:column;gap:0.8rem}
+.task-card{
+  background:var(--nh-white);
+  border:1px solid var(--nh-gray2);
+  border-left:4px solid var(--nh-green);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow-sm);
+  overflow:hidden;
+  transition:border-color 0.2s,box-shadow 0.2s;
+  animation:fadeUp 0.35s ease both;
+}
+.task-card:hover{box-shadow:var(--shadow-md)}
+.task-card.done{border-left-color:var(--nh-gold)}
+.task-card.expanded{border-color:var(--nh-green3);box-shadow:var(--shadow-md)}
 
-    /* BOARD LIST */
-    .board-list {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
+.task-header{
+  padding:1rem 1.2rem;
+  display:flex;align-items:center;gap:0.8rem;
+  cursor:pointer;user-select:none;
+}
+.task-header:hover{background:var(--nh-light)}
+.task-seq{
+  font-size:0.68rem;font-weight:700;
+  color:var(--nh-gray4);min-width:32px;
+}
+.date-tag{
+  font-size:0.72rem;font-weight:700;
+  background:var(--nh-light);border:1px solid #c8dfd0;
+  color:var(--nh-green);border-radius:6px;
+  padding:3px 10px;white-space:nowrap;
+}
+.task-info{flex:1;min-width:0}
+.task-name{
+  font-size:0.92rem;font-weight:700;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.task-sub{
+  font-size:0.72rem;color:var(--nh-text3);margin-top:2px;
+}
+.task-actions{display:flex;align-items:center;gap:0.5rem;flex-shrink:0}
+.reply-badge{
+  font-size:0.7rem;background:#e8f4ee;color:var(--nh-green2);
+  border:1px solid #b3d9c0;border-radius:20px;padding:2px 9px;font-weight:700;
+}
+.status-tag{
+  font-size:0.68rem;font-weight:700;padding:3px 10px;
+  border-radius:20px;letter-spacing:0.03em;
+}
+.status-ongoing{background:#fff8e1;color:#a07000;border:1px solid #ffe082}
+.status-done{background:#e8f4ee;color:var(--nh-green);border:1px solid #b3d9c0}
+.chevron{
+  width:16px;height:16px;color:var(--nh-gray4);
+  transition:transform 0.3s;flex-shrink:0;
+}
+.expanded .chevron{transform:rotate(180deg)}
 
-    .task-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
-      animation: fadeUp 0.4s ease both;
-      transition: border-color 0.2s;
-    }
-    .task-card:hover { border-color: var(--border); }
-    .task-card.expanded { border-color: rgba(0,212,255,0.3); }
+/* ───── TASK BODY ───── */
+.task-body{display:none;border-top:1px solid var(--nh-gray2)}
+.task-body.show{display:block}
 
-    .task-header {
-      padding: 1rem 1.4rem;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      cursor: pointer;
-      user-select: none;
-    }
-    .task-header:hover { background: rgba(255,255,255,0.02); }
+.task-desc-box{
+  background:var(--nh-light);
+  border-bottom:1px dashed var(--nh-gray2);
+  padding:0.9rem 1.2rem;
+}
+.task-desc-box .lbl{
+  font-size:0.68rem;font-weight:700;color:var(--nh-green);
+  text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;
+}
+.task-desc-box p{font-size:0.82rem;color:var(--nh-text2);line-height:1.6}
 
-    .task-num {
-      font-family: var(--mono);
-      font-size: 0.7rem;
-      color: var(--text3);
-      min-width: 36px;
-    }
+/* ───── REPLIES ───── */
+.replies-wrap{padding:1rem 1.2rem}
+.replies-head{
+  display:flex;align-items:center;gap:8px;
+  margin-bottom:0.8rem;
+}
+.replies-head span{
+  font-size:0.72rem;font-weight:700;color:var(--nh-green);
+  text-transform:uppercase;letter-spacing:0.08em;
+}
+.replies-head small{font-size:0.7rem;color:var(--nh-text3)}
 
-    .task-date-badge {
-      font-family: var(--mono);
-      font-size: 0.72rem;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 3px 10px;
-      color: var(--accent);
-      white-space: nowrap;
-    }
+.reply-list{display:flex;flex-direction:column;gap:0.6rem;margin-bottom:1rem}
+.reply-item{
+  background:var(--nh-gray1);border:1px solid var(--nh-gray2);
+  border-radius:8px;padding:0.8rem 1rem;
+  display:grid;grid-template-columns:36px 1fr auto;gap:0.7rem;
+  align-items:start;
+  animation:fadeUp 0.25s ease both;
+}
+.reply-avatar{
+  width:36px;height:36px;border-radius:50%;
+  background:linear-gradient(135deg,var(--nh-green),var(--nh-green2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.82rem;font-weight:700;color:#fff;
+  border:2px solid var(--nh-gold);
+  flex-shrink:0;
+}
+.reply-body{}
+.reply-meta{display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap}
+.reply-name{font-size:0.85rem;font-weight:700;color:var(--nh-text)}
+.reply-dept-tag{
+  font-size:0.66rem;background:#e8f4ee;color:var(--nh-green);
+  border:1px solid #b3d9c0;border-radius:4px;padding:1px 6px;font-weight:700;
+}
+.reply-duty-tag{
+  font-size:0.66rem;background:#fff8e1;color:#a07000;
+  border:1px solid #ffe082;border-radius:4px;padding:1px 6px;font-weight:700;
+}
+.reply-time{font-size:0.65rem;color:var(--nh-text3)}
+.reply-text{
+  font-size:0.82rem;color:var(--nh-text2);line-height:1.6;
+  white-space:pre-wrap;
+}
+.reply-confirm-mark{
+  display:inline-flex;align-items:center;gap:3px;
+  font-size:0.66rem;color:var(--nh-green);font-weight:700;margin-top:4px;
+}
+.reply-controls{display:flex;flex-direction:column;gap:3px;flex-shrink:0}
 
-    .task-title {
-      flex: 1;
-      font-size: 0.95rem;
-      font-weight: 600;
-    }
-    .task-title small {
-      display: block;
-      font-size: 0.75rem;
-      color: var(--text3);
-      font-weight: 400;
-      margin-top: 1px;
-    }
+/* inline edit */
+.reply-edit-area{
+  width:100%;border:1px solid var(--nh-green);border-radius:6px;
+  padding:0.5rem;font-family:var(--sans);font-size:0.82rem;
+  color:var(--nh-text);background:#fff;outline:none;resize:vertical;
+  min-height:60px;margin-top:4px;
+}
+.reply-edit-btns{display:flex;gap:4px;margin-top:4px}
 
-    .task-meta {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-    }
+/* ───── REPLY FORM ───── */
+.reply-form{
+  background:linear-gradient(135deg,#f0f7f2,#e8f4ee);
+  border:1px solid #c8dfd0;border-radius:8px;padding:1rem;
+}
+.reply-form-title{
+  font-size:0.75rem;font-weight:700;color:var(--nh-green);
+  margin-bottom:0.7rem;letter-spacing:0.05em;
+  display:flex;align-items:center;gap:6px;
+}
+.reply-form-title::before{
+  content:'';display:inline-block;width:3px;height:14px;
+  background:var(--nh-gold);border-radius:2px;
+}
+.rf-grid{
+  display:grid;grid-template-columns:1fr 1fr 1fr;
+  gap:0.5rem;margin-bottom:0.5rem;
+}
+.rf-bottom{
+  display:grid;grid-template-columns:1fr auto;
+  gap:0.5rem;align-items:end;
+}
 
-    .reply-count {
-      font-family: var(--mono);
-      font-size: 0.72rem;
-      color: var(--text3);
-      background: var(--surface2);
-      padding: 2px 8px;
-      border-radius: 20px;
-    }
+/* ───── MODAL ───── */
+.modal-backdrop{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,60,20,0.5);backdrop-filter:blur(4px);
+  z-index:400;align-items:center;justify-content:center;padding:1rem;
+}
+.modal-backdrop.show{display:flex}
+.modal{
+  background:#fff;border-radius:12px;
+  box-shadow:var(--shadow-lg);
+  width:100%;max-width:560px;
+  border-top:4px solid var(--nh-green);
+  animation:fadeUp 0.3s ease;
+  max-height:90vh;overflow-y:auto;
+}
+.modal-head{
+  padding:1.2rem 1.5rem 1rem;
+  border-bottom:1px solid var(--nh-gray2);
+  display:flex;align-items:center;gap:10px;
+}
+.modal-head h3{font-size:1rem;font-weight:700;flex:1}
+.modal-head .close-btn{
+  background:none;border:none;font-size:1.3rem;
+  color:var(--nh-gray4);cursor:pointer;
+}
+.modal-body{padding:1.2rem 1.5rem}
+.modal-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:0.75rem;margin-bottom:0.75rem;
+}
+.modal-full{margin-bottom:0.75rem}
+.modal-foot{
+  padding:1rem 1.5rem;border-top:1px solid var(--nh-gray2);
+  display:flex;justify-content:flex-end;gap:0.5rem;
+}
 
-    .status-badge {
-      font-family: var(--mono);
-      font-size: 0.68rem;
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-    }
-    .status-ongoing {
-      background: rgba(255,215,64,0.12);
-      color: var(--yellow);
-      border: 1px solid rgba(255,215,64,0.3);
-    }
-    .status-done {
-      background: rgba(0,230,118,0.12);
-      color: var(--green);
-      border: 1px solid rgba(0,230,118,0.3);
-    }
+/* ───── CONFIG MODAL ───── */
+.cfg-note{
+  background:#fff8e1;border:1px solid #ffe082;border-radius:6px;
+  padding:0.75rem 1rem;font-size:0.78rem;color:#7a5500;
+  margin-bottom:1rem;line-height:1.6;
+}
+.cfg-step{
+  display:flex;align-items:center;gap:8px;
+  font-size:0.78rem;color:var(--nh-text2);margin-bottom:4px;
+}
+.cfg-step b{
+  width:18px;height:18px;border-radius:50%;
+  background:var(--nh-green);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.65rem;flex-shrink:0;
+}
+.connected-info{
+  background:#e8f4ee;border:1px solid #b3d9c0;border-radius:6px;
+  padding:0.7rem 1rem;font-size:0.8rem;color:var(--nh-green);
+  margin-top:0.5rem;display:flex;align-items:center;gap:6px;
+}
 
-    .chevron {
-      width: 18px; height: 18px;
-      color: var(--text3);
-      transition: transform 0.3s;
-      flex-shrink: 0;
-    }
-    .expanded .chevron { transform: rotate(180deg); }
+/* ───── LOADING ───── */
+.loading{
+  text-align:center;padding:3rem;
+  color:var(--nh-text3);font-size:0.85rem;
+}
+.spinner{
+  width:32px;height:32px;border:3px solid var(--nh-gray2);
+  border-top-color:var(--nh-green);border-radius:50%;
+  animation:spin 0.8s linear infinite;margin:0 auto 12px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-    /* TASK BODY */
-    .task-body {
-      border-top: 1px solid var(--border);
-      display: none;
-    }
-    .task-body.show { display: block; }
+/* ───── EMPTY ───── */
+.empty{
+  text-align:center;padding:4rem 2rem;
+  color:var(--nh-text3);font-size:0.82rem;
+}
+.empty-icon{font-size:2.5rem;margin-bottom:10px;opacity:0.5}
 
-    .task-desc {
-      padding: 1rem 1.4rem;
-      font-size: 0.85rem;
-      color: var(--text2);
-      background: rgba(0,0,0,0.2);
-      border-bottom: 1px dashed var(--border);
-      line-height: 1.6;
-    }
-    .task-desc strong {
-      color: var(--text3);
-      font-family: var(--mono);
-      font-size: 0.72rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      display: block;
-      margin-bottom: 4px;
-    }
+/* ───── TOAST ───── */
+.toast{
+  position:fixed;bottom:1.5rem;right:1.5rem;
+  background:var(--nh-green);color:#fff;
+  border-radius:8px;padding:0.75rem 1.2rem;
+  font-size:0.8rem;font-weight:500;
+  z-index:500;opacity:0;transform:translateY(8px);
+  transition:all 0.3s;pointer-events:none;
+  box-shadow:var(--shadow-md);max-width:300px;
+}
+.toast.error{background:var(--nh-red)}
+.toast.show{opacity:1;transform:translateY(0)}
 
-    /* REPLIES */
-    .replies-section { padding: 1rem 1.4rem; }
-    .replies-title {
-      font-family: var(--mono);
-      font-size: 0.72rem;
-      color: var(--text3);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 0.75rem;
-    }
+/* ───── ANIM ───── */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}
+}
 
-    .reply-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.6rem;
-      margin-bottom: 1rem;
-    }
-
-    .reply-item {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 0.8rem 1rem;
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 0.75rem;
-      animation: fadeUp 0.3s ease both;
-    }
-    .reply-avatar {
-      width: 32px; height: 32px;
-      border-radius: 8px;
-      background: linear-gradient(135deg, var(--accent2), #005f73);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.75rem; font-weight: 700; color: #fff;
-      flex-shrink: 0;
-    }
-    .reply-content {}
-    .reply-meta {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 4px;
-      flex-wrap: wrap;
-    }
-    .reply-name {
-      font-size: 0.85rem;
-      font-weight: 600;
-    }
-    .reply-dept {
-      font-family: var(--mono);
-      font-size: 0.68rem;
-      color: var(--text3);
-      background: var(--surface2);
-      padding: 1px 7px;
-      border-radius: 4px;
-    }
-    .reply-duty {
-      font-family: var(--mono);
-      font-size: 0.68rem;
-      color: var(--accent);
-    }
-    .reply-time {
-      font-family: var(--mono);
-      font-size: 0.65rem;
-      color: var(--text3);
-      margin-left: auto;
-    }
-    .reply-text {
-      font-size: 0.83rem;
-      color: var(--text2);
-      line-height: 1.6;
-    }
-    .reply-confirm {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-family: var(--mono);
-      font-size: 0.65rem;
-      color: var(--green);
-      margin-top: 4px;
-    }
-    .reply-confirm::before {
-      content: '✓';
-      font-weight: 700;
-    }
-
-    /* REPLY FORM */
-    .reply-form {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 1rem;
-    }
-    .reply-form-title {
-      font-family: var(--mono);
-      font-size: 0.72rem;
-      color: var(--accent);
-      margin-bottom: 0.75rem;
-      letter-spacing: 0.08em;
-    }
-    .reply-form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 0.5rem;
-      margin-bottom: 0.5rem;
-    }
-    .reply-form-bottom {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 0.5rem;
-      align-items: end;
-    }
-
-    /* FILTER BAR */
-    .filter-bar {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1.5rem;
-      animation: fadeDown 0.5s 0.2s ease both;
-    }
-    .filter-btn {
-      font-family: var(--mono);
-      font-size: 0.72rem;
-      padding: 5px 14px;
-      border-radius: 20px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--text3);
-      cursor: pointer;
-      transition: all 0.2s;
-      letter-spacing: 0.05em;
-    }
-    .filter-btn.active {
-      background: rgba(0,212,255,0.1);
-      border-color: rgba(0,212,255,0.4);
-      color: var(--accent);
-    }
-    .filter-btn:hover:not(.active) { color: var(--text2); border-color: var(--text3); }
-
-    .search-input {
-      margin-left: auto;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      color: var(--text);
-      font-family: var(--mono);
-      font-size: 0.75rem;
-      padding: 5px 14px;
-      outline: none;
-      width: 200px;
-      transition: border-color 0.2s;
-    }
-    .search-input:focus {
-      border-color: var(--accent);
-    }
-    .search-input::placeholder { color: var(--text3); }
-
-    /* EMPTY STATE */
-    .empty-state {
-      text-align: center;
-      padding: 4rem 2rem;
-      color: var(--text3);
-      font-family: var(--mono);
-      font-size: 0.82rem;
-    }
-    .empty-state-icon {
-      font-size: 2.5rem;
-      margin-bottom: 1rem;
-      opacity: 0.4;
-    }
-
-    /* MODAL */
-    .modal-backdrop {
-      display: none;
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.7);
-      backdrop-filter: blur(4px);
-      z-index: 200;
-      align-items: center;
-      justify-content: center;
-    }
-    .modal-backdrop.show { display: flex; }
-    .modal {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 2rem;
-      width: 100%;
-      max-width: 520px;
-      animation: fadeUp 0.3s ease;
-    }
-    .modal h3 {
-      font-size: 1.1rem;
-      font-weight: 700;
-      margin-bottom: 1.5rem;
-    }
-    .modal-form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.75rem;
-      margin-bottom: 0.75rem;
-    }
-    .modal-form-full { margin-bottom: 0.75rem; }
-    .modal-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 0.5rem;
-      margin-top: 1.5rem;
-    }
-
-    /* TOAST */
-    .toast {
-      position: fixed;
-      bottom: 2rem;
-      right: 2rem;
-      background: var(--surface2);
-      border: 1px solid var(--green);
-      border-radius: 10px;
-      padding: 0.8rem 1.2rem;
-      font-family: var(--mono);
-      font-size: 0.8rem;
-      color: var(--green);
-      z-index: 300;
-      opacity: 0;
-      transform: translateY(10px);
-      transition: all 0.3s;
-      pointer-events: none;
-    }
-    .toast.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    @keyframes fadeDown {
-      from { opacity: 0; transform: translateY(-12px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(8px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    @media (max-width: 768px) {
-      .container { padding: 1rem; }
-      .form-row { grid-template-columns: 1fr; }
-      .reply-form-grid { grid-template-columns: 1fr 1fr; }
-      .stats-bar { flex-wrap: wrap; }
-      .modal-form-grid { grid-template-columns: 1fr; }
-      .filter-bar { flex-wrap: wrap; }
-      .search-input { width: 100%; margin-left: 0; }
-    }
-  </style>
+/* ───── RESPONSIVE ───── */
+@media(max-width:720px){
+  .reg-row{grid-template-columns:1fr}
+  .rf-grid{grid-template-columns:1fr 1fr}
+  .modal-grid{grid-template-columns:1fr}
+  .stats-row{gap:0.6rem}
+  .header-inner{padding:0 1rem}
+  .main{padding:1rem}
+}
+</style>
 </head>
 <body>
 
+<div class="top-band"></div>
+
+<!-- HEADER -->
 <header>
   <div class="header-inner">
     <div class="logo">
-      <div class="logo-icon">IT</div>
-      WORK · CHECK · BOARD
+      <div class="logo-emblem">NH</div>
+      <div class="logo-text">
+        <strong>농협 IT 업무확인 게시판</strong>
+        <span>NH Nonghyup · IT Work Confirmation Board</span>
+      </div>
     </div>
-    <div class="header-tag">v1.0 · GitHub Pages</div>
+    <div class="header-right">
+      <span class="github-status disconnected" id="ghStatus">● GitHub 미연결</span>
+      <button class="config-btn" onclick="openConfig()">⚙ GitHub 연결설정</button>
+    </div>
   </div>
 </header>
 
-<div class="container">
-
-  <!-- Page Title -->
-  <div class="page-title">
-    <h1>IT 작업 업무 확인 게시판</h1>
-    <p>// 작업 등록 → 담당자 업무 확인 응답 시스템</p>
-  </div>
-
-  <!-- Stats Bar -->
-  <div class="stats-bar" id="statsBar">
-    <div class="stat-card">
-      <div class="stat-dot" style="background:var(--accent)"></div>
-      <div>
-        <div class="stat-label">전체 작업</div>
-        <div class="stat-value" id="statTotal">0</div>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-dot" style="background:var(--yellow)"></div>
-      <div>
-        <div class="stat-label">진행중</div>
-        <div class="stat-value" id="statOngoing">0</div>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-dot" style="background:var(--green)"></div>
-      <div>
-        <div class="stat-label">완료</div>
-        <div class="stat-value" id="statDone">0</div>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-dot" style="background:var(--accent2)"></div>
-      <div>
-        <div class="stat-label">전체 확인 응답</div>
-        <div class="stat-value" id="statReplies">0</div>
-      </div>
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <h1>IT 작업 <span>업무확인</span> 게시판</h1>
+    <p>작업 등록 후 담당자가 업무확인 응답을 남기는 협업 시스템 · GitHub Issues 기반 영구저장</p>
+    <div class="stats-row">
+      <div class="stat-pill">전체 작업 <b id="sTotal">0</b>건</div>
+      <div class="stat-pill">진행중 <b id="sOngoing">0</b>건</div>
+      <div class="stat-pill">완료 <b id="sDone">0</b>건</div>
+      <div class="stat-pill">업무확인 응답 <b id="sReplies">0</b>건</div>
     </div>
   </div>
+</div>
 
-  <!-- New Task Form -->
-  <div class="section-header">
-    <h2>작업 등록</h2>
-    <div class="section-line"></div>
-  </div>
+<!-- MAIN -->
+<div class="main">
 
-  <div class="new-task-card">
-    <div class="form-row">
-      <div class="form-group">
+  <!-- 등록 -->
+  <div class="sec-label"><h2>작업 등록</h2><div class="sec-label-line"></div></div>
+  <div class="register-card">
+    <div class="reg-row">
+      <div class="fg">
         <label>작업 날짜</label>
-        <input type="date" id="newDate"/>
+        <input type="date" id="qDate"/>
       </div>
-      <div class="form-group">
+      <div class="fg">
         <label>작업명</label>
-        <input type="text" id="newTitle" placeholder="예) 서버 패치 및 재기동, DB 백업 작업..."/>
+        <input type="text" id="qTitle" placeholder="예) 운영서버 보안패치, DB 백업 작업..."/>
       </div>
-      <button class="btn btn-primary" onclick="openNewTaskModal()">등록</button>
+      <button class="btn btn-primary" onclick="openNewModal()">＋ 작업 등록</button>
     </div>
   </div>
 
-  <!-- Filter Bar -->
+  <!-- 필터 -->
   <div class="filter-bar">
-    <button class="filter-btn active" onclick="setFilter('all', this)">전체</button>
-    <button class="filter-btn" onclick="setFilter('ongoing', this)">진행중</button>
-    <button class="filter-btn" onclick="setFilter('done', this)">완료</button>
-    <input type="text" class="search-input" placeholder="작업명 검색..." oninput="searchTasks(this.value)"/>
+    <button class="f-btn active" onclick="setFilter('all',this)">전체</button>
+    <button class="f-btn" onclick="setFilter('open',this)">진행중</button>
+    <button class="f-btn" onclick="setFilter('closed',this)">완료</button>
+    <div class="search-wrap">
+      <input type="text" placeholder="작업명 검색..." oninput="doSearch(this.value)"/>
+    </div>
   </div>
 
-  <!-- Board List -->
-  <div class="section-header">
-    <h2>작업 목록</h2>
-    <div class="section-line"></div>
+  <!-- 게시판 -->
+  <div class="sec-label"><h2>작업 목록</h2><div class="sec-label-line"></div></div>
+  <div class="board-list" id="boardList">
+    <div class="loading"><div class="spinner"></div>GitHub 설정 후 작업 목록이 로드됩니다.</div>
   </div>
-
-  <div class="board-list" id="boardList"></div>
-
 </div>
 
-<!-- New Task Modal -->
-<div class="modal-backdrop" id="newTaskModal">
+<!-- ══════════════════ 작업등록 MODAL ══════════════════ -->
+<div class="modal-backdrop" id="newModal">
   <div class="modal">
-    <h3>📋 새 IT 작업 등록</h3>
-    <div class="modal-form-grid">
-      <div class="form-group">
-        <label>작업 날짜</label>
-        <input type="date" id="modalDate"/>
-      </div>
-      <div class="form-group">
-        <label>작업 유형</label>
-        <select id="modalType">
-          <option>서버 작업</option>
-          <option>네트워크 작업</option>
-          <option>DB 작업</option>
-          <option>보안 패치</option>
-          <option>시스템 점검</option>
-          <option>소프트웨어 배포</option>
-          <option>하드웨어 교체</option>
-          <option>기타</option>
-        </select>
-      </div>
+    <div class="modal-head">
+      <h3>📋 IT 작업 등록</h3>
+      <button class="close-btn" onclick="closeNewModal()">✕</button>
     </div>
-    <div class="modal-form-full form-group">
-      <label>작업명</label>
-      <input type="text" id="modalTitle" placeholder="작업명을 입력하세요"/>
-    </div>
-    <div class="modal-form-full form-group">
-      <label>작업 설명 (선택)</label>
-      <textarea id="modalDesc" placeholder="작업 내용, 영향 범위, 주의사항 등을 입력하세요..."></textarea>
-    </div>
-    <div class="modal-form-grid">
-      <div class="form-group">
-        <label>작업 시작 시간</label>
-        <input type="time" id="modalStartTime"/>
+    <div class="modal-body">
+      <div class="modal-grid">
+        <div class="fg"><label>작업 날짜</label><input type="date" id="mDate"/></div>
+        <div class="fg">
+          <label>작업 유형</label>
+          <select id="mType">
+            <option>서버 작업</option><option>네트워크 작업</option>
+            <option>DB 작업</option><option>보안 패치</option>
+            <option>시스템 점검</option><option>소프트웨어 배포</option>
+            <option>하드웨어 교체</option><option>기타</option>
+          </select>
+        </div>
       </div>
-      <div class="form-group">
-        <label>작업 종료 시간</label>
-        <input type="time" id="modalEndTime"/>
+      <div class="modal-full fg"><label>작업명</label>
+        <input type="text" id="mTitle" placeholder="작업명을 입력하세요"/>
+      </div>
+      <div class="modal-full fg"><label>작업 설명 (선택)</label>
+        <textarea id="mDesc" placeholder="작업 내용, 영향 범위, 주의사항..."></textarea>
+      </div>
+      <div class="modal-grid">
+        <div class="fg"><label>시작 시간</label><input type="time" id="mSt"/></div>
+        <div class="fg"><label>종료 시간</label><input type="time" id="mEt"/></div>
+      </div>
+      <div class="modal-full fg"><label>등록자</label>
+        <input type="text" id="mAuthor" placeholder="등록자 이름"/>
       </div>
     </div>
-    <div class="modal-form-full form-group">
-      <label>등록자</label>
-      <input type="text" id="modalAuthor" placeholder="등록자 이름"/>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeNewTaskModal()">취소</button>
-      <button class="btn btn-primary" onclick="submitNewTask()">작업 등록</button>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeNewModal()">취소</button>
+      <button class="btn btn-primary" onclick="submitNewTask()">등록</button>
     </div>
   </div>
 </div>
 
-<!-- Toast -->
+<!-- ══════════════════ GitHub 설정 MODAL ══════════════════ -->
+<div class="modal-backdrop" id="cfgModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>⚙ GitHub 연결 설정</h3>
+      <button class="close-btn" onclick="closeCfg()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="cfg-note">
+        <strong>📌 DB 없이 데이터 영구저장 방법</strong><br/>
+        GitHub Issues를 데이터베이스로 사용합니다.<br/>
+        작업 = Issue, 업무확인 응답 = Comment로 저장됩니다.<br/><br/>
+        <div class="cfg-step"><b>1</b> GitHub에서 이 프로젝트용 공개/비공개 저장소 생성</div>
+        <div class="cfg-step"><b>2</b> Settings → Developer settings → Personal access tokens → Fine-grained 발급</div>
+        <div class="cfg-step"><b>3</b> 권한: Issues (Read & Write) 체크 후 생성</div>
+        <div class="cfg-step"><b>4</b> 아래 정보 입력 후 저장</div>
+      </div>
+      <div class="modal-grid">
+        <div class="fg"><label>GitHub 사용자명</label>
+          <input type="text" id="cfgOwner" placeholder="예) nonghyup-it"/>
+        </div>
+        <div class="fg"><label>저장소 이름</label>
+          <input type="text" id="cfgRepo" placeholder="예) it-work-board"/>
+        </div>
+      </div>
+      <div class="modal-full fg"><label>Personal Access Token</label>
+        <input type="password" id="cfgToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"/>
+      </div>
+      <div id="cfgConnected" style="display:none"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeCfg()">닫기</button>
+      <button class="btn btn-danger btn-sm" onclick="clearConfig()" style="margin-right:auto">설정 초기화</button>
+      <button class="btn btn-primary" onclick="saveConfig()">저장 및 연결</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
-  // ─────────────────────────────────────
-  // DATA STORE (localStorage)
-  // ─────────────────────────────────────
-  const STORAGE_KEY = 'it_work_board_v1';
+// ══════════════════════════════════════════════
+// CONFIG — localStorage에 저장
+// ══════════════════════════════════════════════
+const CFG_KEY = 'nh_board_config';
+let cfg = {};
+let allIssues = [];
+let currentFilter = 'all';
+let currentSearch = '';
 
-  function loadData() {
-    try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { tasks: [] };
-    } catch { return { tasks: [] }; }
-  }
+function loadCfg(){
+  try{ cfg = JSON.parse(localStorage.getItem(CFG_KEY))||{}; }catch{ cfg={}; }
+}
+function saveCfg(){ localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); }
 
-  function saveData(data) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  }
+// ══════════════════════════════════════════════
+// GITHUB API HELPERS
+// ══════════════════════════════════════════════
+const GH = 'https://api.github.com';
 
-  let data = loadData();
-  let currentFilter = 'all';
-  let currentSearch = '';
+function apiHeaders(){
+  const h = { 'Accept':'application/vnd.github+json',
+               'X-GitHub-Api-Version':'2022-11-28' };
+  if(cfg.token) h['Authorization'] = 'Bearer ' + cfg.token;
+  return h;
+}
 
-  // ─────────────────────────────────────
-  // INIT
-  // ─────────────────────────────────────
-  window.addEventListener('DOMContentLoaded', () => {
-    // Set today's date as default
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('newDate').value = today;
-    document.getElementById('modalDate').value = today;
-
-    // Seed sample data if empty
-    if (data.tasks.length === 0) {
-      data.tasks = getSampleData();
-      saveData(data);
-    }
-
-    renderBoard();
-    updateStats();
+async function ghGet(path){
+  const r = await fetch(GH+path, {headers:apiHeaders()});
+  if(!r.ok) throw new Error('API 오류: '+r.status+' '+r.statusText);
+  return r.json();
+}
+async function ghPost(path, body){
+  const r = await fetch(GH+path, {
+    method:'POST', headers:{...apiHeaders(),'Content-Type':'application/json'},
+    body: JSON.stringify(body)
   });
-
-  // ─────────────────────────────────────
-  // SAMPLE DATA
-  // ─────────────────────────────────────
-  function getSampleData() {
-    const today = new Date().toISOString().split('T')[0];
-    return [
-      {
-        id: 'task_001',
-        date: today,
-        title: '운영 서버 보안 패치 및 재기동',
-        type: '보안 패치',
-        desc: 'CVE-2024-XXXX 취약점 패치 적용 및 전체 서버 순차 재기동 작업입니다.\n영향 범위: WEB, WAS, DB 서버 전체\n예상 중단 시간: 각 서버별 3~5분',
-        startTime: '02:00',
-        endTime: '04:00',
-        author: '김철수',
-        status: 'ongoing',
-        createdAt: new Date().toISOString(),
-        replies: [
-          {
-            id: 'r001',
-            dept: '인프라팀',
-            name: '이민준',
-            duty: '서버 담당',
-            content: 'WEB 서버 3대 패치 완료 및 재기동 확인하였습니다. 서비스 정상 응답 확인.',
-            confirmed: true,
-            createdAt: new Date(Date.now() - 1800000).toISOString()
-          }
-        ]
-      },
-      {
-        id: 'task_002',
-        date: today,
-        title: 'MySQL 정기 백업 및 인덱스 최적화',
-        type: 'DB 작업',
-        desc: '월간 정기 DB 백업 및 슬로우 쿼리 원인 인덱스 재구성 작업.',
-        startTime: '01:00',
-        endTime: '03:00',
-        author: '박지영',
-        status: 'done',
-        createdAt: new Date(Date.now() - 86400000).toISOString(),
-        replies: [
-          {
-            id: 'r002',
-            dept: 'DBA팀',
-            name: '최수진',
-            duty: 'DB 관리',
-            content: '백업 완료 (총 324GB, S3 업로드 완료). 인덱스 재구성 후 쿼리 응답속도 40% 개선 확인.',
-            confirmed: true,
-            createdAt: new Date(Date.now() - 82800000).toISOString()
-          },
-          {
-            id: 'r003',
-            dept: '개발팀',
-            name: '홍길동',
-            duty: '백엔드 개발',
-            content: '애플리케이션 측 DB 연결 정상 확인. 슬로우 쿼리 모니터링 중 이상 없음.',
-            confirmed: true,
-            createdAt: new Date(Date.now() - 80000000).toISOString()
-          }
-        ]
-      }
-    ];
-  }
-
-  // ─────────────────────────────────────
-  // RENDER
-  // ─────────────────────────────────────
-  function renderBoard() {
-    const list = document.getElementById('boardList');
-    let tasks = [...data.tasks].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-    if (currentFilter === 'ongoing') tasks = tasks.filter(t => t.status === 'ongoing');
-    if (currentFilter === 'done') tasks = tasks.filter(t => t.status === 'done');
-    if (currentSearch) tasks = tasks.filter(t =>
-      t.title.includes(currentSearch) || (t.type||'').includes(currentSearch)
-    );
-
-    if (tasks.length === 0) {
-      list.innerHTML = `
-        <div class="empty-state">
-          <div class="empty-state-icon">📭</div>
-          <p>등록된 작업이 없습니다.</p>
-        </div>`;
-      return;
-    }
-
-    list.innerHTML = tasks.map((task, i) => renderTaskCard(task, i + 1)).join('');
-    updateStats();
-  }
-
-  function renderTaskCard(task, num) {
-    const isExpanded = task._expanded ? 'expanded' : '';
-    const bodyShow = task._expanded ? 'show' : '';
-    const statusLabel = task.status === 'done' ? '완료' : '진행중';
-    const statusClass = task.status === 'done' ? 'status-done' : 'status-ongoing';
-    const dateStr = formatDate(task.date);
-    const repliesHtml = task.replies.map(r => renderReply(r)).join('');
-
-    return `
-    <div class="task-card ${isExpanded}" id="card_${task.id}">
-      <div class="task-header" onclick="toggleCard('${task.id}')">
-        <span class="task-num">#${String(num).padStart(3,'0')}</span>
-        <span class="task-date-badge">${dateStr}</span>
-        <div class="task-title">
-          ${escHtml(task.title)}
-          <small>${escHtml(task.type||'')} · ${task.startTime||''}${task.endTime?' ~ '+task.endTime:''} · 등록: ${escHtml(task.author||'')}</small>
-        </div>
-        <div class="task-meta">
-          <span class="reply-count">💬 ${task.replies.length}</span>
-          <span class="status-badge ${statusClass}">${statusLabel}</span>
-          ${task.status === 'ongoing'
-            ? `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();completeTask('${task.id}')">완료 처리</button>`
-            : ''}
-          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="6,9 12,15 18,9"/>
-          </svg>
-        </div>
-      </div>
-      <div class="task-body ${bodyShow}" id="body_${task.id}">
-        ${task.desc ? `
-        <div class="task-desc">
-          <strong>작업 설명</strong>
-          ${escHtml(task.desc).replace(/\n/g,'<br>')}
-        </div>` : ''}
-        <div class="replies-section">
-          <div class="replies-title">업무 확인 응답 — ${task.replies.length}건</div>
-          <div class="reply-list" id="replies_${task.id}">
-            ${repliesHtml || '<div style="color:var(--text3);font-size:0.8rem;font-family:var(--mono);padding:0.5rem 0">아직 업무 확인 응답이 없습니다.</div>'}
-          </div>
-          <div class="reply-form">
-            <div class="reply-form-title">▶ 업무 확인 응답 작성</div>
-            <div class="reply-form-grid">
-              <div class="form-group">
-                <label>소속 부서</label>
-                <input type="text" id="rdept_${task.id}" placeholder="예) 인프라팀"/>
-              </div>
-              <div class="form-group">
-                <label>이름</label>
-                <input type="text" id="rname_${task.id}" placeholder="홍길동"/>
-              </div>
-              <div class="form-group">
-                <label>담당 업무명</label>
-                <input type="text" id="rduty_${task.id}" placeholder="예) 서버 담당"/>
-              </div>
-            </div>
-            <div class="reply-form-bottom">
-              <div class="form-group">
-                <label>확인 내용</label>
-                <textarea id="rcontent_${task.id}" placeholder="담당 업무 확인 내용을 입력하세요..."></textarea>
-              </div>
-              <button class="btn btn-green" onclick="submitReply('${task.id}')">확인 등록</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>`;
-  }
-
-  function renderReply(r) {
-    const initials = r.name ? r.name.charAt(0) : '?';
-    const timeStr = formatTime(r.createdAt);
-    return `
-    <div class="reply-item">
-      <div class="reply-avatar">${initials}</div>
-      <div class="reply-content">
-        <div class="reply-meta">
-          <span class="reply-name">${escHtml(r.name)}</span>
-          <span class="reply-dept">${escHtml(r.dept)}</span>
-          <span class="reply-duty">${escHtml(r.duty)}</span>
-          <span class="reply-time">${timeStr}</span>
-        </div>
-        <div class="reply-text">${escHtml(r.content).replace(/\n/g,'<br>')}</div>
-        ${r.confirmed ? '<div class="reply-confirm">업무 확인 완료</div>' : ''}
-      </div>
-    </div>`;
-  }
-
-  // ─────────────────────────────────────
-  // INTERACTIONS
-  // ─────────────────────────────────────
-  function toggleCard(id) {
-    const task = data.tasks.find(t => t.id === id);
-    if (!task) return;
-    task._expanded = !task._expanded;
-    const card = document.getElementById('card_' + id);
-    const body = document.getElementById('body_' + id);
-    if (task._expanded) {
-      card.classList.add('expanded');
-      body.classList.add('show');
-    } else {
-      card.classList.remove('expanded');
-      body.classList.remove('show');
-    }
-  }
-
-  function submitReply(taskId) {
-    const dept = document.getElementById('rdept_' + taskId).value.trim();
-    const name = document.getElementById('rname_' + taskId).value.trim();
-    const duty = document.getElementById('rduty_' + taskId).value.trim();
-    const content = document.getElementById('rcontent_' + taskId).value.trim();
-
-    if (!dept || !name || !duty || !content) {
-      showToast('⚠ 모든 항목을 입력해주세요.');
-      return;
-    }
-
-    const task = data.tasks.find(t => t.id === taskId);
-    if (!task) return;
-
-    const reply = {
-      id: 'r' + Date.now(),
-      dept, name, duty, content,
-      confirmed: true,
-      createdAt: new Date().toISOString()
-    };
-    task.replies.push(reply);
-    saveData(data);
-
-    // Append reply
-    const repliesList = document.getElementById('replies_' + taskId);
-    const emptyEl = repliesList.querySelector('div[style]');
-    if (emptyEl) emptyEl.remove();
-    const div = document.createElement('div');
-    div.innerHTML = renderReply(reply);
-    repliesList.appendChild(div.firstElementChild);
-
-    // Update count badge
-    const card = document.getElementById('card_' + taskId);
-    const countEl = card.querySelector('.reply-count');
-    if (countEl) countEl.textContent = '💬 ' + task.replies.length;
-
-    // Clear form
-    ['rdept_','rname_','rduty_','rcontent_'].forEach(p => {
-      document.getElementById(p + taskId).value = '';
-    });
-
-    updateStats();
-    showToast('✓ 업무 확인 응답이 등록되었습니다.');
-  }
-
-  function completeTask(id) {
-    const task = data.tasks.find(t => t.id === id);
-    if (!task) return;
-    task.status = 'done';
-    saveData(data);
-    renderBoard();
-    showToast('✓ 작업이 완료 처리되었습니다.');
-  }
-
-  // ─────────────────────────────────────
-  // NEW TASK MODAL
-  // ─────────────────────────────────────
-  function openNewTaskModal() {
-    const dateVal = document.getElementById('newDate').value;
-    const titleVal = document.getElementById('newTitle').value;
-    if (dateVal) document.getElementById('modalDate').value = dateVal;
-    if (titleVal) document.getElementById('modalTitle').value = titleVal;
-    document.getElementById('newTaskModal').classList.add('show');
-  }
-
-  function closeNewTaskModal() {
-    document.getElementById('newTaskModal').classList.remove('show');
-  }
-
-  document.getElementById('newTaskModal').addEventListener('click', function(e) {
-    if (e.target === this) closeNewTaskModal();
+  if(!r.ok) throw new Error('API 오류: '+r.status+' '+r.statusText);
+  return r.json();
+}
+async function ghPatch(path, body){
+  const r = await fetch(GH+path, {
+    method:'PATCH', headers:{...apiHeaders(),'Content-Type':'application/json'},
+    body: JSON.stringify(body)
   });
+  if(!r.ok) throw new Error('API 오류: '+r.status+' '+r.statusText);
+  return r.json();
+}
+async function ghDelete(path){
+  const r = await fetch(GH+path, {method:'DELETE', headers:apiHeaders()});
+  if(r.status===204) return true;
+  throw new Error('삭제 오류: '+r.status);
+}
 
-  function submitNewTask() {
-    const date = document.getElementById('modalDate').value;
-    const title = document.getElementById('modalTitle').value.trim();
-    const type = document.getElementById('modalType').value;
-    const desc = document.getElementById('modalDesc').value.trim();
-    const startTime = document.getElementById('modalStartTime').value;
-    const endTime = document.getElementById('modalEndTime').value;
-    const author = document.getElementById('modalAuthor').value.trim();
+function repoPath(){ return `/repos/${cfg.owner}/${cfg.repo}`; }
+function isConfigured(){ return cfg.owner && cfg.repo && cfg.token; }
 
-    if (!date || !title) {
-      showToast('⚠ 날짜와 작업명은 필수 입력입니다.');
-      return;
-    }
+// ══════════════════════════════════════════════
+// PARSE ISSUE ↔ TASK
+// ══════════════════════════════════════════════
+function issueToTask(issue){
+  // body 파싱: <!-- NH_META: {...} -->
+  let meta = {};
+  const m = (issue.body||'').match(/<!--NH_META:(.*?)-->/s);
+  if(m){ try{ meta = JSON.parse(m[1]); }catch{} }
+  return {
+    id: issue.number,
+    ghId: issue.number,
+    title: issue.title,
+    status: issue.state,          // 'open' | 'closed'
+    date: meta.date||'',
+    type: meta.type||'',
+    desc: meta.desc||'',
+    startTime: meta.startTime||'',
+    endTime: meta.endTime||'',
+    author: meta.author||'',
+    createdAt: issue.created_at,
+    _expanded: false,
+    _replies: []
+  };
+}
 
-    const task = {
-      id: 'task_' + Date.now(),
-      date, title, type, desc,
-      startTime, endTime, author,
-      status: 'ongoing',
-      createdAt: new Date().toISOString(),
-      replies: [],
-      _expanded: false
-    };
-    data.tasks.unshift(task);
-    saveData(data);
+function taskToBody(meta, desc){
+  return `<!--NH_META:${JSON.stringify(meta)}-->\n\n${desc||''}`;
+}
 
-    // Reset modal
-    ['modalTitle','modalDesc','modalStartTime','modalEndTime','modalAuthor'].forEach(id => {
-      document.getElementById(id).value = '';
-    });
-    document.getElementById('newTitle').value = '';
-    closeNewTaskModal();
+// ══════════════════════════════════════════════
+// COMMENT ↔ REPLY
+// ══════════════════════════════════════════════
+function commentToReply(c){
+  let meta = {};
+  const m = (c.body||'').match(/<!--REPLY_META:(.*?)-->/s);
+  if(m){ try{ meta = JSON.parse(m[1]); }catch{} }
+  const text = (c.body||'').replace(/<!--REPLY_META:.*?-->/s,'').trim();
+  return {
+    id: c.id,
+    dept: meta.dept||'',
+    name: meta.name||'',
+    duty: meta.duty||'',
+    content: text,
+    createdAt: c.created_at,
+    updatedAt: c.updated_at
+  };
+}
+
+function replyToBody(meta, content){
+  return `<!--REPLY_META:${JSON.stringify(meta)}-->\n${content}`;
+}
+
+// ══════════════════════════════════════════════
+// LOAD ISSUES
+// ══════════════════════════════════════════════
+async function loadIssues(){
+  const list = document.getElementById('boardList');
+  if(!isConfigured()){
+    list.innerHTML = `<div class="empty"><div class="empty-icon">🔗</div>
+      <p>GitHub 연결이 필요합니다.<br/>우측 상단 <strong>⚙ GitHub 연결설정</strong>을 클릭하세요.</p></div>`;
+    updateStats([]);
+    return;
+  }
+  list.innerHTML = `<div class="loading"><div class="spinner"></div>작업 목록 불러오는 중...</div>`;
+  try{
+    // 최대 100개
+    const issues = await ghGet(repoPath()+'/issues?state=all&per_page=100&labels=IT작업');
+    allIssues = issues.filter(i=>!i.pull_request).map(issueToTask);
     renderBoard();
+    updateStats(allIssues);
+    updateGhStatus(true);
+  }catch(e){
+    list.innerHTML = `<div class="empty"><div class="empty-icon">⚠</div>
+      <p>불러오기 실패: ${e.message}<br/>GitHub 설정을 확인해주세요.</p></div>`;
+    updateGhStatus(false);
+  }
+}
+
+// ══════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════
+function renderBoard(){
+  let tasks = [...allIssues].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  if(currentFilter==='open') tasks=tasks.filter(t=>t.status==='open');
+  if(currentFilter==='closed') tasks=tasks.filter(t=>t.status==='closed');
+  if(currentSearch) tasks=tasks.filter(t=>t.title.includes(currentSearch)||(t.type||'').includes(currentSearch));
+  const list=document.getElementById('boardList');
+  if(!tasks.length){
+    list.innerHTML=`<div class="empty"><div class="empty-icon">📭</div><p>등록된 작업이 없습니다.</p></div>`;
+    return;
+  }
+  list.innerHTML=tasks.map((t,i)=>renderTaskCard(t,i+1)).join('');
+}
+
+function renderTaskCard(t, num){
+  const exp = t._expanded;
+  const dateStr = t.date ? formatDate(t.date) : '날짜미정';
+  const statusLabel = t.status==='open' ? '진행중' : '완료';
+  const statusClass = t.status==='open' ? 'status-ongoing' : 'status-done';
+  const cardClass = t.status==='closed' ? 'done' : '';
+  return `
+<div class="task-card ${cardClass} ${exp?'expanded':''}" id="card_${t.id}">
+  <div class="task-header" onclick="toggleCard(${t.id})">
+    <span class="task-seq">#${String(num).padStart(3,'0')}</span>
+    <span class="date-tag">📅 ${dateStr}</span>
+    <div class="task-info">
+      <div class="task-name">${esc(t.title)}</div>
+      <div class="task-sub">${esc(t.type)} ${t.startTime?'· '+t.startTime+(t.endTime?' ~ '+t.endTime:''):''} ${t.author?'· 등록: '+esc(t.author):''}</div>
+    </div>
+    <div class="task-actions">
+      <span class="reply-badge" id="rc_${t.id}">💬 ${t._replies.length}</span>
+      <span class="status-tag ${statusClass}">${statusLabel}</span>
+      ${t.status==='open'
+        ? `<button class="btn btn-gold btn-sm" onclick="event.stopPropagation();closeTask(${t.id})">✓ 완료</button>`
+        : `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();reopenTask(${t.id})">↺ 재개</button>`}
+      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="6,9 12,15 18,9"/>
+      </svg>
+    </div>
+  </div>
+  <div class="task-body ${exp?'show':''}" id="body_${t.id}">
+    ${t.desc?`<div class="task-desc-box"><div class="lbl">작업 설명</div><p>${esc(t.desc).replace(/\n/g,'<br>')}</p></div>`:''}
+    <div class="replies-wrap">
+      <div class="replies-head">
+        <span>업무확인 응답</span>
+        <small id="rcount_${t.id}">${t._replies.length}건</small>
+      </div>
+      <div class="reply-list" id="rlist_${t.id}">
+        ${t._replies.length
+          ? t._replies.map(r=>renderReply(r,t.id)).join('')
+          : `<div style="font-size:0.78rem;color:var(--nh-text3);padding:0.4rem 0">아직 업무확인 응답이 없습니다.</div>`}
+      </div>
+      <div class="reply-form" id="rform_${t.id}">
+        <div class="reply-form-title">업무확인 응답 작성</div>
+        <div class="rf-grid">
+          <div class="fg"><label>소속 부서</label><input type="text" id="fdept_${t.id}" placeholder="인프라팀"/></div>
+          <div class="fg"><label>이름</label><input type="text" id="fname_${t.id}" placeholder="홍길동"/></div>
+          <div class="fg"><label>담당 업무</label><input type="text" id="fduty_${t.id}" placeholder="서버 담당"/></div>
+        </div>
+        <div class="rf-bottom">
+          <div class="fg"><label>확인 내용</label>
+            <textarea id="fcont_${t.id}" placeholder="담당 업무 확인 내용을 입력하세요..."></textarea>
+          </div>
+          <button class="btn btn-primary" onclick="submitReply(${t.id})">확인 등록</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>`;
+}
+
+function renderReply(r, taskId){
+  const init = r.name ? r.name.charAt(0) : '?';
+  const edited = r.updatedAt && r.updatedAt !== r.createdAt ? ' (수정됨)' : '';
+  return `
+<div class="reply-item" id="ri_${r.id}">
+  <div class="reply-avatar">${esc(init)}</div>
+  <div class="reply-body">
+    <div class="reply-meta">
+      <span class="reply-name">${esc(r.name)}</span>
+      <span class="reply-dept-tag">${esc(r.dept)}</span>
+      <span class="reply-duty-tag">${esc(r.duty)}</span>
+      <span class="reply-time">${formatDt(r.createdAt)}${edited}</span>
+    </div>
+    <div class="reply-text" id="rtext_${r.id}">${esc(r.content).replace(/\n/g,'<br>')}</div>
+    <div class="reply-confirm-mark">✅ 업무확인 완료</div>
+    <!-- 인라인 수정 영역 (숨김) -->
+    <div id="redit_${r.id}" style="display:none">
+      <textarea class="reply-edit-area" id="retxt_${r.id}">${esc(r.content)}</textarea>
+      <div class="reply-edit-btns">
+        <button class="btn btn-primary btn-xs" onclick="saveEdit(${taskId},${r.id})">저장</button>
+        <button class="btn btn-ghost btn-xs" onclick="cancelEdit(${r.id})">취소</button>
+      </div>
+    </div>
+  </div>
+  <div class="reply-controls">
+    <button class="btn btn-ghost btn-xs" onclick="startEdit(${r.id})" title="수정">✏</button>
+    <button class="btn btn-danger btn-xs" onclick="deleteReply(${taskId},${r.id})" title="삭제">✕</button>
+  </div>
+</div>`;
+}
+
+// ══════════════════════════════════════════════
+// TOGGLE CARD + LOAD REPLIES
+// ══════════════════════════════════════════════
+async function toggleCard(id){
+  const task = allIssues.find(t=>t.id===id);
+  if(!task) return;
+  task._expanded = !task._expanded;
+  const card = document.getElementById('card_'+id);
+  const body = document.getElementById('body_'+id);
+  if(task._expanded){
+    card.classList.add('expanded');
+    body.classList.add('show');
+    // 댓글 로드 (처음 열 때)
+    if(!task._loaded){
+      await loadReplies(task);
+    }
+  } else {
+    card.classList.remove('expanded');
+    body.classList.remove('show');
+  }
+}
+
+async function loadReplies(task){
+  const listEl = document.getElementById('rlist_'+task.id);
+  listEl.innerHTML = `<div style="font-size:0.78rem;color:var(--nh-text3)">댓글 불러오는 중...</div>`;
+  try{
+    const comments = await ghGet(repoPath()+'/issues/'+task.id+'/comments');
+    task._replies = comments.map(commentToReply);
+    task._loaded = true;
+    refreshReplies(task);
+    updateStats(allIssues);
+  }catch(e){
+    listEl.innerHTML = `<div style="font-size:0.78rem;color:var(--nh-red)">댓글 로드 실패: ${e.message}</div>`;
+  }
+}
+
+function refreshReplies(task){
+  const listEl = document.getElementById('rlist_'+task.id);
+  const rcEl = document.getElementById('rc_'+task.id);
+  const rcountEl = document.getElementById('rcount_'+task.id);
+  if(listEl){
+    listEl.innerHTML = task._replies.length
+      ? task._replies.map(r=>renderReply(r,task.id)).join('')
+      : `<div style="font-size:0.78rem;color:var(--nh-text3);padding:0.4rem 0">아직 업무확인 응답이 없습니다.</div>`;
+  }
+  if(rcEl) rcEl.textContent = '💬 '+task._replies.length;
+  if(rcountEl) rcountEl.textContent = task._replies.length+'건';
+}
+
+// ══════════════════════════════════════════════
+// NEW TASK
+// ══════════════════════════════════════════════
+function openNewModal(){
+  if(!isConfigured()){
+    showToast('먼저 GitHub 연결 설정을 완료해주세요.','error'); openConfig(); return;
+  }
+  const dv = document.getElementById('qDate').value;
+  const tv = document.getElementById('qTitle').value;
+  if(dv) document.getElementById('mDate').value=dv;
+  if(tv) document.getElementById('mTitle').value=tv;
+  document.getElementById('newModal').classList.add('show');
+}
+function closeNewModal(){ document.getElementById('newModal').classList.remove('show'); }
+document.getElementById('newModal').addEventListener('click',e=>{ if(e.target===e.currentTarget) closeNewModal(); });
+
+async function submitNewTask(){
+  const date=v('mDate'), title=v('mTitle').trim(), type=v('mType'),
+        desc=v('mDesc').trim(), st=v('mSt'), et=v('mEt'), author=v('mAuthor').trim();
+  if(!date||!title){ showToast('날짜와 작업명은 필수입니다.','error'); return; }
+  const meta = {date,type,desc,startTime:st,endTime:et,author};
+  const btn = document.querySelector('#newModal .btn-primary');
+  btn.textContent='등록중...'; btn.disabled=true;
+  try{
+    const issue = await ghPost(repoPath()+'/issues',{
+      title: title,
+      body: taskToBody(meta, desc),
+      labels: ['IT작업']
+    });
+    const task = issueToTask(issue);
+    task._replies=[];task._loaded=true;
+    allIssues.unshift(task);
+    renderBoard(); updateStats(allIssues);
+    ['mDate','mTitle','mDesc','mSt','mEt','mAuthor'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+    document.getElementById('qTitle').value='';
+    closeNewModal();
     showToast('✓ 작업이 등록되었습니다.');
-  }
+  }catch(e){ showToast('등록 실패: '+e.message,'error'); }
+  finally{ btn.textContent='등록'; btn.disabled=false; }
+}
 
-  // ─────────────────────────────────────
-  // FILTER & SEARCH
-  // ─────────────────────────────────────
-  function setFilter(f, el) {
-    currentFilter = f;
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    el.classList.add('active');
-    renderBoard();
-  }
+// ══════════════════════════════════════════════
+// TASK STATUS
+// ══════════════════════════════════════════════
+async function closeTask(id){
+  if(!confirm('작업을 완료 처리하시겠습니까?')) return;
+  try{
+    await ghPatch(repoPath()+'/issues/'+id,{state:'closed'});
+    const t=allIssues.find(t=>t.id===id);
+    if(t){ t.status='closed'; }
+    renderBoard(); updateStats(allIssues);
+    showToast('✓ 완료 처리되었습니다.');
+  }catch(e){ showToast('오류: '+e.message,'error'); }
+}
+async function reopenTask(id){
+  try{
+    await ghPatch(repoPath()+'/issues/'+id,{state:'open'});
+    const t=allIssues.find(t=>t.id===id);
+    if(t){ t.status='open'; }
+    renderBoard(); updateStats(allIssues);
+    showToast('✓ 재개 처리되었습니다.');
+  }catch(e){ showToast('오류: '+e.message,'error'); }
+}
 
-  function searchTasks(val) {
-    currentSearch = val;
-    renderBoard();
-  }
+// ══════════════════════════════════════════════
+// SUBMIT REPLY
+// ══════════════════════════════════════════════
+async function submitReply(taskId){
+  const dept=v('fdept_'+taskId).trim(), name=v('fname_'+taskId).trim(),
+        duty=v('fduty_'+taskId).trim(), content=v('fcont_'+taskId).trim();
+  if(!dept||!name||!duty||!content){ showToast('모든 항목을 입력해주세요.','error'); return; }
+  const meta = {dept,name,duty};
+  const btn = document.querySelector(`#rform_${taskId} .btn-primary`);
+  btn.textContent='등록중...'; btn.disabled=true;
+  try{
+    const comment = await ghPost(repoPath()+'/issues/'+taskId+'/comments',{
+      body: replyToBody(meta,content)
+    });
+    const reply = commentToReply(comment);
+    const task = allIssues.find(t=>t.id===taskId);
+    if(task){ task._replies.push(reply); refreshReplies(task); }
+    ['fdept_','fname_','fduty_','fcont_'].forEach(p=>{ const el=document.getElementById(p+taskId); if(el) el.value=''; });
+    updateStats(allIssues);
+    showToast('✓ 업무확인 응답이 등록되었습니다.');
+  }catch(e){ showToast('등록 실패: '+e.message,'error'); }
+  finally{ btn.textContent='확인 등록'; btn.disabled=false; }
+}
 
-  // ─────────────────────────────────────
-  // STATS
-  // ─────────────────────────────────────
-  function updateStats() {
-    const tasks = data.tasks;
-    document.getElementById('statTotal').textContent = tasks.length;
-    document.getElementById('statOngoing').textContent = tasks.filter(t => t.status === 'ongoing').length;
-    document.getElementById('statDone').textContent = tasks.filter(t => t.status === 'done').length;
-    document.getElementById('statReplies').textContent = tasks.reduce((s, t) => s + t.replies.length, 0);
+// ══════════════════════════════════════════════
+// EDIT REPLY (인라인)
+// ══════════════════════════════════════════════
+function startEdit(replyId){
+  document.getElementById('rtext_'+replyId).style.display='none';
+  document.getElementById('redit_'+replyId).style.display='block';
+  // textarea에 현재 텍스트 (이스케이프 해제)
+  const task = allIssues.find(t=>t._replies&&t._replies.find(r=>r.id===replyId));
+  if(task){
+    const reply = task._replies.find(r=>r.id===replyId);
+    if(reply) document.getElementById('retxt_'+replyId).value = reply.content;
   }
+}
+function cancelEdit(replyId){
+  document.getElementById('rtext_'+replyId).style.display='';
+  document.getElementById('redit_'+replyId).style.display='none';
+}
 
-  // ─────────────────────────────────────
-  // UTILS
-  // ─────────────────────────────────────
-  function formatDate(d) {
-    if (!d) return '';
-    const dt = new Date(d + 'T00:00:00');
-    return dt.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short' });
-  }
+async function saveEdit(taskId, replyId){
+  const newContent = document.getElementById('retxt_'+replyId).value.trim();
+  if(!newContent){ showToast('내용을 입력해주세요.','error'); return; }
+  const task = allIssues.find(t=>t.id===taskId);
+  if(!task) return;
+  const reply = task._replies.find(r=>r.id===replyId);
+  if(!reply) return;
+  const meta = {dept:reply.dept, name:reply.name, duty:reply.duty};
+  const btn = document.querySelector(`#ri_${replyId} .btn-primary`);
+  if(btn){ btn.textContent='저장중...'; btn.disabled=true; }
+  try{
+    const updated = await ghPatch(repoPath()+'/issues/comments/'+replyId,{
+      body: replyToBody(meta, newContent)
+    });
+    const r = commentToReply(updated);
+    const idx = task._replies.findIndex(rr=>rr.id===replyId);
+    if(idx!==-1) task._replies[idx]=r;
+    refreshReplies(task);
+    showToast('✓ 응답이 수정되었습니다.');
+  }catch(e){ showToast('수정 실패: '+e.message,'error'); if(btn){btn.textContent='저장';btn.disabled=false;} }
+}
 
-  function formatTime(iso) {
-    if (!iso) return '';
-    const d = new Date(iso);
-    return d.toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
-  }
+// ══════════════════════════════════════════════
+// DELETE REPLY
+// ══════════════════════════════════════════════
+async function deleteReply(taskId, replyId){
+  if(!confirm('이 응답을 삭제하시겠습니까?')) return;
+  try{
+    await ghDelete(repoPath()+'/issues/comments/'+replyId);
+    const task = allIssues.find(t=>t.id===taskId);
+    if(task){ task._replies = task._replies.filter(r=>r.id!==replyId); refreshReplies(task); }
+    updateStats(allIssues);
+    showToast('✓ 응답이 삭제되었습니다.');
+  }catch(e){ showToast('삭제 실패: '+e.message,'error'); }
+}
 
-  function escHtml(str) {
-    if (!str) return '';
-    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
+// ══════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════
+function openConfig(){
+  document.getElementById('cfgOwner').value = cfg.owner||'';
+  document.getElementById('cfgRepo').value = cfg.repo||'';
+  document.getElementById('cfgToken').value = cfg.token||'';
+  updateCfgConnected();
+  document.getElementById('cfgModal').classList.add('show');
+}
+function closeCfg(){ document.getElementById('cfgModal').classList.remove('show'); }
+document.getElementById('cfgModal').addEventListener('click',e=>{ if(e.target===e.currentTarget) closeCfg(); });
 
-  function showToast(msg) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 2500);
-  }
+function updateCfgConnected(){
+  const el = document.getElementById('cfgConnected');
+  if(cfg.owner && cfg.repo){
+    el.style.display='flex';
+    el.className='connected-info';
+    el.innerHTML=`✅ 현재 연결: <strong>${cfg.owner}/${cfg.repo}</strong>`;
+  } else { el.style.display='none'; }
+}
+
+async function saveConfig(){
+  const owner=v('cfgOwner').trim(), repo=v('cfgRepo').trim(), token=v('cfgToken').trim();
+  if(!owner||!repo||!token){ showToast('모든 항목을 입력해주세요.','error'); return; }
+  cfg={owner,repo,token};
+  saveCfg();
+  closeCfg();
+  updateGhStatus(null);
+  await loadIssues();
+}
+
+function clearConfig(){
+  if(!confirm('GitHub 연결 설정을 초기화하시겠습니까?')) return;
+  cfg={};
+  localStorage.removeItem(CFG_KEY);
+  updateGhStatus(false);
+  closeCfg();
+  document.getElementById('boardList').innerHTML=
+    `<div class="empty"><div class="empty-icon">🔗</div>
+    <p>GitHub 연결이 필요합니다.<br/>우측 상단 <strong>⚙ GitHub 연결설정</strong>을 클릭하세요.</p></div>`;
+  updateStats([]);
+}
+
+function updateGhStatus(오케이){
+  const el=document.getElementById('ghStatus');
+  if(ok===null){ el.className='github-status disconnected'; el.textContent='● 연결중...'; return; }
+  if(오케이){ el.className='github-status connected'; el.textContent='● GitHub 연결됨'; }
+  else { el.className='github-status disconnected'; el.textContent='● GitHub 미연결'; }
+}
+
+// ══════════════════════════════════════════════
+// FILTER / SEARCH / STATS
+// ══════════════════════════════════════════════
+function setFilter(f,el){
+  currentFilter=f;
+  document.querySelectorAll('.f-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  renderBoard();
+}
+function doSearch(val){ currentSearch=val; renderBoard(); }
+
+function updateStats(tasks){
+  tasks=tasks||allIssues;
+  document.getElementById('sTotal').textContent=tasks.length;
+  document.getElementById('sOngoing').textContent=tasks.filter(t=>t.status==='open').length;
+  document.getElementById('sDone').textContent=tasks.filter(t=>t.status==='closed').length;
+  document.getElementById('sReplies').textContent=tasks.reduce((s,t)=>s+(t._replies||[]).length,0);
+}
+
+// ══════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════
+function v(id){ const el=document.getElementById(id); return el?el.value:''; }
+function esc(s){ if(!s)return''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function formatDate(d){
+  if(!d)return''; const dt=new Date(d+'T00:00:00');
+  return dt.toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit',weekday:'short'});
+}
+function formatDt(iso){
+  if(!iso)return''; const d=new Date(iso);
+  return d.toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+}
+function showToast(msg,type='ok'){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast'+(type==='error'?' error':'');
+  t.classList.add('show');
+  clearTimeout(t._tid);
+  t._tid=setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',()=>{
+  loadCfg();
+  const today=new Date().toISOString().split('T')[0];
+  document.getElementById('qDate').value=today;
+  document.getElementById('mDate').value=today;
+  if(isConfigured()) updateGhStatus(null);
+  loadIssues();
+  updateStats([]);
+});
 </script>
 </body>
 </html>
