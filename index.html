@@ -1079,23 +1079,7 @@ function showToast(msg,type='ok'){
 // INIT
 // ══════════════════════════════════════════════
 
-// loadCfg 보완 — localStorage + sessionStorage 이중 저장
-function loadCfg(){
-  try{
-    const ls = localStorage.getItem(CFG_KEY);
-    const ss = sessionStorage.getItem(CFG_KEY);
-    if(ls){ cfg = JSON.parse(ls); }
-    else if(ss){ cfg = JSON.parse(ss); localStorage.setItem(CFG_KEY, ss); }
-    else{ cfg = {}; }
-  }catch{ cfg={}; }
-}
-
-// saveCfg 보완 — 두 곳에 저장
-function saveCfg(){
-  const s = JSON.stringify(cfg);
-  try{ localStorage.setItem(CFG_KEY, s); }catch{}
-  try{ sessionStorage.setItem(CFG_KEY, s); }catch{}
-}
+// loadCfg / saveCfg — PRESET 방식 사용 (상단 정의)
 
 document.addEventListener('DOMContentLoaded',()=>{
   loadCfg();
