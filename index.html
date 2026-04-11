@@ -50,7 +50,8 @@ header{background:#fff;border-bottom:2px solid var(--g1);box-shadow:var(--ss);po
 .sl-line{flex:1;height:1px;background:var(--gray2)}
 .reg-card{background:#fff;border:1px solid var(--gray2);border-top:3px solid var(--g1);border-radius:var(--r);box-shadow:var(--ss);padding:1rem;margin-bottom:1.2rem}
 .reg-row{display:flex;flex-direction:column;gap:.6rem}
-.reg-row-inner{display:grid;grid-template-columns:150px 1fr;gap:.6rem}
+.reg-row-inner{display:grid;grid-template-columns:140px 1fr;gap:.6rem;align-items:end}
+.reg-row-inner .fg input{height:38px}
 .fg{display:flex;flex-direction:column;gap:5px}
 .fg label{font-size:.68rem;font-weight:700;color:var(--g1);letter-spacing:.05em}
 .fg input,.fg select,.fg textarea{border:1px solid var(--gray2);border-radius:6px;padding:.5rem .75rem;font-family:var(--sans);font-size:.85rem;color:var(--text);background:#fff;outline:none;transition:border-color .2s,box-shadow .2s;width:100%}
@@ -212,7 +213,7 @@ header{background:#fff;border-bottom:2px solid var(--g1);box-shadow:var(--ss);po
     <div class="reg-row">
       <div class="reg-row-inner">
         <div class="fg"><label>작업 날짜</label><input type="date" id="qDate"/></div>
-        <div class="fg" style="margin-top:.6rem"><label>작업명</label><input type="text" id="qTitle" placeholder="예) 운영서버 보안패치, DB 백업 작업..."/></div>
+        <div class="fg"><label>작업명</label><input type="text" id="qTitle" placeholder="예) 운영서버 보안패치, DB 백업 작업..."/></div>
       </div>
       <button class="btn btn-p btn-full" onclick="openNewModal()">＋ 작업 등록</button>
     </div>
