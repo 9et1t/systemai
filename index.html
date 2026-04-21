@@ -530,8 +530,8 @@ canvas{display:block;width:100%;height:100%;}
 #split-top-bar{height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 10px;background:linear-gradient(90deg,#080512,#0d0820,#080512);border-bottom:1px solid rgba(100,60,200,.3);}
 #split-top-bar .sp-title{font-family:'Cinzel',serif;font-size:11px;color:#cc88ff;letter-spacing:2px;}
 #split-canvases{flex:1;position:relative;overflow:hidden;background:#030208;}
-.split-panel{position:absolute;top:0;left:0;right:0;bottom:0;display:none;flex-direction:column;}
-.split-panel.active{display:flex;}
+.split-panel{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;visibility:hidden;pointer-events:none;}
+.split-panel.active{visibility:visible;pointer-events:auto;}
 .split-panel-label{height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 10px;font-size:9px;font-family:'Cinzel',serif;}
 .split-panel-label.mine{background:rgba(20,60,20,.85);color:#66ff88;}
 .split-panel-label.enemy{background:rgba(60,10,10,.85);color:#ff8888;}
@@ -3617,10 +3617,6 @@ function mlSwitchView(which){
   document.getElementById('sp-enemy').classList.toggle('active', which==='enemy');
   document.getElementById('svt-me').classList.toggle('active', which==='me');
   document.getElementById('svt-enemy').classList.toggle('active', which==='enemy');
-  // 전환 후 캔버스 크기 재조정
-  setTimeout(function(){
-    mlResizeCanvases();
-  }, 50);
 }
 
 // ── 준비 완료 ──
@@ -3632,52 +3628,33 @@ function mlToggleReady(){
     btn.textContent=ML.myReady?'⏳ 준비됨 (취소하려면 탭)':'✅ 준비 완료';
     if(ML.myReady)btn.classList.add('ready');else btn.classList.remove('ready');
   }
-  // Firebase에 ready 상태 직접 기록 (state 덮어쓰기 위험 없이 별도 경로도 함께)
-  window._fb.db.ref('rooms/'+ML.roomId+'/'+ML.myRole+'/ready').set(ML.myReady).catch(function(){});
-  mlPushState();
+  // 별도 ready 경로에 직접 씀 (state 덮어쓰기와 무관)
+  window._fb.db.ref('rooms/'+ML.roomId+'/ready_'+ML.myRole).set(ML.myReady);
   mlUpdateReadyStatus();
-  mlCheckBothReady();
 }
 
 function mlUpdateReadyStatus(){
   var s1=document.getElementById('ml-ready-status');
   var s2=document.getElementById('ml-ready-status2');
-  var myTxt=ML.myReady?'✅ 나: 준비 완료':'⏸ 나: 대기 중';
-  var enTxt=ML.enemyReady?'✅ 상대: 준비 완료':'⏸ 상대: 대기 중';
-  if(s1)s1.textContent=myTxt;
-  if(s2)s2.textContent=enTxt;
+  if(s1)s1.textContent=ML.myReady?'✅ 나: 준비 완료':'⏸ 나: 대기 중';
+  if(s2)s2.textContent=ML.enemyReady?'✅ 상대: 준비 완료':'⏸ 상대: 대기 중';
 }
 
 function mlCheckBothReady(){
   if(ML.myReady&&ML.enemyReady&&!G.running){
-    var ov=document.getElementById('ml-ready-overlay');
-    if(ov)ov.style.display='none';
-    G.running=true;
-    addLog('🌐 양측 준비 완료! 대결 시작!','sys');
+    // gameStart 신호 Firebase에 기록 (양쪽 모두 감지)
+    window._fb.db.ref('rooms/'+ML.roomId+'/gameStart').set(true);
   }
 }
 
 function mlResizeCanvases(){
-  // 내 캔버스 - sp-me의 canvas-wrap 기준
-  var myWrap=document.querySelector('#sp-me .split-canvas-wrap');
-  if(myWrap&&ML.myCanvas){
-    var w=myWrap.clientWidth,h=myWrap.clientHeight;
-    if(w>0&&h>0){ML.myCanvas.width=w;ML.myCanvas.height=h;}
-  }
-  // 상대 캔버스 - sp-enemy의 canvas-wrap 기준
-  var enWrap=document.querySelector('#sp-enemy .split-canvas-wrap');
-  if(enWrap&&ML.enemyCanvas){
-    var w2=enWrap.clientWidth,h2=enWrap.clientHeight;
-    if(w2>0&&h2>0){ML.enemyCanvas.width=w2;ML.enemyCanvas.height=h2;}
-  }
-  // 크기가 0이면 split-canvases 컨테이너 기준으로 폴백
   var container=document.getElementById('split-canvases');
-  if(container){
-    var cw=container.clientWidth||window.innerWidth;
-    var ch=container.clientHeight||(window.innerHeight-160);
-    if(ML.myCanvas&&(ML.myCanvas.width===0||ML.myCanvas.height===0)){ML.myCanvas.width=cw;ML.myCanvas.height=ch;}
-    if(ML.enemyCanvas&&(ML.enemyCanvas.width===0||ML.enemyCanvas.height===0)){ML.enemyCanvas.width=cw;ML.enemyCanvas.height=ch;}
-  }
+  if(!container)return;
+  var w=container.clientWidth||window.innerWidth;
+  var h=container.clientHeight||(window.innerHeight-200);
+  if(w<=0||h<=0)return;
+  if(ML.myCanvas&&(ML.myCanvas.width!==w||ML.myCanvas.height!==h)){ML.myCanvas.width=w;ML.myCanvas.height=h;}
+  if(ML.enemyCanvas&&(ML.enemyCanvas.width!==w||ML.enemyCanvas.height!==h)){ML.enemyCanvas.width=w;ML.enemyCanvas.height=h;}
 }
 
 // ── 내 캔버스 이벤트 ──
@@ -3741,25 +3718,39 @@ function mlPushState(){
 
 function mlListenFirebase(){
   if(!window._fb||!ML.roomId)return;
-  var fb=window._fb;
+  var db=window._fb.db;
   var enemyId=ML.myRole==='host'?'guest':'host';
 
-  // 상대 전체 state 수신
-  fb.db.ref('rooms/'+ML.roomId+'/'+enemyId).on('value',function(snap){
+  // 1) 상대 게임 state 수신 (맵 렌더용)
+  db.ref('rooms/'+ML.roomId+'/'+enemyId).on('value',function(snap){
     var val=snap.val(); if(!val)return;
     ML.enemyState=val;
-    document.getElementById('split-enemy-stats').textContent='HP:'+(val.hp||0)+'/'+(val.maxHp||20)+' W:'+(val.wave||0);
-    // ready 감지
-    var wasReady=ML.enemyReady;
-    ML.enemyReady=!!(val.ready);
-    if(ML.enemyReady!==wasReady)mlUpdateReadyStatus();
-    mlCheckBothReady();
+    var el=document.getElementById('split-enemy-stats');
+    if(el)el.textContent='HP:'+(val.hp||0)+'/'+(val.maxHp||20)+' W:'+(val.wave||0);
     if(val.over&&!ML.gameOver)mlOnEnemyDefeated();
     mlDrawEnemy();
   });
 
-  // 침공 유닛 수신
-  fb.db.ref('rooms/'+ML.roomId+'/inv_'+ML.myRole).on('value',function(snap){
+  // 2) 상대 ready 상태 감지 (별도 경로)
+  db.ref('rooms/'+ML.roomId+'/ready_'+enemyId).on('value',function(snap){
+    var val=snap.val();
+    ML.enemyReady=!!val;
+    mlUpdateReadyStatus();
+    mlCheckBothReady();
+  });
+
+  // 3) gameStart 신호 감지 — 어느 쪽이 쓰든 둘 다 시작
+  db.ref('rooms/'+ML.roomId+'/gameStart').on('value',function(snap){
+    if(snap.val()&&!G.running){
+      var ov=document.getElementById('ml-ready-overlay');
+      if(ov)ov.style.display='none';
+      G.running=true;
+      addLog('🌐 대결 시작!','sys');
+    }
+  });
+
+  // 4) 침공 유닛 수신
+  db.ref('rooms/'+ML.roomId+'/inv_'+ML.myRole).on('value',function(snap){
     var val=snap.val(); if(!val)return;
     Object.keys(val).forEach(function(k){
       if(ML.appliedAttacks[k])return;
@@ -3901,11 +3892,8 @@ function mlLoop(ts){
     if(G.frame%3===0)syncDynamicUI(false);
     updateUI();updateCds();
   }
-  // 내 캔버스 크기 0이면 재조정
-  if(ML.myCanvas&&(ML.myCanvas.width===0||ML.myCanvas.height===0))mlResizeCanvases();
-  // 항상 내 캔버스에 그림 (백그라운드에서도)
   canvas=ML.myCanvas;ctx=ML.myCtx;
-  if(canvas&&canvas.width>0&&canvas.height>0)draw();
+  draw();
   requestAnimationFrame(mlLoop);
 }
 
