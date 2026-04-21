@@ -525,12 +525,12 @@ canvas{display:block;width:100%;height:100%;}
 .ml-room-code{font-family:'Cinzel',serif;font-size:26px;color:#ffcc44;text-align:center;letter-spacing:8px;padding:8px;background:rgba(30,20,5,.6);border:1px solid rgba(200,160,60,.3);border-radius:6px;}
 .ml-sep{height:1px;background:rgba(100,60,180,.25);margin:2px 0;}
 
-#split-screen{display:none;position:fixed;inset:0;z-index:550;background:#050308;flex-direction:column;}
+#split-screen{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:550;background:#050308;flex-direction:column;}
 #split-screen.open{display:flex;}
 #split-top-bar{height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 10px;background:linear-gradient(90deg,#080512,#0d0820,#080512);border-bottom:1px solid rgba(100,60,200,.3);}
 #split-top-bar .sp-title{font-family:'Cinzel',serif;font-size:11px;color:#cc88ff;letter-spacing:2px;}
-#split-canvases{flex:1;position:relative;min-height:0;background:#030208;}
-.split-panel{position:absolute;inset:0;display:flex;flex-direction:column;display:none;}
+#split-canvases{flex:1;position:relative;overflow:hidden;background:#030208;}
+.split-panel{position:absolute;top:0;left:0;right:0;bottom:0;display:none;flex-direction:column;}
 .split-panel.active{display:flex;}
 .split-panel-label{height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 10px;font-size:9px;font-family:'Cinzel',serif;}
 .split-panel-label.mine{background:rgba(20,60,20,.85);color:#66ff88;}
@@ -543,7 +543,7 @@ canvas{display:block;width:100%;height:100%;}
 .split-view-tab.enemy-tab.active{background:rgba(100,10,10,.8);border-color:#ff8888;color:#ff8888;}
 
 /* 준비 대기 오버레이 */
-#ml-ready-overlay{position:absolute;inset:0;z-index:10;background:rgba(5,3,15,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
+#ml-ready-overlay{position:absolute;top:0;left:0;right:0;bottom:0;z-index:20;background:rgba(5,3,15,.93);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
 #ml-ready-overlay h2{font-family:'Cinzel',serif;font-size:18px;color:#cc88ff;letter-spacing:2px;}
 #ml-ready-btn{padding:12px 32px;border-radius:8px;border:2px solid #7733cc;background:linear-gradient(135deg,#1a0535,#3a1080);color:#cc88ff;font-family:'Cinzel',serif;font-size:14px;cursor:pointer;letter-spacing:1px;transition:all .15s;}
 #ml-ready-btn:active{background:#4a1a90;}
@@ -3398,10 +3398,10 @@ function mlStartMulti(){
   document.getElementById('split-my-name').textContent=myLabel;
   document.getElementById('split-enemy-name').textContent=enLabel;
 
-  // 캔버스 세팅
+  // 캔버스 세팅 - DOM이 렌더된 후 크기 측정
   ML.myCanvas=document.getElementById('gc-multi-me');
   ML.enemyCanvas=document.getElementById('gc-multi-enemy');
-  mlResizeCanvases();
+  setTimeout(mlResizeCanvases, 100);
 
   // 싱글엔진 초기화 (내 맵)
   ORIENT='land';
