@@ -377,7 +377,7 @@ canvas{display:block;width:100%;height:100%;}
 
 /* gem drop notification */
 .gem-drop-notif{
-  position:fixed;right:12px;bottom:80px;z-index:450;
+  position:fixed;right:12px;bottom:80px;z-index:620;
   background:linear-gradient(135deg,rgba(20,10,40,.96),rgba(30,15,55,.96));
   border-radius:8px;padding:8px 12px;border:1px solid;
   font-size:10px;animation:gemDropIn .4s ease-out;
@@ -2733,8 +2733,21 @@ function mlSwitchTab2(t){
 }
 
 function buildMultiBar(){
-  if(!G||!G.unlocked)return; // G 초기화 전 방어
-  // 현재 탭에 맞는 것만 업데이트
+  if(!G||!G.unlocked)return;
+
+  // ── 수정1: 타워/유닛 선택 시 탭을 '강화' 탭으로 전환 ──
+  var hasSel=!!(G.selTower||G.selAlly);
+  var towerTab=document.getElementById('ml-pt-tower');
+  if(towerTab){
+    var icon=hasSel?(G.selTower?'🔧':'⚔️'):'🏹';
+    var label=hasSel?'강화':'타워';
+    towerTab.innerHTML='<span class="ptab-icon">'+icon+'</span><span>'+label+'</span>';
+  }
+  // 선택됐으면 타워탭으로 자동 포커스
+  if(hasSel && mlTab2!=='tower'){
+    mlSwitchTab2('tower');
+  }
+
   // 타워 카드
   var tc=document.getElementById('ml-towers');
   if(tc){
@@ -3087,7 +3100,23 @@ function buildInfoPanel(){
         +'<div style="width:100%;height:4px;background:#330000;border-radius:2px;overflow:hidden;margin:3px 0">'
         +'<div style="height:100%;width:'+bpct+'%;background:'+bhc+';transition:width .3s"></div></div></div>';
     }
-    html=barricadeHtml+'<p style="color:var(--dim);font-size:9px;text-align:center;padding:8px 0">타워, 유닛, 적을 탭하면 정보가 표시됩니다</p>';
+    // 멀티모드: 침공 현황 표시
+    var multiHtml='';
+    if(ML.active){
+      var aliveCount=G.allies.filter(function(a){return a.alive;}).length;
+      var modeColor=G.unitMode==='attack'?'#ff8888':'#88ee88';
+      var modeText=G.unitMode==='attack'?'⚔️ 공격 모드':'🛡️ 수비 모드';
+      multiHtml='<div style="background:rgba(80,20,80,.15);border:1px solid rgba(150,60,150,.35);border-radius:4px;padding:5px;margin-bottom:5px">'
+        +'<div style="font-family:Cinzel,serif;font-size:9px;color:#cc88ff;text-align:center;margin-bottom:4px">⚔️ 전황</div>'
+        +'<div style="display:flex;justify-content:space-between;font-size:8px;margin-bottom:2px">'
+        +'<span style="color:var(--dim)">유닛 모드</span><span style="color:'+modeColor+'">'+modeText+'</span></div>'
+        +'<div style="display:flex;justify-content:space-between;font-size:8px;margin-bottom:2px">'
+        +'<span style="color:var(--dim)">침공 발진</span><span style="color:#ff8888">'+ML_invadeSentCount+'회</span></div>'
+        +'<div style="display:flex;justify-content:space-between;font-size:8px">'
+        +'<span style="color:var(--dim)">아군 유닛</span><span style="color:#88ee88">'+aliveCount+'마리</span></div>'
+        +'</div>';
+    }
+    html=barricadeHtml+multiHtml+'<p style="color:var(--dim);font-size:9px;text-align:center;padding:4px 0">타워, 유닛, 적을 탭하면 정보가 표시됩니다</p>';
   }
   if(ML.active){setInner('ml-info-panel',html);if(ORIENT==='port'||ML.active)return;}
   setInner('l-info',html);setInner('p-info-panel','<div style="height:100%;overflow-y:auto;padding-right:2px">'+html+'</div>');setInner('p-inline-info',html);
@@ -3665,6 +3694,7 @@ function mlCancelRoom(){
 function mlStartMulti(){
   ML.active=true; ML.gameOver=false; ML.appliedAttacks={};
   ML.myReady=false; ML.enemyReady=false;
+  ML_invadeSentCount=0;
   document.getElementById('multi-lobby').classList.remove('open');
   document.getElementById('split-screen').classList.add('open');
 
@@ -3939,12 +3969,14 @@ function mlListenFirebase(){
 }
 
 // ── 침공 유닛 전송 ──
+var ML_invadeSentCount=0; // 이번 게임에서 보낸 침공 횟수
 function mlSendInvader(unitId){
   if(!ML.active||!ML.roomId||!window._fb)return;
   var def=UDEFS.find(function(u){return u.id===unitId;});if(!def)return;
   var fc=applyGemCostReduction(def.cost,'unit_cost');
   if(G.gold<fc){addLog('❌ 골드 부족 ('+fc+'g)','sys');return;}
   G.gold-=fc;
+  ML_invadeSentCount++;
   var fb=window._fb;
   var target=ML.myRole==='host'?'guest':'host';
   fb.push(fb.db.ref('rooms/'+ML.roomId+'/inv_'+target),{
@@ -3952,10 +3984,32 @@ function mlSendInvader(unitId){
     hp:Math.round(def.hp*1.8),dmg:Math.round(def.dmg*0.7),
     spd:def.spd*0.65,ts:Date.now()
   });
-  addLog(def.icon+' '+def.name+' 침공 발진! -'+fc+'g','skill');
-  floatTxt(G.camera.x,G.camera.y-60,'⚔️ 침공!','#ff6666');
+  // 피드백: 플로팅 텍스트 + 로그 + 카운트 업데이트
+  addLog(def.icon+' '+def.name+' 침공 발진! (총 '+ML_invadeSentCount+'회) -'+fc+'g','skill');
+  floatTxt(G.camera.x, G.camera.y-80, def.icon+' 침공! →상대방', '#ff6666');
   spawnParts(G.camera.x,G.camera.y,'#ff4444',12,5);
+  doShake(3,5);
+  // 상단 카운트 배지 업데이트
+  mlUpdateInvadeCount();
   buildActionBar();
+}
+
+function mlUpdateInvadeCount(){
+  var badge=document.getElementById('ml-invade-count');
+  if(!badge){
+    var statsRow=document.getElementById('ml-wave')&&document.getElementById('ml-wave').parentNode;
+    if(statsRow){
+      badge=document.createElement('div');
+      badge.id='ml-invade-count';
+      badge.className='sp';
+      badge.innerHTML='<span class="l">⚔️침공</span><span class="v" style="color:#ff8888">0</span>';
+      statsRow.appendChild(badge);
+    }
+  }
+  if(badge){
+    var v=badge.querySelector('.v');
+    if(v)v.textContent=ML_invadeSentCount;
+  }
 }
 
 // ── 침공 유닛 스폰 ──
