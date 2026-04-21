@@ -722,33 +722,38 @@ canvas{display:block;width:100%;height:100%;}
     </div>
   </div>
   <!-- 멀티 액션 영역 - 고정 높이로 캔버스 크기 변동 방지 -->
-  <div id="split-action-area" style="flex-shrink:0;height:186px;min-height:186px;max-height:186px;background:linear-gradient(180deg,#0d0b08,#080604);border-top:1px solid rgba(90,69,32,.4);position:relative;z-index:10;pointer-events:auto;">
-    <!-- 상태바 -->
-    <div style="display:flex;flex-direction:column;border-bottom:1px solid rgba(90,69,32,.25);">
-      <!-- 1행: 스탯 -->
-      <div style="height:28px;display:flex;align-items:center;gap:3px;padding:0 6px;overflow:hidden;">
-        <div class="sp"><span class="l">Lv</span><span class="v" id="ml-lv">1</span></div>
-        <div class="sp bar" style="max-width:80px;min-width:50px;">
-          <span class="l">HP</span>
-          <div style="flex:1;margin:0 2px"><div class="sbar"><div class="sbi hp-i" id="ml-hp" style="width:100%"></div></div></div>
-          <span class="v" id="ml-hpt" style="font-size:8px">20/20</span>
-        </div>
-        <div class="sp bar" style="max-width:70px;min-width:44px;">
-          <span class="l">MP</span>
-          <div style="flex:1;margin:0 2px"><div class="sbar"><div class="sbi mp-i" id="ml-mp" style="width:0%"></div></div></div>
-          <span class="v" id="ml-mpt" style="font-size:8px;color:#5599ff">0</span>
-        </div>
-        <div class="sp"><span class="l">💰</span><span class="v" id="ml-gold">150</span></div>
-        <div class="sp"><span class="l">🌊</span><span class="v" id="ml-wave">0</span></div>
+  <div id="split-action-area" style="flex-shrink:0;height:158px;min-height:158px;max-height:158px;background:linear-gradient(180deg,#0d0b08,#080604);border-top:1px solid rgba(90,69,32,.4);position:relative;z-index:10;pointer-events:auto;">
+    <!-- 1행: 스탯 + 버튼 완전 한 줄 -->
+    <div style="height:30px;display:flex;align-items:center;gap:2px;padding:0 4px;border-bottom:1px solid rgba(90,69,32,.25);overflow:hidden;flex-wrap:nowrap;">
+      <div id="ml-desel" onclick="deselect()" style="width:18px;height:18px;flex-shrink:0;display:none;align-items:center;justify-content:center;background:rgba(180,40,40,.2);border:1px solid #662222;border-radius:3px;cursor:pointer;font-size:10px;color:#ff8888;">✕</div>
+      <!-- Lv -->
+      <div style="flex-shrink:0;padding:0 3px;background:rgba(255,255,255,.04);border:1px solid rgba(90,69,32,.5);border-radius:3px;height:18px;display:flex;align-items:center;gap:1px;">
+        <span style="font-size:6px;color:var(--dim)">Lv</span><span style="font-family:'Cinzel',serif;font-size:9px;font-weight:700;color:var(--gl)" id="ml-lv">1</span>
       </div>
-      <!-- 2행: 버튼 (Wave + 인벤토리 나란히) -->
-      <div style="height:28px;display:flex;align-items:center;gap:4px;padding:0 6px;">
-        <div id="ml-desel" onclick="deselect()" style="width:26px;height:22px;flex-shrink:0;display:none;align-items:center;justify-content:center;background:rgba(180,40,40,.2);border:1px solid #662222;border-radius:3px;cursor:pointer;font-size:13px;color:#ff8888;">✕</div>
-        <div style="margin-left:auto;display:flex;align-items:center;gap:4px;">
-          <button class="gem-open-btn" onpointerdown="stopUIEvent(event)" onclick="openGemModal();return false;" style="height:22px;padding:0 8px;font-size:9px;flex-shrink:0;">💎 <span id="gem-inv-badge-ml" class="gem-badge">0</span></button>
-          <button class="wavebtn" id="ml-wbtn" onclick="startWave()" style="width:auto;padding:2px 14px;font-size:9px;margin-top:0;">▶ Wave</button>
-        </div>
+      <!-- HP 바 -->
+      <div style="flex:2;min-width:50px;max-width:100px;padding:0 3px;background:rgba(255,255,255,.04);border:1px solid rgba(90,69,32,.5);border-radius:3px;height:18px;display:flex;align-items:center;gap:2px;">
+        <span style="font-size:6px;color:var(--dim);flex-shrink:0">HP</span>
+        <div style="flex:1;height:4px;background:#1a1410;border-radius:2px;overflow:hidden;min-width:20px;"><div class="sbi hp-i" id="ml-hp" style="width:100%;height:100%"></div></div>
+        <span style="font-family:'Cinzel',serif;font-size:6px;color:var(--gl);flex-shrink:0;white-space:nowrap" id="ml-hpt">20/20</span>
       </div>
+      <!-- MP 바 -->
+      <div style="flex:1;min-width:40px;max-width:70px;padding:0 3px;background:rgba(255,255,255,.04);border:1px solid rgba(90,69,32,.5);border-radius:3px;height:18px;display:flex;align-items:center;gap:2px;">
+        <span style="font-size:6px;color:var(--dim);flex-shrink:0">MP</span>
+        <div style="flex:1;height:4px;background:#1a1410;border-radius:2px;overflow:hidden;min-width:14px;"><div class="sbi mp-i" id="ml-mp" style="width:0%;height:100%"></div></div>
+        <span style="font-family:'Cinzel',serif;font-size:6px;color:#5599ff;flex-shrink:0" id="ml-mpt">0</span>
+      </div>
+      <!-- 골드 -->
+      <div style="flex-shrink:0;padding:0 3px;background:rgba(255,255,255,.04);border:1px solid rgba(90,69,32,.5);border-radius:3px;height:18px;display:flex;align-items:center;gap:1px;">
+        <span style="font-size:6px;color:var(--dim)">💰</span><span style="font-family:'Cinzel',serif;font-size:9px;font-weight:700;color:var(--gl)" id="ml-gold">150</span>
+      </div>
+      <!-- 웨이브 -->
+      <div style="flex-shrink:0;padding:0 3px;background:rgba(255,255,255,.04);border:1px solid rgba(90,69,32,.5);border-radius:3px;height:18px;display:flex;align-items:center;gap:1px;">
+        <span style="font-size:6px;color:var(--dim)">🌊</span><span style="font-family:'Cinzel',serif;font-size:9px;font-weight:700;color:var(--gl)" id="ml-wave">0</span>
+      </div>
+      <!-- 인벤토리 버튼 -->
+      <button onpointerdown="stopUIEvent(event)" onclick="openGemModal();return false;" style="flex-shrink:0;height:18px;padding:0 5px;background:linear-gradient(135deg,#1a0e30,#2a1850);border:1px solid #6644cc;border-radius:3px;cursor:pointer;font-size:9px;color:#cc99ff;display:flex;align-items:center;gap:1px;white-space:nowrap;">💎<span id="gem-inv-badge-ml" class="gem-badge"></span></button>
+      <!-- Wave 버튼 -->
+      <button id="ml-wbtn" onclick="startWave()" style="flex-shrink:0;height:18px;padding:0 8px;background:linear-gradient(135deg,#3a1010,#5a1a1a);border:1px solid #7a2020;border-radius:3px;color:#ff8888;font-family:'Cinzel',serif;font-size:9px;cursor:pointer;white-space:nowrap;">▶ Wave</button>
     </div>
     <!-- 탭 -->
     <div id="ml-tabs" style="height:28px;display:flex;background:linear-gradient(180deg,#0d0b08,#0a0805);border-bottom:1px solid rgba(90,69,32,.3);">
@@ -758,11 +763,11 @@ canvas{display:block;width:100%;height:100%;}
       <div class="ptab" id="ml-pt-info" onclick="mlSwitchTab2('info')"><span class="ptab-icon">📋</span><span>정보</span></div>
     </div>
     <!-- 카드 영역 -->
-    <div style="height:102px;overflow-y:auto;">
+    <div style="height:100px;overflow-y:auto;">
       <div id="ml-pa-tower" style="padding:4px;"><div class="cards-row" id="ml-towers"></div></div>
       <div id="ml-pa-skill" style="display:none;padding:4px;"><div class="cards-row" id="ml-skills"></div></div>
       <div id="ml-pa-unit" style="display:none;padding:4px;"><div class="cards-row" id="ml-units"></div></div>
-      <div id="ml-pa-info" style="display:none;padding:4px;overflow-y:auto;max-height:98px;"><div id="ml-info-panel"></div></div>
+      <div id="ml-pa-info" style="display:none;padding:4px;overflow-y:auto;max-height:96px;"><div id="ml-info-panel"></div></div>
     </div>
   </div>
 </div>
@@ -1498,6 +1503,54 @@ function tickEnemies(){
       if(e.burnT>0){e.burnT-=G.dt;if(G.frame%30===0){dmgEnemy(e,e.burnD,false);if(e.hp<=0){killEnemy(e);continue;}}}
       if(e.pi<PP.length-1){var tx=PP[e.pi+1].x-e.x,ty=PP[e.pi+1].y-e.y,dist=Math.sqrt(tx*tx+ty*ty);if(dist<spd+1){e.pi++;if(e.pi>=PP.length-1){e.reached=true;enemyReached(e);continue;}}else{e.x+=(tx/dist)*spd;e.y+=(ty/dist)*spd;}}
     }
+    // ── 침공 유닛: 회수 중이면 경로 역방향으로 이동해서 PP[0]로 복귀 ──
+    if(e.isInvader&&e.recalling){
+      // 타워 공격 중지, PP[0] 방향으로 역이동
+      var closestPi=e.pi;
+      var closestDist=Math.hypot(PP[e.pi].x-e.x,PP[e.pi].y-e.y);
+      for(var cp2=0;cp2<PP.length;cp2++){var cd2=Math.hypot(PP[cp2].x-e.x,PP[cp2].y-e.y);if(cd2<closestDist){closestDist=cd2;closestPi=cp2;}}
+      e.pi=closestPi;
+      var prevPi=Math.max(0,e.pi-1);
+      var rtx=PP[prevPi].x-e.x, rty=PP[prevPi].y-e.y, rtd=Math.sqrt(rtx*rtx+rty*rty);
+      if(rtd>4){e.x+=(rtx/rtd)*e.spd*G.dt; e.y+=(rty/rtd)*e.spd*G.dt;}
+      else{e.pi=prevPi;}
+      // PP[0] 도달 → 원래 주인에게 현재 상태 전송 후 제거
+      if(Math.hypot(PP[0].x-e.x,PP[0].y-e.y)<=28){
+        if(ML.active&&window._fb&&ML.roomId){
+          var enemyRole2=ML.myRole==='host'?'guest':'host';
+          window._fb.db.ref('rooms/'+ML.roomId+'/recalled_'+enemyRole2).push({
+            id:e.id||'u', icon:e.icon, name:e.name||'유닛',
+            hp:Math.round(e.hp), maxHp:e.maxHp,
+            dmg:e.invaderDmg||8, spd:e.spd
+          });
+        }
+        e.alive=false;
+      }
+      continue;
+    }
+    // ── 침공 유닛: 타워 우선 공격 ──
+    if(e.isInvader){
+      if(e.atkCd2>0)e.atkCd2-=G.dt;
+      if(e.atkCd2<=0){
+        var bestTower=null,bestTowerDist=120;
+        for(var t2=0;t2<G.towers.length;t2++){
+          var tw2=G.towers[t2];if(!tw2||tw2.hp<=0)continue;
+          var td=Math.hypot(tw2.x-e.x,tw2.y-e.y);
+          if(td<bestTowerDist){bestTowerDist=td;bestTower=tw2;}
+        }
+        if(bestTower){
+          var invDmg=e.invaderDmg||Math.max(4,Math.floor(e.spd*18));
+          bestTower.hp-=invDmg;
+          floatTxt(bestTower.x,bestTower.y-18,'-'+invDmg,'#ff3333');
+          spawnParts(bestTower.x,bestTower.y,'#ff4400',5,3);
+          G.bolts.push({x1:e.x,y1:e.y,x2:bestTower.x,y2:bestTower.y,life:5});
+          e.atkCd2=e.invaderAtkRate||45;
+          if(bestTower.hp<=0)destroyTower(bestTower);
+        } else {
+          e.atkCd2=30;
+        }
+      }
+    }
     // boss attacks tower
     if(e.isBoss&&e.atkRange>0){if(e.atkCd>0)e.atkCd-=G.dt;if(e.atkCd<=0){var best=null,bd=e.atkRange+24;for(var t=0;t<G.towers.length;t++){var tw=G.towers[t];if(!tw||tw.hp<=0)continue;var d=Math.hypot(tw.x-e.x,tw.y-e.y);if(d<=bd){bd=d;best=tw;}}if(best){best.hp-=e.atkDmg;floatTxt(best.x,best.y-20,'-'+e.atkDmg,'#ff6644');spawnParts(best.x,best.y,'#ff4400',6,4);G.bolts.push({x1:e.x,y1:e.y,x2:best.x,y2:best.y,life:6});e.atkCd=Math.max(12,e.atkRate);if(best.hp<=0)destroyTower(best);}else e.atkCd=12;}}
     // enemy attacks allies - 사정거리 안의 유닛 중 랜덤 타겟
@@ -2200,9 +2253,39 @@ function tickAllies(){
   for(var i=G.allies.length-1;i>=0;i--){
     var a=G.allies[i];if(!a.alive||a.hp<=0){a.alive=false;G.allies.splice(i,1);continue;}
     if(a.cd>0)a.cd-=G.dt;
-    // Medic: heals nearest wounded ally instead of attacking enemies
+
+    // ── 공격 모드 + 멀티: 경로 시작점(PP[0])까지 이동 후 침공 전송 ──
+    if(ML.active&&G.unitMode==='attack'&&!a.isHealer){
+      var exitX=PP[0].x, exitY=PP[0].y;
+      var distToExit=Math.hypot(exitX-a.x, exitY-a.y);
+      if(distToExit<=24){
+        mlLaunchInvader(a);
+        G.allies.splice(i,1);
+        continue;
+      }
+      // 경로를 역방향으로 이동 (pi 감소 방향)
+      var targetPi=Math.max(0,a.pi-1);
+      var tx=PP[targetPi].x-a.x, ty=PP[targetPi].y-a.y, td=Math.sqrt(tx*tx+ty*ty);
+      if(td<a.spd*G.dt+2){a.pi=targetPi;}
+      else{a.x+=(tx/td)*a.spd*G.dt; a.y+=(ty/td)*a.spd*G.dt;}
+      // 이동 중 적 마주치면 공격
+      var tgt=null,bestD=Infinity;
+      for(var j=0;j<G.enemies.length;j++){var e=G.enemies[j];if(!e.alive)continue;var d=Math.hypot(e.x-a.x,e.y-a.y);if(d<=a.range+e.sz&&d<bestD){bestD=d;tgt=e;}}
+      if(tgt&&a.cd<=0){
+        var uDmgMul=1+getGemBonus('unit_dmg')/100;
+        var aDmg=a.dmg*(G.buff.steamAtk>0?(G.buff.steamAtkBoost||2):1)*uDmgMul;
+        allyAttack(a,tgt,aDmg);
+        a.cd=Math.floor(a.atkRate/Math.max(1,1+getGemBonus('unit_spd')/100));
+      }
+      continue;
+    }
+
+    // ── 수비 모드로 전환 시: PP[0] 쪽으로 이동 중이던 유닛은 성 방향으로 복귀 ──
+    // a.pi가 0에 가까울수록 경로 시작 근처 → 성(PP.length-2) 방향으로 되돌아가야 함
+    // → 수비 모드 처리에서 pi를 증가 방향으로 이동시키면 자연스럽게 복귀
+
+    // Medic: 힐
     if(a.isHealer){
-      // 힐 필요한 유닛 중 HP 결핍이 가장 큰 유닛 우선
       var healTgt=null,bestNeed=0;
       for(var j=0;j<G.allies.length;j++){
         var h=G.allies[j];if(h===a||!h.alive)continue;
@@ -2214,28 +2297,16 @@ function tickAllies(){
       if(healTgt&&a.cd<=0){
         var healAmt=Math.floor((a.healAmount||40)*(G.buff.healBoost||1));
         if(healTgt.self){a.hp=Math.min(a.maxHp,a.hp+healAmt);}
-        else{
-          healTgt.hp=Math.min(healTgt.maxHp,healTgt.hp+healAmt);
-          floatTxt(healTgt.x,healTgt.y-16,'+'+healAmt+'💚','#44ff88');
-          // 힐 모션: 십자 링 + 파티클
-          spawnHealFX(healTgt.x,healTgt.y);
-        }
+        else{healTgt.hp=Math.min(healTgt.maxHp,healTgt.hp+healAmt);floatTxt(healTgt.x,healTgt.y-16,'+'+healAmt+'💚','#44ff88');spawnHealFX(healTgt.x,healTgt.y);}
         a.cd=Math.floor((a.healRate||150)/(G.buff.healSpd||1));
       }
-      // 힐이 필요한 유닛 방향으로 이동
       var moveTgt=null,bestD2=Infinity;
       for(var j2=0;j2<G.allies.length;j2++){var h2=G.allies[j2];if(h2===a||!h2.alive)continue;var hpRat=h2.hp/h2.maxHp;if(hpRat<0.9){var d2=Math.hypot(h2.x-a.x,h2.y-a.y);if(d2<bestD2){bestD2=d2;moveTgt=h2;}}}
       if(moveTgt&&bestD2>a.range*0.7){var mx2=moveTgt.x-a.x,my2=moveTgt.y-a.y,md2=Math.sqrt(mx2*mx2+my2*my2);a.x+=(mx2/md2)*a.spd*G.dt;a.y+=(my2/md2)*a.spd*G.dt;}
       continue;
     }
-    // 맨 앞 적(경로 진행도 가장 높은 적) 찾기
-    var frontEnemy=null,frontPd=-1;
-    for(var j=0;j<G.enemies.length;j++){
-      var e=G.enemies[j];if(!e.alive)continue;
-      var pd=pathDist(e.pi,e.x,e.y);
-      if(pd>frontPd){frontPd=pd;frontEnemy=e;}
-    }
-    // 사정거리 내 가장 가까운 적 (즉시 공격 대상)
+
+    // 사정거리 내 적
     var tgt=null,bestD=Infinity;
     for(var j=0;j<G.enemies.length;j++){
       var e=G.enemies[j];if(!e.alive)continue;
@@ -2243,34 +2314,43 @@ function tickAllies(){
       if(d<=a.range+e.sz&&d<bestD){bestD=d;tgt=e;}
     }
 
-    // ── 수비 모드: 항상 요새 방향으로 이동, 지나가는 적만 공격 ──
-    if(G.unitMode==='defense'){
-      // 목표: 경로 끝에서 약간 앞 지점
+    // ── 수비 모드: 성 방향으로 이동 (공격모드에서 복귀 중인 유닛 포함) ──
+    if(G.unitMode==='defense'||!ML.active){
       var destPi=PP.length-2;
       var destX=PP[destPi].x, destY=PP[destPi].y;
       var distToDest=Math.hypot(destX-a.x, destY-a.y);
       if(distToDest>24){
-        // 가장 가까운 경로 세그먼트 위의 다음 웨이포인트로 이동
-        var nextPi=Math.min(a.pi+1, destPi);
+        // 현재 위치에서 가장 가까운 경로 웨이포인트 찾기 (어느 방향에서 복귀해도 정상 이동)
+        var closestPi=a.pi;
+        var closestDist=Math.hypot(PP[a.pi].x-a.x,PP[a.pi].y-a.y);
+        for(var cp=0;cp<PP.length;cp++){
+          var cd=Math.hypot(PP[cp].x-a.x,PP[cp].y-a.y);
+          if(cd<closestDist){closestDist=cd;closestPi=cp;}
+        }
+        a.pi=closestPi;
+        var nextPi=Math.min(a.pi+1,destPi);
         var tx2=PP[nextPi].x-a.x, ty2=PP[nextPi].y-a.y, dd=Math.sqrt(tx2*tx2+ty2*ty2);
-        if(dd<a.spd*G.dt+2){a.pi=Math.min(nextPi, destPi);}
+        if(dd<a.spd*G.dt+2){a.pi=Math.min(nextPi,destPi);}
         else{a.x+=(tx2/dd)*a.spd*G.dt; a.y+=(ty2/dd)*a.spd*G.dt;}
       }
-      // 이동 중에도 사정거리 내 적은 공격
       if(tgt&&a.cd<=0){
         var uDmgMul=1+getGemBonus('unit_dmg')/100;
         var uSpdMul=1+getGemBonus('unit_spd')/100;
         var aDmg=a.dmg*(G.buff.steamAtk>0?(G.buff.steamAtkBoost||2):1)*uDmgMul;
-        var spdBoost=(G.buff.steamHeal>0?(G.buff.healSpd||2):1)*uSpdMul;
         allyAttack(a,tgt,aDmg);
-        a.cd=Math.floor(a.atkRate/spdBoost);
+        a.cd=Math.floor(a.atkRate/Math.max(1,(G.buff.steamHeal>0?(G.buff.healSpd||2):1)*uSpdMul));
       }
       continue;
     }
 
-    // ── 공격 모드 ──
+    // ── 공격 모드 (싱글 or 수비모드): 적 추격 ──
+    var frontEnemy=null,frontPd=-1;
+    for(var j=0;j<G.enemies.length;j++){
+      var e=G.enemies[j];if(!e.alive)continue;
+      var pd=pathDist(e.pi,e.x,e.y);
+      if(pd>frontPd){frontPd=pd;frontEnemy=e;}
+    }
     if(!tgt){
-      // 맨 앞 적 향해 전진
       var dest=frontEnemy||{x:PP[0].x,y:PP[0].y};
       var dx=dest.x-a.x,dy=dest.y-a.y,dd=Math.sqrt(dx*dx+dy*dy);
       if(dd>4){a.x+=(dx/dd)*a.spd*G.dt;a.y+=(dy/dd)*a.spd*G.dt;}
@@ -2518,23 +2598,33 @@ function deployUnit(id){markUIInteraction();
   var def=UDEFS.find(function(u){return u.id===id;});if(!def)return;
   var finalCost=applyGemCostReduction(def.cost,'unit_cost');
   if(G.gold<finalCost){addLog('❌ 골드 부족','sys');return;}
-  // 멀티모드 + 공격 모드 → 상대 맵에 침공 유닛으로 전송 (골드 차감은 mlSendInvader 내부에서)
-  if(ML.active&&G.unitMode==='attack'){
-    mlSendInvader(id);
-    return;
-  }
   if(getAliveAlliesCount()>=getAllyCap()){addLog('❌ 유닛 한도: 보스 '+getAllyCap()+'마리 처치 필요','sys');return;}
   G.gold-=finalCost;
-  G.allies.push({id:def.id,defRef:def,name:def.name,icon:def.icon,hp:def.hp,maxHp:def.hp,dmg:def.dmg,spd:def.spd,range:def.range,col:def.col,proj:def.proj,atkRate:def.atkRate,sz:14,alive:true,x:PP[PP.length-1].x-30,y:PP[PP.length-1].y,pi:PP.length-2,cd:0,uid:Math.random(),level:1,xp:0,xpNext:allyXpNeeded(1),done:[],isHealer:def.isHealer||false,healAmount:def.healAmount||0,healRate:def.healRate||150});
-  addLog(def.name+' 출격!','unit');buildActionBar();
+  // 공격 모드: PP[0](경로 시작) 근처에서 소환 → 역방향 이동 후 상대방 맵 침공
+  // 수비 모드: 성(PP[PP.length-1]) 근처에서 소환
+  var isAtk=ML.active&&G.unitMode==='attack';
+  var spawnX=isAtk?PP[0].x+20:PP[PP.length-1].x-30;
+  var spawnY=isAtk?PP[0].y:PP[PP.length-1].y;
+  var spawnPi=isAtk?0:PP.length-2;
+  G.allies.push({id:def.id,defRef:def,name:def.name,icon:def.icon,hp:def.hp,maxHp:def.hp,dmg:def.dmg,spd:def.spd,range:def.range,col:def.col,proj:def.proj,atkRate:def.atkRate,sz:14,alive:true,x:spawnX,y:spawnY,pi:spawnPi,cd:0,uid:Math.random(),level:1,xp:0,xpNext:allyXpNeeded(1),done:[],isHealer:def.isHealer||false,healAmount:def.healAmount||0,healRate:def.healRate||150});
+  var modeText=isAtk?'(→침공 출격!)':'출격!';
+  addLog(def.icon+' '+def.name+' '+modeText,'unit');
+  buildActionBar();
 }
 function healUnits(){markUIInteraction();var gc=300,mc=10;if(G.gold<gc){addLog('❌ 골드 부족('+gc+'g)','sys');return;}if(G.mp<mc){addLog('❌ MP 부족('+mc+'MP)','sys');return;}if(!G.allies.length){addLog('❌ 치료할 유닛 없음','sys');return;}G.gold-=gc;G.mp-=mc;var healed=0;G.allies.forEach(function(a){if(!a.alive)return;var amt=Math.max(35,Math.floor(a.maxHp*0.3));var before=a.hp;a.hp=Math.min(a.maxHp,a.hp+amt);if(a.hp>before){healed++;spawnHealFX(a.x,a.y);}});floatTxt(G.camera.x,G.camera.y-WORLD_H*0.2,'+'+healed+' 유닛 치료','#44ff88');addLog('⛑️ 유닛치료 사용 ('+healed+'명)','skill');}
 
 function toggleUnitMode(){markUIInteraction();
   G.unitMode=(G.unitMode==='defense')?'attack':'defense';
   var icon=G.unitMode==='attack'?'⚔️':'🛡️';
-  addLog(icon+' 유닛 '+(G.unitMode==='attack'?'공격 모드':'수비 모드')+'로 전환!','unit');
+  var returningCount=G.allies.filter(function(a){return a.alive&&a.pi<PP.length/2;}).length;
+  addLog(icon+' 유닛 '+(G.unitMode==='attack'?'공격 모드':'수비 모드')+'로 전환!'+(G.unitMode==='defense'&&returningCount>0?' ('+returningCount+'마리 복귀 중)':''),'unit');
   floatTxt(G.camera.x,G.camera.y-60,icon+' '+(G.unitMode==='attack'?'공격':'수비'),'#ffcc44');
+  // 수비 모드 전환 시 → 상대방 맵에 있는 내 침공 유닛 회수 신호 전송
+  if(ML.active&&G.unitMode==='defense'&&window._fb&&ML.roomId){
+    var enemyRole=ML.myRole==='host'?'guest':'host';
+    window._fb.db.ref('rooms/'+ML.roomId+'/recall_'+enemyRole).set({ts:Date.now(),from:ML.myRole});
+    addLog('📣 침공 유닛 회수 신호 전송','sys');
+  }
   buildActionBar();
 }
 
@@ -4051,14 +4141,89 @@ function mlListenFirebase(){
     mlSpawnInvader(data);
   });
 
-  // 3) Firebase onDisconnect: 내가 끊기면 내 데이터 자동 삭제 → 상대방이 승리 감지
+  // 3) 회수 신호 수신 — 상대방이 수비 모드로 전환 시 내 맵의 침공 유닛에 recalling 플래그 세팅
+  var myRole=ML.myRole;
+  var enemyRole=myRole==='host'?'guest':'host';
+  db.ref('rooms/'+ML.roomId+'/recall_'+myRole).on('value',function(snap){
+    var val=snap.val(); if(!val)return;
+    // 내 맵의 침공 유닛들에 recalling 플래그 → tickEnemies에서 역방향 이동 처리
+    var count=0;
+    for(var i=0;i<G.enemies.length;i++){
+      if(G.enemies[i].isInvader&&G.enemies[i].alive&&!G.enemies[i].recalling){
+        G.enemies[i].recalling=true;
+        count++;
+      }
+    }
+    if(count>0)addLog('↩️ 침공 유닛 '+count+'마리 귀환 중...','sys');
+    // 신호 초기화
+    window._fb.db.ref('rooms/'+ML.roomId+'/recall_'+myRole).remove();
+  });
+
+  // 4) 회수된 유닛 복귀 수신 — 내 침공 유닛이 상대방 맵에서 돌아옴
+  db.ref('rooms/'+ML.roomId+'/recalled_'+ML.myRole).on('child_added',function(snap){
+    var data=snap.val(); if(!data)return;
+    // 내 맵 성 근처에 아군으로 재소환
+    mlRecallAlly(data);
+    // 수신한 데이터 삭제
+    snap.ref.remove();
+  });
+
+  // 5) Firebase onDisconnect: 내가 끊기면 내 데이터 자동 삭제 → 상대방이 승리 감지
   var myRef=db.ref('rooms/'+ML.roomId+'/'+ML.myRole);
   myRef.onDisconnect().remove();
 }
 
-// ── 침공 유닛 전송 ──
-var ML_invadeSentCount=0; // 이번 게임에서 보낸 침공 횟수
+// ── 회수된 침공 유닛 → 내 맵 아군으로 복귀 ──
+function mlRecallAlly(data){
+  if(!G.running||!PP.length)return;
+  var def=UDEFS.find(function(u){return u.id===data.id;});
+  if(!def)return;
+  // PP[0](경로 시작) 위치에 소환 → 수비 모드이므로 성 방향으로 자동 이동
+  var spawnX=PP[0].x+Math.random()*16-8;
+  var spawnY=PP[0].y+Math.random()*16-8;
+  G.allies.push({
+    id:def.id, defRef:def, name:def.name, icon:def.icon,
+    hp:data.hp||def.hp, maxHp:data.maxHp||def.hp,
+    dmg:def.dmg, spd:def.spd, range:def.range, col:def.col,
+    proj:def.proj, atkRate:def.atkRate,
+    sz:14, alive:true,
+    x:spawnX, y:spawnY, pi:0,
+    cd:0, uid:Math.random(), level:1, xp:0, xpNext:allyXpNeeded(1),
+    done:[], isHealer:def.isHealer||false,
+    healAmount:def.healAmount||0, healRate:def.healRate||150
+  });
+  addLog(data.icon+' '+data.name+' 귀환! HP:'+Math.round(data.hp||def.hp),'unit');
+  floatTxt(spawnX, spawnY-20, data.icon+' 귀환!', '#44ff88');
+  spawnParts(spawnX, spawnY, '#44ff88', 8, 4);
+  buildActionBar();
+}
+
+// ── 내 맵 끝 도달 → 상대방 맵으로 침공 전송 ──
+function mlLaunchInvader(ally){
+  if(!ML.active||!ML.roomId||!window._fb)return;
+  var fb=window._fb;
+  var target=ML.myRole==='host'?'guest':'host';
+  var invId='inv_'+Date.now()+'_'+Math.floor(Math.random()*9999);
+  fb.push(fb.db.ref('rooms/'+ML.roomId+'/inv_'+target),{
+    id:ally.id, icon:ally.icon, name:ally.name,
+    hp:Math.round(ally.hp*1.5),   // 현재 HP 기반 (이미 싸우다 왔을 수도)
+    dmg:Math.round(ally.dmg*0.8),
+    spd:ally.spd*0.7,
+    ts:Date.now()
+  });
+  ML_invadeSentCount++;
+  addLog(ally.icon+' '+ally.name+' 침공 돌파! →상대방','skill');
+  floatTxt(ally.x, ally.y-40, ally.icon+' 침공!→', '#ff6666');
+  spawnParts(ally.x, ally.y, '#ff4444', 10, 4);
+  mlUpdateInvadeCount();
+  buildActionBar();
+}
+
+// ── 침공 유닛 전송 (직접 전송 방식 - 이전 호환) ──
+var ML_invadeSentCount=0;
 function mlSendInvader(unitId){
+  // 공격 모드에서는 직접 전송 대신 유닛 소환 후 맵 끝에서 자동 전송됨
+  // 이 함수는 더 이상 호출되지 않음 (하위 호환 유지)
   if(!ML.active||!ML.roomId||!window._fb)return;
   var def=UDEFS.find(function(u){return u.id===unitId;});if(!def)return;
   var fc=applyGemCostReduction(def.cost,'unit_cost');
@@ -4072,12 +4237,9 @@ function mlSendInvader(unitId){
     hp:Math.round(def.hp*1.8),dmg:Math.round(def.dmg*0.7),
     spd:def.spd*0.65,ts:Date.now()
   });
-  // 피드백: 플로팅 텍스트 + 로그 + 카운트 업데이트
-  addLog(def.icon+' '+def.name+' 침공 발진! (총 '+ML_invadeSentCount+'회) -'+fc+'g','skill');
-  floatTxt(G.camera.x, G.camera.y-80, def.icon+' 침공! →상대방', '#ff6666');
+  addLog(def.icon+' '+def.name+' 침공 발진! -'+fc+'g','skill');
+  floatTxt(G.camera.x,G.camera.y-60,'⚔️ 침공!','#ff6666');
   spawnParts(G.camera.x,G.camera.y,'#ff4444',12,5);
-  doShake(3,5);
-  // 상단 카운트 배지 업데이트
   mlUpdateInvadeCount();
   buildActionBar();
 }
@@ -4085,12 +4247,13 @@ function mlSendInvader(unitId){
 function mlUpdateInvadeCount(){
   var badge=document.getElementById('ml-invade-count');
   if(!badge){
-    var statsRow=document.getElementById('ml-wave')&&document.getElementById('ml-wave').parentNode;
+    var statsRow=document.querySelector('#split-action-area > div:first-child');
     if(statsRow){
       badge=document.createElement('div');
       badge.id='ml-invade-count';
       badge.className='sp';
-      badge.innerHTML='<span class="l">⚔️침공</span><span class="v" style="color:#ff8888">0</span>';
+      badge.style.cssText='flex-shrink:0;';
+      badge.innerHTML='<span class="l">⚔️</span><span class="v" style="color:#ff8888;font-size:9px">0</span>';
       statsRow.appendChild(badge);
     }
   }
@@ -4100,7 +4263,7 @@ function mlUpdateInvadeCount(){
   }
 }
 
-// ── 침공 유닛 스폰 ──
+// ── 침공 유닛 스폰 (상대방 맵에서 실행) ──
 function mlSpawnInvader(data){
   if(!G.running||!PP.length)return;
   var e={
@@ -4111,10 +4274,13 @@ function mlSpawnInvader(data){
     sz:15,alive:true,reached:false,
     slowT:0,slowF:1,burnT:0,burnD:0,tauntTgt:null,
     isBoss:false,isInvader:true,
+    atkCd2:0,
+    // 침공 유닛 고유: 타워 우선 공격
+    invaderDmg:data.dmg||8,
+    invaderAtkRate:45,
   };
   G.enemies.push(e);
   doShake(5,8);
-  // 화면 알림
   var notif=document.createElement('div');
   notif.className='multi-attack-notif';
   notif.innerHTML='⚠️ '+data.icon+' <b>'+data.name+'</b> 침공!';
@@ -4272,8 +4438,9 @@ function mlQuit(){
     try{
       window._fb.db.ref('rooms/'+ML.roomId+'/'+ML.myRole).onDisconnect().cancel();
       window._fb.off(window._fb.db.ref('rooms/'+ML.roomId));
-      // 침공 수신 리스너도 정리
       window._fb.db.ref('rooms/'+ML.roomId+'/inv_'+ML.myRole).off('child_added');
+      window._fb.db.ref('rooms/'+ML.roomId+'/recall_'+ML.myRole).off('value');
+      window._fb.db.ref('rooms/'+ML.roomId+'/recalled_'+ML.myRole).off('child_added');
       if(ML.myRole==='host')window._fb.remove(window._fb.db.ref('rooms/'+ML.roomId));
       else window._fb.remove(window._fb.db.ref('rooms/'+ML.roomId+'/'+ML.myRole));
     }catch(e){}
