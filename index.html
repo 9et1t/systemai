@@ -2405,9 +2405,15 @@ function syncDynamicUI(force){
 
 function deployUnit(id){markUIInteraction();
   var def=UDEFS.find(function(u){return u.id===id;});if(!def)return;
-  if(getAliveAlliesCount()>=getAllyCap()){addLog('❌ 유닛 한도: 보스 '+getAllyCap()+'마리 처치 필요','sys');return;}
   var finalCost=applyGemCostReduction(def.cost,'unit_cost');
   if(G.gold<finalCost){addLog('❌ 골드 부족','sys');return;}
+  // 멀티모드 + 공격 모드 → 상대 맵에 침공 유닛으로 전송
+  if(ML.active&&G.unitMode==='attack'){
+    G.gold-=finalCost;
+    mlSendInvader(id);
+    return;
+  }
+  if(getAliveAlliesCount()>=getAllyCap()){addLog('❌ 유닛 한도: 보스 '+getAllyCap()+'마리 처치 필요','sys');return;}
   G.gold-=finalCost;
   G.allies.push({id:def.id,defRef:def,name:def.name,icon:def.icon,hp:def.hp,maxHp:def.hp,dmg:def.dmg,spd:def.spd,range:def.range,col:def.col,proj:def.proj,atkRate:def.atkRate,sz:14,alive:true,x:PP[PP.length-1].x-30,y:PP[PP.length-1].y,pi:PP.length-2,cd:0,uid:Math.random(),level:1,xp:0,xpNext:allyXpNeeded(1),done:[],isHealer:def.isHealer||false,healAmount:def.healAmount||0,healRate:def.healRate||150});
   addLog(def.name+' 출격!','unit');buildActionBar();
@@ -2747,31 +2753,10 @@ function buildMultiBar(){
     // 모드 토글
     var isAtk=G.unitMode==='attack';
     var mb=document.createElement('div');mb.className='hc land-hc';mb.style.borderColor=isAtk?'#ff6644':'#4488ff';
-    mb.innerHTML='<div style="font-size:16px">'+(isAtk?'⚔️':'🛡️')+'</div><div style="font-size:6px;color:'+(isAtk?'#ff8866':'#88aaff')+'">'+(isAtk?'공격':'수비')+'</div>';
+    mb.innerHTML='<div style="font-size:16px">'+(isAtk?'⚔️':'🛡️')+'</div>'
+      +'<div style="font-size:6px;color:'+(isAtk?'#ff8866':'#88aaff')+'">'+(isAtk?'공격':'수비')+'</div>'
+      +(ML.active?'<div style="font-size:5px;color:'+(isAtk?'#ff6644':'#4488ff')+'">'+(isAtk?'→침공':'→수비')+'</div>':'');
     mb.onclick=function(){toggleUnitMode();};uc.appendChild(mb);
-
-    // 침공 구분선 + 버튼 (멀티모드일 때만)
-    if(ML.active){
-      var sep=document.createElement('div');sep.className='bsep';uc.appendChild(sep);
-      var lbl=document.createElement('span');lbl.style.cssText='font-size:7px;color:#9966cc;font-family:Cinzel,serif;align-self:center;padding:0 2px;';lbl.textContent='⚔️침공';uc.appendChild(lbl);
-      [
-        {id:'archer_u', icon:'🏹', name:'아처', cost:300},
-        {id:'wizard',   icon:'🔮', name:'위자드', cost:600},
-        {id:'giant',    icon:'💪', name:'자이언트', cost:800},
-        {id:'pekka',    icon:'🤖', name:'페카', cost:1200},
-        {id:'dragon',   icon:'🐲', name:'드래곤', cost:1800},
-      ].forEach(function(inv){
-        var canSend=G.gold>=inv.cost;
-        var ib=document.createElement('div');
-        ib.className='uc land-uc'+(canSend?'':' nd');
-        ib.style.cssText='border-color:#884499;background:linear-gradient(180deg,#200d30,#130820);';
-        ib.innerHTML='<div class="ui">'+inv.icon+'</div>'
-          +'<div class="un" style="color:#cc88ff">'+inv.name+'</div>'
-          +'<div class="uc2" style="color:#ffcc44">💰'+inv.cost+'</div>';
-        if(canSend)(function(id){ib.onclick=function(){mlSendInvader(id);};})(inv.id);
-        uc.appendChild(ib);
-      });
-    }
   }
 }
 function buildLandBar(){
@@ -3062,20 +3047,22 @@ function bindUIInteractionGuards(){
   });
 }
 
+function handleMapTap(wx,wy){
+  if(G.pendingBuild||G.buildConfirmOpen||G.pendingSkill)return;
+  if(G.targetingSkill){prepareSkillCast(G.targetingSkill,wx,wy);return;}
+  if(G.placing&&G.selType){placeTower(wx,wy);return;}
+  var tw=towerAt(wx,wy),al=allyAt(wx,wy),en=enemyAt(wx,wy);
+  if(tw){G.selTower=tw;G.selAlly=null;G.selEnemy=null;G.selType=null;onEntitySelected();}
+  else if(al){G.selAlly=al;G.selTower=null;G.selEnemy=null;G.selType=null;onEntitySelected();}
+  else if(en){G.selEnemy=en;G.selTower=null;G.selAlly=null;G.selType=null;}
+  else{G.selTower=null;G.selAlly=null;G.selEnemy=null;}
+  buildInfoPanel();buildActionBar();
+}
+
 function setupEvents(){
   if(canvas._eventsBound)return;
   canvas._eventsBound=true;
-  function handleWorld(wx,wy){
-    if(G.pendingBuild||G.buildConfirmOpen||G.pendingSkill)return;
-    if(G.targetingSkill){prepareSkillCast(G.targetingSkill,wx,wy);return;}
-    if(G.placing&&G.selType){placeTower(wx,wy);return;}
-    var tw=towerAt(wx,wy),al=allyAt(wx,wy),en=enemyAt(wx,wy);
-    if(tw){G.selTower=tw;G.selAlly=null;G.selEnemy=null;G.selType=null;onEntitySelected();}
-    else if(al){G.selAlly=al;G.selTower=null;G.selEnemy=null;G.selType=null;onEntitySelected();}
-    else if(en){G.selEnemy=en;G.selTower=null;G.selAlly=null;G.selType=null;}
-    else{G.selTower=null;G.selAlly=null;G.selEnemy=null;}
-    buildInfoPanel();buildActionBar();
-  }
+  function handleWorld(wx,wy){handleMapTap(wx,wy);}
   canvas.addEventListener('pointerdown',function(e){
     if(shouldIgnoreCanvasInput())return;
     var r=canvas.getBoundingClientRect();
@@ -3651,9 +3638,11 @@ function mlToggleReady(){
       btn.classList.remove('ready');
     }
   }
-  // Firebase에 준비 상태 전송
-  window._fb.db.ref('rooms/'+ML.roomId+'/'+ML.myRole+'/ready').set(ML.myReady);
+  // 전체 state를 즉시 push (ready 포함)
+  mlPushState();
   mlUpdateReadyStatus();
+  // 내가 이미 준비됐고 상대도 준비됐으면 바로 시작
+  mlCheckBothReady();
 }
 
 function mlUpdateReadyStatus(){
@@ -3666,13 +3655,11 @@ function mlUpdateReadyStatus(){
 }
 
 function mlCheckBothReady(){
-  if(ML.myReady&&ML.enemyReady){
-    // 둘 다 준비 → 게임 시작
+  if(ML.myReady&&ML.enemyReady&&!G.running){
     var ov=document.getElementById('ml-ready-overlay');
     if(ov)ov.style.display='none';
     G.running=true;
     addLog('🌐 양측 준비 완료! 대결 시작!','sys');
-    addLog('⚔️ 침공 버튼으로 상대 맵에 유닛을 보내세요!','sys');
   }
 }
 
@@ -3732,10 +3719,10 @@ function mlPushState(){
   if(!ML.active||!ML.roomId||!window._fb)return;
   var fb=window._fb;
   var myId=ML.myRole;
-  // 상태 요약 전송
   var state={
     hp:G.hp,maxHp:G.maxHp,wave:G.wave,gold:G.gold,mp:Math.floor(G.mp),
     kills:G.kills,over:!!G.over,
+    ready:!!ML.myReady,
     enemies:G.enemies.filter(function(e){return e.alive;}).slice(0,40).map(function(e){
       return{x:Math.round(e.x),y:Math.round(e.y),hp:Math.round(e.hp),mhp:e.maxHp,sz:e.sz,col:e.col||'#cc4444',icon:e.icon,boss:!!e.isBoss};
     }),
@@ -3744,10 +3731,7 @@ function mlPushState(){
     path:PP.map(function(p){return{x:Math.round(p.x),y:Math.round(p.y)};})
   };
   fb.set(fb.db.ref('rooms/'+ML.roomId+'/'+myId),state).catch(function(){});
-  // UI 갱신
-  document.getElementById('ms-gold').textContent=G.gold;
-  document.getElementById('ms-wave').textContent=G.wave;
-  document.getElementById('ms-mp').textContent=Math.floor(G.mp);
+  // UI 갱신 (ms- 요소는 이제 없으므로 무시)
   document.getElementById('split-my-stats').textContent='HP:'+G.hp+'/'+G.maxHp+' W:'+G.wave;
 }
 
