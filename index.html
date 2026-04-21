@@ -2460,9 +2460,8 @@ function deployUnit(id){markUIInteraction();
   var def=UDEFS.find(function(u){return u.id===id;});if(!def)return;
   var finalCost=applyGemCostReduction(def.cost,'unit_cost');
   if(G.gold<finalCost){addLog('❌ 골드 부족','sys');return;}
-  // 멀티모드 + 공격 모드 → 상대 맵에 침공 유닛으로 전송
+  // 멀티모드 + 공격 모드 → 상대 맵에 침공 유닛으로 전송 (골드 차감은 mlSendInvader 내부에서)
   if(ML.active&&G.unitMode==='attack'){
-    G.gold-=finalCost;
     mlSendInvader(id);
     return;
   }
@@ -2628,11 +2627,29 @@ function setWaveBtn(){var disabled=!!G.over;var a=document.getElementById('l-wbt
 function updateNextBoss(){var n=Math.ceil(G.wave/10)*10;if(n===G.wave)n+=10;var d=n-G.wave;var txt='Boss: Wave '+n+' ('+d+'웨이브)';setElC('l-nbt',txt,d<=2?'#ff6666':'var(--dim)');setElC('p-nbt','Boss:W'+n,d<=2?'#ff6666':'var(--dim)');}
 function checkLvUp(){while(G.xp>=G.xpNext){G.xp-=G.xpNext;G.lv++;G.xpNext=Math.floor(100*Math.pow(1.3,G.lv-1));G.maxHp+=2;G.hp=Math.min(G.hp+3,G.maxHp);G.maxMp=Math.min(200,G.maxMp+5);G.mp=Math.min(G.maxMp,G.mp+20);addLog('🌟 레벨업! Lv.'+G.lv,'unlk');var fl=document.getElementById('lvfl'),fl2=document.getElementById('lvfl2');if(fl){fl.classList.add('on');setTimeout(function(){fl.classList.remove('on');},500);}if(fl2){fl2.classList.add('on');setTimeout(function(){fl2.classList.remove('on');},500);}buildActionBar();}}
 function unlockTower(boss){var id=boss.unlocks;if(!id||G.unlocked.indexOf(id)>=0)return;G.unlocked.push(id);var def=TDEFS.find(function(d){return d.id===id;});if(def)def.isNew=true;addLog('🔓 해금: '+(def?def.name:id),'unlk');buildActionBar();if(def){var ca=document.getElementById(ORIENT==='land'?'land-ca':'port-ca');var p=document.createElement('div');p.className='upop';p.innerHTML='<h3>🔓 '+def.name+' 해금!</h3><p>'+def.icon+'</p>';ca.appendChild(p);setTimeout(function(){if(p.parentNode)p.parentNode.removeChild(p);},2500);}}
-function placeTower(x,y){markUIInteraction();if(G.pendingBuild||G.buildConfirmOpen)return;var def=TDEFS.find(function(d){return d.id===G.selType;});if(!def)return;var pos=snapTowerPlacement(x,y);var finalX=pos.x,finalY=pos.y;var finalCost=applyGemCostReduction(def.cost,'tower_cost');if(G.gold<finalCost){addLog('❌ 골드부족','sys');return;}if(onPath(finalX,finalY)){addLog('❌ 경로위 불가','sys');return;}if(towerAt(finalX,finalY)){addLog('❌ 이미존재','sys');return;}
-if(pos.snapped){showEdgePlacementConfirm(def,x,y,finalX,finalY);}else{G.pendingBuild={id:def.id,x:finalX,y:finalY,cost:finalCost,name:def.name,icon:def.icon};showBuildConfirm();}}
+function placeTower(x,y){
+  markUIInteraction();
+  if(G.pendingBuild||G.buildConfirmOpen)return;
+  var def=TDEFS.find(function(d){return d.id===G.selType;});
+  if(!def)return;
+  var pos=snapTowerPlacement(x,y);
+  var finalX=pos.x,finalY=pos.y;
+  var finalCost=applyGemCostReduction(def.cost,'tower_cost');
+  if(G.gold<finalCost){addLog('❌ 골드부족','sys');return;}
+  if(onPath(finalX,finalY)){addLog('❌ 경로위 불가','sys');return;}
+  if(towerAt(finalX,finalY)){addLog('❌ 이미존재','sys');return;}
+  // 팝업 표시 전에 즉시 플래그 세팅 (같은 터치의 pointerup이 재진입하는 것 방지)
+  G.buildConfirmOpen=true;
+  if(pos.snapped){
+    showEdgePlacementConfirm(def,x,y,finalX,finalY);
+  } else {
+    G.pendingBuild={id:def.id,x:finalX,y:finalY,cost:finalCost,name:def.name,icon:def.icon};
+    showBuildConfirm();
+  }
+}
 function showBuildConfirm(){if(!G.pendingBuild)return;G.buildConfirmOpen=true;var msg=G.pendingBuild.name+' 건설<br>비용: 💰'+G.pendingBuild.cost+'<br>위치: ('+Math.round(G.pendingBuild.x)+', '+Math.round(G.pendingBuild.y)+')';setInner('bc-title','🏗️ '+G.pendingBuild.name+' 건설');setInner('bc-desc',msg);setInner('bc-title2','🏗️ '+G.pendingBuild.name+' 건설');setInner('bc-desc2',msg);setInner('bc-title-ml','🏗️ '+G.pendingBuild.name+' 건설');setInner('bc-desc-ml',msg);var a=document.getElementById('build-confirm');if(a)a.style.display='block';var b=document.getElementById('build-confirm2');if(b)b.style.display='block';var m=document.getElementById('build-confirm-ml');if(m)m.style.display='block';}
 function hideBuildConfirm(){G.buildConfirmOpen=false;var a=document.getElementById('build-confirm');if(a)a.style.display='none';var b=document.getElementById('build-confirm2');if(b)b.style.display='none';var m=document.getElementById('build-confirm-ml');if(m)m.style.display='none';}
-function confirmPlaceTower(){markUIInteraction();if(!G.pendingBuild||!G.buildConfirmOpen)return;var def=TDEFS.find(function(d){return d.id===G.pendingBuild.id;});if(!def){cancelPlaceTower();return;}var x=G.pendingBuild.x,y=G.pendingBuild.y;var finalCost=G.pendingBuild.cost;if(G.gold<finalCost){addLog('❌ 골드부족','sys');cancelPlaceTower();return;}if(onPath(x,y)||towerAt(x,y)){addLog('❌ 배치 불가','sys');cancelPlaceTower();return;}G.gold-=finalCost;G.towers.push(makeTower(def,x,y));def.isNew=false;addLog('🏗️ '+def.name+' 건설','sys');G.pendingBuild=null;hideBuildConfirm();buildActionBar();buildInfoPanel();if(ML.active){mlPushState();}}
+function confirmPlaceTower(){markUIInteraction();if(!G.pendingBuild||!G.buildConfirmOpen)return;G.buildConfirmOpen=false;var def=TDEFS.find(function(d){return d.id===G.pendingBuild.id;});if(!def){cancelPlaceTower();return;}var x=G.pendingBuild.x,y=G.pendingBuild.y;var finalCost=G.pendingBuild.cost;if(G.gold<finalCost){addLog('❌ 골드부족','sys');cancelPlaceTower();return;}if(onPath(x,y)||towerAt(x,y)){addLog('❌ 배치 불가','sys');cancelPlaceTower();return;}G.gold-=finalCost;G.towers.push(makeTower(def,x,y));def.isNew=false;addLog('🏗️ '+def.name+' 건설','sys');G.pendingBuild=null;hideBuildConfirm();buildActionBar();buildInfoPanel();if(ML.active){mlPushState();}}
 function cancelPlaceTower(){markUIInteraction();G.pendingBuild=null;hideBuildConfirm();addLog('↩️ 건설 취소','sys');}
 function showEdgePlacementConfirm(def,origX,origY,snapX,snapY){
   G.edgePlacePending={def:def,origX:origX,origY:origY,snapX:snapX,snapY:snapY};
@@ -2781,12 +2798,21 @@ function buildMultiBar(){
   var uc=document.getElementById('ml-units');
   if(uc){
     uc.innerHTML='';
+    var isAtkMode=G.unitMode==='attack';
+    // 모드 안내 배너
+    var modeBanner=document.createElement('div');
+    modeBanner.style.cssText='width:100%;padding:3px 6px;margin-bottom:4px;border-radius:4px;font-size:9px;font-family:Cinzel,serif;text-align:center;'
+      +(isAtkMode?'background:rgba(120,20,20,.5);border:1px solid #ff4444;color:#ff8888;':'background:rgba(20,60,20,.5);border:1px solid #44aa44;color:#88ee88;');
+    modeBanner.textContent=isAtkMode?'⚔️ 공격 모드 — 유닛이 상대 맵에 침공합니다':'🛡️ 수비 모드 — 유닛이 내 맵을 방어합니다';
+    uc.appendChild(modeBanner);
     UDEFS.forEach(function(ud){
       var fc=applyGemCostReduction(ud.cost,'unit_cost');
-      var nd=G.gold<fc||getAliveAlliesCount()>=getAllyCap();
+      var nd=G.gold<fc||(!isAtkMode&&getAliveAlliesCount()>=getAllyCap());
       var b=document.createElement('div');b.className='uc land-uc'+(nd?' nd':'');
+      if(isAtkMode)b.style.borderColor='#aa3333';
       var costTxt=fc<ud.cost?'<span style="color:#88ff88">💰'+fc+'</span>':'💰'+fc;
-      b.innerHTML='<div class="ui">'+ud.icon+'</div><div class="un">'+ud.name+'</div><div class="uc2">'+(getAliveAlliesCount()>=getAllyCap()?'BOSS':costTxt)+'</div>';
+      b.innerHTML='<div class="ui">'+ud.icon+'</div><div class="un">'+ud.name+'</div><div class="uc2">'+costTxt+'</div>'
+        +(isAtkMode?'<div style="font-size:6px;color:#ff8888">⚔️ 침공</div>':'');
       if(!nd)b.onclick=function(){deployUnit(ud.id);};uc.appendChild(b);
     });
     // 치료/파워업/부스트
@@ -3141,7 +3167,7 @@ function setupEvents(){
     var wp=screenToWorld(sx,sy); G.mx=wp.x; G.my=wp.y;
     var wasTap=G.camera.dragging&&!G.camera.moved&&Math.abs(sx-G.camera.startX)<6&&Math.abs(sy-G.camera.startY)<6&&e.pointerId===G.camera.pointerId;
     G.camera.dragging=false; G.camera.pointerId=null;
-    if(wasTap&&!shouldIgnoreCanvasInput())handleWorld(wp.x,wp.y);
+    if(wasTap&&!shouldIgnoreCanvasInput()&&!G.buildConfirmOpen&&!G.pendingBuild)handleWorld(wp.x,wp.y);
   },{passive:true});
   canvas.addEventListener('pointercancel',function(){G.camera.dragging=false;G.camera.pointerId=null;},{passive:true});
   canvas.addEventListener('wheel',function(e){ e.preventDefault(); var factor=e.deltaY<0?1.14:1/1.14; zoomMap(factor); },{passive:false});
@@ -3658,6 +3684,7 @@ function mlStartMulti(){
 
   TDEFS.forEach(function(d){d.isNew=false;});
   resetG();
+  G.unitMode='attack'; // 멀티모드 기본값: 공격 모드 (상대방 맵 침공)
   G.speed=ML.gameSpeed||1; // 방장이 설정한 게임 속도 적용
   buildPath(true); initCamera(true);
   G.running=true; // 입장 즉시 게임 시작 (준비 오버레이는 UI용)
@@ -3810,7 +3837,7 @@ function mlBindMyCanvas(){
     if(G.camera.pointerId!==e.pointerId)return;
     var moved=G.camera.moved;
     G.camera.dragging=false;G.camera.moved=false;G.camera.pointerId=null;
-    if(!moved){
+    if(!moved&&!G.buildConfirmOpen&&!G.pendingBuild){
       var r=mc.getBoundingClientRect();
       var wp=screenToWorld(e.clientX-r.left,e.clientY-r.top);
       handleMapTap(wp.x,wp.y);
@@ -3897,14 +3924,13 @@ function mlListenFirebase(){
     mlDrawEnemy();
   });
 
-  // 2) 침공 유닛 수신
-  db.ref('rooms/'+ML.roomId+'/inv_'+ML.myRole).on('value',function(snap){
-    var val=snap.val(); if(!val)return;
-    Object.keys(val).forEach(function(k){
-      if(ML.appliedAttacks[k])return;
-      ML.appliedAttacks[k]=true;
-      mlSpawnInvader(val[k]);
-    });
+  // 2) 침공 유닛 수신 — child_added로 push된 유닛 하나씩 수신
+  db.ref('rooms/'+ML.roomId+'/inv_'+ML.myRole).on('child_added',function(snap){
+    var data=snap.val(); if(!data)return;
+    var k=snap.key;
+    if(ML.appliedAttacks[k])return;
+    ML.appliedAttacks[k]=true;
+    mlSpawnInvader(data);
   });
 
   // 3) Firebase onDisconnect: 내가 끊기면 내 데이터 자동 삭제 → 상대방이 승리 감지
@@ -4039,6 +4065,20 @@ function mlLoop(ts){
   G.frame++;
   if(G.shakeDur>0)G.shakeDur--;
   if(G.running&&!G.over){
+    // 쿨타임, 버프 타이머, 장애물(바리케이트) hp 처리
+    if(G.bossTimer>0)G.bossTimer-=G.dt;
+    if(G.buff.atk>0)G.buff.atk-=G.dt;
+    if(G.buff.spd>0)G.buff.spd-=G.dt;
+    if(G.buff.steamAtk>0){G.buff.steamAtk-=G.dt;if(G.buff.steamAtk<=0){G.buff.steamAtkBoost=0;G.buff.steamAtk=0;}}
+    if(G.buff.steamHeal>0){G.buff.steamHeal-=G.dt;if(G.buff.steamHeal<=0){G.buff.healBoost=1;G.buff.healSpd=1;G.buff.steamHeal=0;}}
+    // 스킬 쿨타임 감소
+    SKILLS.forEach(function(s){if(G.scd[s.id]>0)G.scd[s.id]-=G.dt;});
+    // 장애물(바리케이트 등) hp 0이면 제거
+    for(var i=G.obstacles.length-1;i>=0;i--){
+      var ob=G.obstacles[i];
+      if(ob.isCold){ob.life-=G.dt;if(ob.life<=0)G.obstacles.splice(i,1);}
+      else if(ob.hp!==undefined&&ob.hp<=0){G.obstacles.splice(i,1);}
+    }
     tickSpawn();tickEnemies();tickTowers();tickProjs();tickAllies();tickParts();
     if(G.waveActive&&G.spIdx>=G.waveQ.length&&G.enemies.length===0)waveComplete();
     if(G.frame%3===0)syncDynamicUI(false);
@@ -4088,9 +4128,10 @@ function mlQuit(){
   if(_listRefreshInterval){clearInterval(_listRefreshInterval);_listRefreshInterval=null;}
   if(ML.roomId&&window._fb){
     try{
-      // onDisconnect 취소 (정상 나가기이므로 자동 삭제 불필요)
       window._fb.db.ref('rooms/'+ML.roomId+'/'+ML.myRole).onDisconnect().cancel();
       window._fb.off(window._fb.db.ref('rooms/'+ML.roomId));
+      // 침공 수신 리스너도 정리
+      window._fb.db.ref('rooms/'+ML.roomId+'/inv_'+ML.myRole).off('child_added');
       if(ML.myRole==='host')window._fb.remove(window._fb.db.ref('rooms/'+ML.roomId));
       else window._fb.remove(window._fb.db.ref('rooms/'+ML.roomId+'/'+ML.myRole));
     }catch(e){}
