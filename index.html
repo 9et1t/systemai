@@ -660,7 +660,25 @@ canvas{display:block;width:100%;height:100%;}
         <span id="split-my-name">🏰 내 요새</span>
         <span id="split-my-stats" style="color:#44ff88">HP:20 W:0</span>
       </div>
-      <div class="split-canvas-wrap"><canvas id="gc-multi-me"></canvas></div>
+      <div class="split-canvas-wrap">
+        <canvas id="gc-multi-me"></canvas>
+        <div class="build-confirm" id="build-confirm-ml">
+          <div class="bc-title" id="bc-title-ml">🏗️ 타워 건설</div>
+          <div class="bc-desc" id="bc-desc-ml">건설하시겠습니까?</div>
+          <div class="bc-actions">
+            <button class="bc-btn ok" onpointerdown="stopUIEvent(event)" onclick="confirmPlaceTower();return false;">확인</button>
+            <button class="bc-btn cancel" onpointerdown="stopUIEvent(event)" onclick="cancelPlaceTower();return false;">취소</button>
+          </div>
+        </div>
+        <div class="skill-confirm" id="skill-confirm-ml">
+          <div class="sc-title" id="sc-title-ml">✨ 스킬 사용</div>
+          <div class="sc-desc" id="sc-desc-ml">스킬을 사용하시겠습니까?</div>
+          <div class="bc-actions">
+            <button class="bc-btn ok" onpointerdown="stopUIEvent(event)" onclick="confirmCastSkill();return false;">확인</button>
+            <button class="bc-btn cancel" onpointerdown="stopUIEvent(event)" onclick="cancelCastSkill();return false;">취소</button>
+          </div>
+        </div>
+      </div>
     </div>
     <!-- 상대 맵 -->
     <div class="split-panel" id="sp-enemy">
@@ -2257,12 +2275,16 @@ function showSkillConfirm(sk,tx,ty){
   setInner('sc-desc',msg);
   setInner('sc-title2',sk.icon+' '+sk.name+' 사용');
   setInner('sc-desc2',msg);
+  setInner('sc-title-ml',sk.icon+' '+sk.name+' 사용');
+  setInner('sc-desc-ml',msg);
   var a=document.getElementById('skill-confirm');if(a)a.style.display='block';
   var b=document.getElementById('skill-confirm2');if(b)b.style.display='block';
+  var m=document.getElementById('skill-confirm-ml');if(m)m.style.display='block';
 }
 function hideSkillConfirm(){
   var a=document.getElementById('skill-confirm');if(a)a.style.display='none';
   var b=document.getElementById('skill-confirm2');if(b)b.style.display='none';
+  var m=document.getElementById('skill-confirm-ml');if(m)m.style.display='none';
 }
 function confirmCastSkill(){markUIInteraction();
   if(!G.pendingSkill)return;
@@ -2555,8 +2577,8 @@ function checkLvUp(){while(G.xp>=G.xpNext){G.xp-=G.xpNext;G.lv++;G.xpNext=Math.f
 function unlockTower(boss){var id=boss.unlocks;if(!id||G.unlocked.indexOf(id)>=0)return;G.unlocked.push(id);var def=TDEFS.find(function(d){return d.id===id;});if(def)def.isNew=true;addLog('🔓 해금: '+(def?def.name:id),'unlk');buildActionBar();if(def){var ca=document.getElementById(ORIENT==='land'?'land-ca':'port-ca');var p=document.createElement('div');p.className='upop';p.innerHTML='<h3>🔓 '+def.name+' 해금!</h3><p>'+def.icon+'</p>';ca.appendChild(p);setTimeout(function(){if(p.parentNode)p.parentNode.removeChild(p);},2500);}}
 function placeTower(x,y){markUIInteraction();if(G.pendingBuild||G.buildConfirmOpen)return;var def=TDEFS.find(function(d){return d.id===G.selType;});if(!def)return;var pos=snapTowerPlacement(x,y);var finalX=pos.x,finalY=pos.y;var finalCost=applyGemCostReduction(def.cost,'tower_cost');if(G.gold<finalCost){addLog('❌ 골드부족','sys');return;}if(onPath(finalX,finalY)){addLog('❌ 경로위 불가','sys');return;}if(towerAt(finalX,finalY)){addLog('❌ 이미존재','sys');return;}
 if(pos.snapped){showEdgePlacementConfirm(def,x,y,finalX,finalY);}else{G.pendingBuild={id:def.id,x:finalX,y:finalY,cost:finalCost,name:def.name,icon:def.icon};showBuildConfirm();}}
-function showBuildConfirm(){if(!G.pendingBuild)return;G.buildConfirmOpen=true;var msg=G.pendingBuild.name+' 건설<br>비용: 💰'+G.pendingBuild.cost+'<br>위치: ('+Math.round(G.pendingBuild.x)+', '+Math.round(G.pendingBuild.y)+')';setInner('bc-title','🏗️ '+G.pendingBuild.name+' 건설');setInner('bc-desc',msg);setInner('bc-title2','🏗️ '+G.pendingBuild.name+' 건설');setInner('bc-desc2',msg);var a=document.getElementById('build-confirm');if(a)a.style.display='block';var b=document.getElementById('build-confirm2');if(b)b.style.display='block';}
-function hideBuildConfirm(){G.buildConfirmOpen=false;var a=document.getElementById('build-confirm');if(a)a.style.display='none';var b=document.getElementById('build-confirm2');if(b)b.style.display='none';}
+function showBuildConfirm(){if(!G.pendingBuild)return;G.buildConfirmOpen=true;var msg=G.pendingBuild.name+' 건설<br>비용: 💰'+G.pendingBuild.cost+'<br>위치: ('+Math.round(G.pendingBuild.x)+', '+Math.round(G.pendingBuild.y)+')';setInner('bc-title','🏗️ '+G.pendingBuild.name+' 건설');setInner('bc-desc',msg);setInner('bc-title2','🏗️ '+G.pendingBuild.name+' 건설');setInner('bc-desc2',msg);setInner('bc-title-ml','🏗️ '+G.pendingBuild.name+' 건설');setInner('bc-desc-ml',msg);var a=document.getElementById('build-confirm');if(a)a.style.display='block';var b=document.getElementById('build-confirm2');if(b)b.style.display='block';var m=document.getElementById('build-confirm-ml');if(m)m.style.display='block';}
+function hideBuildConfirm(){G.buildConfirmOpen=false;var a=document.getElementById('build-confirm');if(a)a.style.display='none';var b=document.getElementById('build-confirm2');if(b)b.style.display='none';var m=document.getElementById('build-confirm-ml');if(m)m.style.display='none';}
 function confirmPlaceTower(){markUIInteraction();if(!G.pendingBuild||!G.buildConfirmOpen)return;var def=TDEFS.find(function(d){return d.id===G.pendingBuild.id;});if(!def){cancelPlaceTower();return;}var x=G.pendingBuild.x,y=G.pendingBuild.y;var finalCost=applyGemCostReduction(def.cost,'tower_cost');if(G.gold<finalCost){addLog('❌ 골드부족','sys');cancelPlaceTower();return;}if(onPath(x,y)||towerAt(x,y)){addLog('❌ 배치 불가','sys');cancelPlaceTower();return;}G.gold-=finalCost;G.towers.push(makeTower(def,x,y));def.isNew=false;addLog('🏗️ '+def.name+' 건설','sys');G.pendingBuild=null;hideBuildConfirm();buildActionBar();buildInfoPanel();}
 function cancelPlaceTower(){markUIInteraction();G.pendingBuild=null;hideBuildConfirm();addLog('↩️ 건설 취소','sys');}
 function showEdgePlacementConfirm(def,origX,origY,snapX,snapY){
@@ -2641,6 +2663,8 @@ function mlSwitchTab2(t){
 }
 
 function buildMultiBar(){
+  if(!G||!G.unlocked)return; // G 초기화 전 방어
+  // 현재 탭에 맞는 것만 업데이트
   // 타워 카드
   var tc=document.getElementById('ml-towers');
   if(tc){
@@ -3544,35 +3568,39 @@ function mlStartMulti(){
   document.getElementById('split-my-name').textContent=myLabel;
   document.getElementById('split-enemy-name').textContent=enLabel;
 
-  // 캔버스 세팅 - DOM이 렌더된 후 크기 측정
-  ML.myCanvas=document.getElementById('gc-multi-me');
-  ML.enemyCanvas=document.getElementById('gc-multi-enemy');
-  setTimeout(mlResizeCanvases, 100);
-
   // 싱글엔진 초기화 (내 맵)
   ORIENT='land';
-  canvas=ML.myCanvas; ctx=ML.myCanvas.getContext('2d');
-  ML.myCtx=ctx;
+  ML.myCanvas=document.getElementById('gc-multi-me');
+  ML.enemyCanvas=document.getElementById('gc-multi-enemy');
+  ML.myCtx=ML.myCanvas.getContext('2d');
   ML.enemyCtx=ML.enemyCanvas.getContext('2d');
+  canvas=ML.myCanvas; ctx=ML.myCtx;
 
   TDEFS.forEach(function(d){d.isNew=false;});
   resetG();
   buildPath(true); initCamera(true);
-  G.running=false; // 준비 완료 후 시작
-  mlTab2='tower';
-  mlSwitchTab2('tower');
-  buildActionBar(); buildInfoPanel(); updateNextBoss();
-  mlBindMyCanvas();
+  G.running=false;
+
   mlListenFirebase();
   ML.syncInterval=setInterval(mlPushState,600);
   lastTS=performance.now();
   requestAnimationFrame(mlLoop);
   mlSetConn('ok');
 
-  // 준비 오버레이 표시
-  var ov=document.getElementById('ml-ready-overlay');
-  if(ov)ov.style.display='flex';
-  mlUpdateReadyStatus();
+  // DOM 렌더 후 UI 초기화
+  setTimeout(function(){
+    mlResizeCanvases();
+    mlTab2='tower';
+    mlSwitchTab2('tower');
+    buildActionBar();
+    buildInfoPanel();
+    updateNextBoss();
+    mlBindMyCanvas();
+    // 준비 오버레이 표시
+    var ov=document.getElementById('ml-ready-overlay');
+    if(ov)ov.style.display='flex';
+    mlUpdateReadyStatus();
+  }, 150);
 }
 
 // ── 맵 전환 ──
