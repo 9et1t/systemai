@@ -529,13 +529,26 @@ canvas{display:block;width:100%;height:100%;}
 #split-screen.open{display:flex;}
 #split-top-bar{height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 10px;background:linear-gradient(90deg,#080512,#0d0820,#080512);border-bottom:1px solid rgba(100,60,200,.3);}
 #split-top-bar .sp-title{font-family:'Cinzel',serif;font-size:11px;color:#cc88ff;letter-spacing:2px;}
-#split-canvases{flex:1;display:flex;gap:3px;padding:3px;min-height:0;background:#030208;}
-.split-panel{flex:1;display:flex;flex-direction:column;min-width:0;position:relative;border-radius:6px;overflow:hidden;}
-.split-panel-label{height:22px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 8px;font-size:9px;font-family:'Cinzel',serif;}
-.split-panel-label.mine{background:rgba(20,60,20,.8);color:#66ff88;}
-.split-panel-label.enemy{background:rgba(60,10,10,.8);color:#ff8888;}
+#split-canvases{flex:1;position:relative;min-height:0;background:#030208;}
+.split-panel{position:absolute;inset:0;display:flex;flex-direction:column;display:none;}
+.split-panel.active{display:flex;}
+.split-panel-label{height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 10px;font-size:9px;font-family:'Cinzel',serif;}
+.split-panel-label.mine{background:rgba(20,60,20,.85);color:#66ff88;}
+.split-panel-label.enemy{background:rgba(60,10,10,.85);color:#ff8888;}
 .split-canvas-wrap{flex:1;position:relative;overflow:hidden;}
 .split-canvas-wrap canvas{width:100%;height:100%;display:block;}
+.split-view-tabs{display:flex;gap:4px;}
+.split-view-tab{padding:3px 12px;border-radius:4px;border:1px solid rgba(120,60,200,.4);background:rgba(10,5,20,.7);color:#7755aa;font-size:9px;font-family:'Cinzel',serif;cursor:pointer;transition:all .15s;}
+.split-view-tab.active{background:rgba(60,20,140,.8);border-color:#cc88ff;color:#cc88ff;}
+.split-view-tab.enemy-tab.active{background:rgba(100,10,10,.8);border-color:#ff8888;color:#ff8888;}
+
+/* 준비 대기 오버레이 */
+#ml-ready-overlay{position:absolute;inset:0;z-index:10;background:rgba(5,3,15,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
+#ml-ready-overlay h2{font-family:'Cinzel',serif;font-size:18px;color:#cc88ff;letter-spacing:2px;}
+#ml-ready-btn{padding:12px 32px;border-radius:8px;border:2px solid #7733cc;background:linear-gradient(135deg,#1a0535,#3a1080);color:#cc88ff;font-family:'Cinzel',serif;font-size:14px;cursor:pointer;letter-spacing:1px;transition:all .15s;}
+#ml-ready-btn:active{background:#4a1a90;}
+#ml-ready-btn.ready{background:linear-gradient(135deg,#053520,#0a6040);border-color:#33cc88;color:#66ffaa;}
+.ml-ready-status{font-size:11px;color:#9977cc;text-align:center;min-height:18px;}
 #split-bottom{height:60px;flex-shrink:0;display:flex;align-items:center;gap:6px;padding:0 8px;background:linear-gradient(180deg,#0a0815,#06040e);border-top:1px solid rgba(80,40,160,.3);overflow-x:auto;scrollbar-width:none;}
 #split-bottom::-webkit-scrollbar{display:none;}
 .split-send-btn{padding:4px 8px;border-radius:6px;border:1px solid #664499;background:linear-gradient(135deg,#1a0835,#280d55);color:#cc88ff;font-size:8px;font-family:'Cinzel',serif;cursor:pointer;white-space:nowrap;flex-shrink:0;line-height:1.4;}
@@ -625,19 +638,32 @@ canvas{display:block;width:100%;height:100%;}
   <div id="split-top-bar">
     <div class="sp-title">⚔️ RPG 디펜스 대결</div>
     <div id="split-conn-status"><span class="conn-dot yellow"></span><span style="font-size:9px;color:#ffcc44">연결 중...</span></div>
+    <!-- 맵 전환 탭 -->
+    <div class="split-view-tabs">
+      <div class="split-view-tab active" id="svt-me" onclick="mlSwitchView('me')">🏰 내 맵</div>
+      <div class="split-view-tab enemy-tab" id="svt-enemy" onclick="mlSwitchView('enemy')">⚔️ 상대 맵</div>
+    </div>
     <div id="split-scores" style="font-size:9px;color:#cc88ff;font-family:'Cinzel',serif;"></div>
     <button class="ml-btn ml-btn-solo" style="padding:3px 8px;font-size:8px;" onclick="mlQuit()">🚪 나가기</button>
   </div>
   <div id="split-canvases">
-    <div class="split-panel">
+    <!-- 준비 대기 오버레이 -->
+    <div id="ml-ready-overlay">
+      <h2>⚔️ 대결 준비</h2>
+      <div class="ml-ready-status" id="ml-ready-status">상대방을 기다리는 중...</div>
+      <button id="ml-ready-btn" onclick="mlToggleReady()">✅ 준비 완료</button>
+      <div class="ml-ready-status" id="ml-ready-status2" style="color:#9977cc;font-size:9px;"></div>
+    </div>
+    <!-- 내 맵 -->
+    <div class="split-panel active" id="sp-me">
       <div class="split-panel-label mine">
         <span id="split-my-name">🏰 내 요새</span>
         <span id="split-my-stats" style="color:#44ff88">HP:20 W:0</span>
       </div>
       <div class="split-canvas-wrap"><canvas id="gc-multi-me"></canvas></div>
     </div>
-    <div style="width:3px;background:rgba(120,60,200,.4);flex-shrink:0;"></div>
-    <div class="split-panel">
+    <!-- 상대 맵 -->
+    <div class="split-panel" id="sp-enemy">
       <div class="split-panel-label enemy">
         <span id="split-enemy-name">⚔️ 상대 요새</span>
         <span id="split-enemy-stats" style="color:#ff8888">HP:20 W:0</span>
@@ -651,13 +677,13 @@ canvas{display:block;width:100%;height:100%;}
     <div class="split-stat"><span class="ssl">MP</span><span class="ssv" id="ms-mp">0</span></div>
     <div style="width:1px;background:rgba(120,60,200,.3);align-self:stretch;flex-shrink:0;margin:6px 0;"></div>
     <span style="font-size:7px;color:#7755aa;font-family:'Cinzel',serif;flex-shrink:0;">침공</span>
-    <button class="split-send-btn" id="ss-btn-archer_u" onclick="mlSendInvader('archer_u')">🏹아처<br><span style="color:#ffcc44">300g</span></button>
-    <button class="split-send-btn" id="ss-btn-wizard" onclick="mlSendInvader('wizard')">🔮위자드<br><span style="color:#ffcc44">600g</span></button>
-    <button class="split-send-btn" id="ss-btn-giant" onclick="mlSendInvader('giant')">💪자이언트<br><span style="color:#ffcc44">800g</span></button>
-    <button class="split-send-btn" id="ss-btn-dragon" onclick="mlSendInvader('dragon')">🐲드래곤<br><span style="color:#ffcc44">1800g</span></button>
-    <button class="split-send-btn" id="ss-btn-pekka" onclick="mlSendInvader('pekka')">🤖페카<br><span style="color:#ffcc44">1200g</span></button>
+    <button class="split-send-btn" onclick="mlSendInvader('archer_u')">🏹아처<br><span style="color:#ffcc44">300g</span></button>
+    <button class="split-send-btn" onclick="mlSendInvader('wizard')">🔮위자드<br><span style="color:#ffcc44">600g</span></button>
+    <button class="split-send-btn" onclick="mlSendInvader('giant')">💪자이언트<br><span style="color:#ffcc44">800g</span></button>
+    <button class="split-send-btn" onclick="mlSendInvader('pekka')">🤖페카<br><span style="color:#ffcc44">1200g</span></button>
+    <button class="split-send-btn" onclick="mlSendInvader('dragon')">🐲드래곤<br><span style="color:#ffcc44">1800g</span></button>
     <div style="width:1px;background:rgba(120,60,200,.3);align-self:stretch;flex-shrink:0;margin:6px 0;"></div>
-    <button class="split-send-btn" id="ms-wave-btn" onclick="startWave()" style="border-color:#884422;color:#ffaa66;">▶ Next<br>Wave</button>
+    <button class="split-send-btn" onclick="startWave()" style="border-color:#884422;color:#ffaa66;">▶ Next<br>Wave</button>
   </div>
 </div>
 
@@ -3362,6 +3388,7 @@ function mlCancelRoom(){
 // ── 게임 시작 ──
 function mlStartMulti(){
   ML.active=true; ML.gameOver=false; ML.appliedAttacks={};
+  ML.myReady=false; ML.enemyReady=false;
   document.getElementById('multi-lobby').classList.remove('open');
   document.getElementById('split-screen').classList.add('open');
 
@@ -3385,7 +3412,7 @@ function mlStartMulti(){
   TDEFS.forEach(function(d){d.isNew=false;});
   resetG();
   buildPath(true); initCamera(true);
-  G.running=true;
+  G.running=false; // 준비 완료 후 시작
   buildActionBar(); buildInfoPanel(); updateNextBoss();
   mlBindMyCanvas();
   mlListenFirebase();
@@ -3393,15 +3420,70 @@ function mlStartMulti(){
   lastTS=performance.now();
   requestAnimationFrame(mlLoop);
   mlSetConn('ok');
-  addLog('🌐 대결 시작!','sys');
+
+  // 준비 오버레이 표시
+  var ov=document.getElementById('ml-ready-overlay');
+  if(ov)ov.style.display='flex';
+  mlUpdateReadyStatus();
+}
+
+// ── 맵 전환 ──
+function mlSwitchView(which){
+  document.getElementById('sp-me').classList.toggle('active', which==='me');
+  document.getElementById('sp-enemy').classList.toggle('active', which==='enemy');
+  document.getElementById('svt-me').classList.toggle('active', which==='me');
+  document.getElementById('svt-enemy').classList.toggle('active', which==='enemy');
+  if(which==='me'){
+    // 내 맵으로 전환 시 캔버스 크기 재조정
+    setTimeout(mlResizeCanvases,50);
+  }
+}
+
+// ── 준비 완료 ──
+function mlToggleReady(){
+  if(!window._fb||!ML.roomId)return;
+  ML.myReady=!ML.myReady;
+  var btn=document.getElementById('ml-ready-btn');
+  if(btn){
+    if(ML.myReady){
+      btn.textContent='⏳ 대기 중... (취소하려면 탭)';
+      btn.classList.add('ready');
+    } else {
+      btn.textContent='✅ 준비 완료';
+      btn.classList.remove('ready');
+    }
+  }
+  // Firebase에 준비 상태 전송
+  window._fb.db.ref('rooms/'+ML.roomId+'/'+ML.myRole+'/ready').set(ML.myReady);
+  mlUpdateReadyStatus();
+}
+
+function mlUpdateReadyStatus(){
+  var s1=document.getElementById('ml-ready-status');
+  var s2=document.getElementById('ml-ready-status2');
+  var myTxt=ML.myReady?'✅ 나: 준비 완료':'⏸ 나: 대기 중';
+  var enTxt=ML.enemyReady?'✅ 상대: 준비 완료':'⏸ 상대: 대기 중';
+  if(s1)s1.textContent=myTxt;
+  if(s2)s2.textContent=enTxt;
+}
+
+function mlCheckBothReady(){
+  if(ML.myReady&&ML.enemyReady){
+    // 둘 다 준비 → 게임 시작
+    var ov=document.getElementById('ml-ready-overlay');
+    if(ov)ov.style.display='none';
+    G.running=true;
+    addLog('🌐 양측 준비 완료! 대결 시작!','sys');
+    addLog('⚔️ 침공 버튼으로 상대 맵에 유닛을 보내세요!','sys');
+  }
 }
 
 function mlResizeCanvases(){
-  var wraps=document.querySelectorAll('.split-canvas-wrap');
-  wraps.forEach(function(wrap){
-    var w=wrap.clientWidth||window.innerWidth/2-10;
-    var h=wrap.clientHeight||window.innerHeight-120;
-    var cv=wrap.querySelector('canvas');
+  var container=document.getElementById('split-canvases');
+  if(!container)return;
+  var w=container.clientWidth||window.innerWidth;
+  var h=container.clientHeight||(window.innerHeight-100);
+  [ML.myCanvas, ML.enemyCanvas].forEach(function(cv){
     if(cv){cv.width=Math.floor(w);cv.height=Math.floor(h);}
   });
 }
@@ -3480,6 +3562,11 @@ function mlListenFirebase(){
     var val=snap.val(); if(!val)return;
     ML.enemyState=val;
     document.getElementById('split-enemy-stats').textContent='HP:'+(val.hp||0)+'/'+(val.maxHp||20)+' W:'+(val.wave||0);
+    // 상대 준비 상태 감지
+    var wasReady=ML.enemyReady;
+    ML.enemyReady=!!(val.ready);
+    if(ML.enemyReady!==wasReady)mlUpdateReadyStatus();
+    mlCheckBothReady();
     if(val.over&&!ML.gameOver)mlOnEnemyDefeated();
     mlDrawEnemy();
   });
