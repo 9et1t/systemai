@@ -671,19 +671,47 @@ canvas{display:block;width:100%;height:100%;}
       <div class="split-canvas-wrap"><canvas id="gc-multi-enemy"></canvas></div>
     </div>
   </div>
-  <div id="split-bottom">
-    <div class="split-stat"><span class="ssl">💰</span><span class="ssv" id="ms-gold">150</span></div>
-    <div class="split-stat"><span class="ssl">🌊</span><span class="ssv" id="ms-wave">0</span></div>
-    <div class="split-stat"><span class="ssl">MP</span><span class="ssv" id="ms-mp">0</span></div>
-    <div style="width:1px;background:rgba(120,60,200,.3);align-self:stretch;flex-shrink:0;margin:6px 0;"></div>
-    <span style="font-size:7px;color:#7755aa;font-family:'Cinzel',serif;flex-shrink:0;">침공</span>
-    <button class="split-send-btn" onclick="mlSendInvader('archer_u')">🏹아처<br><span style="color:#ffcc44">300g</span></button>
-    <button class="split-send-btn" onclick="mlSendInvader('wizard')">🔮위자드<br><span style="color:#ffcc44">600g</span></button>
-    <button class="split-send-btn" onclick="mlSendInvader('giant')">💪자이언트<br><span style="color:#ffcc44">800g</span></button>
-    <button class="split-send-btn" onclick="mlSendInvader('pekka')">🤖페카<br><span style="color:#ffcc44">1200g</span></button>
-    <button class="split-send-btn" onclick="mlSendInvader('dragon')">🐲드래곤<br><span style="color:#ffcc44">1800g</span></button>
-    <div style="width:1px;background:rgba(120,60,200,.3);align-self:stretch;flex-shrink:0;margin:6px 0;"></div>
-    <button class="split-send-btn" onclick="startWave()" style="border-color:#884422;color:#ffaa66;">▶ Next<br>Wave</button>
+  <!-- 멀티 액션 영역 -->
+  <div id="split-action-area" style="flex-shrink:0;background:linear-gradient(180deg,#0d0b08,#080604);border-top:1px solid rgba(90,69,32,.4);">
+    <!-- 상태바 -->
+    <div style="height:30px;display:flex;align-items:center;gap:4px;padding:0 6px;border-bottom:1px solid rgba(90,69,32,.25);">
+      <div class="sp"><span class="l">Lv</span><span class="v" id="ml-lv">1</span></div>
+      <div class="sp bar" style="max-width:90px;">
+        <span class="l">HP</span>
+        <div style="flex:1;margin:0 2px"><div class="sbar"><div class="sbi hp-i" id="ml-hp" style="width:100%"></div></div></div>
+        <span class="v" id="ml-hpt" style="font-size:8px">20/20</span>
+      </div>
+      <div class="sp bar" style="max-width:80px;">
+        <span class="l">MP</span>
+        <div style="flex:1;margin:0 2px"><div class="sbar"><div class="sbi mp-i" id="ml-mp" style="width:0%"></div></div></div>
+        <span class="v" id="ml-mpt" style="font-size:8px;color:#5599ff">0</span>
+      </div>
+      <div class="sp"><span class="l">💰</span><span class="v" id="ml-gold">150</span></div>
+      <div class="sp"><span class="l">🌊</span><span class="v" id="ml-wave">0</span></div>
+      <div style="margin-left:auto;display:flex;gap:4px;">
+        <button class="wavebtn" id="ml-wbtn" onclick="startWave()" style="width:auto;padding:2px 10px;font-size:9px;margin-top:0;">▶ Wave</button>
+        <span style="font-size:7px;color:#7755aa;font-family:'Cinzel',serif;align-self:center;">침공:</span>
+        <button class="split-send-btn" onclick="mlSendInvader('archer_u')">🏹<span style="color:#ffcc44">300g</span></button>
+        <button class="split-send-btn" onclick="mlSendInvader('wizard')">🔮<span style="color:#ffcc44">600g</span></button>
+        <button class="split-send-btn" onclick="mlSendInvader('giant')">💪<span style="color:#ffcc44">800g</span></button>
+        <button class="split-send-btn" onclick="mlSendInvader('pekka')">🤖<span style="color:#ffcc44">1200g</span></button>
+        <button class="split-send-btn" onclick="mlSendInvader('dragon')">🐲<span style="color:#ffcc44">1800g</span></button>
+      </div>
+    </div>
+    <!-- 탭 -->
+    <div id="ml-tabs" style="height:28px;display:flex;background:linear-gradient(180deg,#0d0b08,#0a0805);border-bottom:1px solid rgba(90,69,32,.3);">
+      <div class="ptab active" id="ml-pt-tower" onclick="mlSwitchTab2('tower')"><span class="ptab-icon">🏹</span><span>타워</span></div>
+      <div class="ptab" id="ml-pt-skill" onclick="mlSwitchTab2('skill')"><span class="ptab-icon">✨</span><span>스킬</span></div>
+      <div class="ptab" id="ml-pt-unit" onclick="mlSwitchTab2('unit')"><span class="ptab-icon">⚔️</span><span>유닛</span></div>
+      <div class="ptab" id="ml-pt-info" onclick="mlSwitchTab2('info')"><span class="ptab-icon">📋</span><span>정보</span></div>
+    </div>
+    <!-- 카드 영역 -->
+    <div style="height:90px;overflow-y:auto;">
+      <div id="ml-pa-tower" style="padding:4px;"><div class="cards-row" id="ml-towers"></div></div>
+      <div id="ml-pa-skill" style="display:none;padding:4px;"><div class="cards-row" id="ml-skills"></div></div>
+      <div id="ml-pa-unit" style="display:none;padding:4px;"><div class="cards-row" id="ml-units"></div></div>
+      <div id="ml-pa-info" style="display:none;padding:4px;overflow-y:auto;max-height:86px;" id="ml-info-panel"></div>
+    </div>
   </div>
 </div>
 
@@ -2570,6 +2598,15 @@ function setVis(id,v){var e=document.getElementById(id);if(e)e.style.display=v?'
 function setDesel(v){var d=document.getElementById('desel'),d2=document.getElementById('desel2');if(d){if(v)d.classList.add('on');else d.classList.remove('on');}if(d2){if(v)d2.classList.add('on');else d2.classList.remove('on');}}
 
 function updateUI(){
+  if(ML.active){
+    // 멀티 상태바 업데이트
+    setEl('ml-lv',G.lv);setEl('ml-gold',G.gold);setEl('ml-wave',G.wave);
+    setEl('ml-hpt',G.hp+'/'+G.maxHp);setEl('ml-mpt',Math.floor(G.mp));
+    pct('ml-hp',G.hp/G.maxHp);pct('ml-mp',G.mp/G.maxMp);
+    // 분할화면 스탯
+    document.getElementById('split-my-stats').textContent='HP:'+G.hp+'/'+G.maxHp+' W:'+G.wave;
+    return;
+  }
   setEl('l-lv',G.lv);setEl('l-gold',G.gold);setEl('l-wave',G.wave);setEl('l-kill',G.kills);setEl('l-boss',G.bossKills);setEl('l-clr',G.wavesCleared);setEl('l-ge',G.goldEarned);setEl('l-mpt',Math.floor(G.mp));
   setEl('p-lv',G.lv);setEl('p-gold',G.gold);setEl('p-wave',G.wave);
   pct('l-hp',G.hp/G.maxHp);pct('l-xp',G.xp/G.xpNext);pct('l-mp',G.mp/G.maxMp);
@@ -2585,8 +2622,116 @@ function updateCds(){SKILLS.forEach(function(sk){var btn=document.getElementById
 
 /* ── BUILD ACTION BAR (landscape bottom) ── */
 function buildActionBar(){
-  if(ORIENT==='land')buildLandBar();
+  if(ML.active)buildMultiBar();
+  else if(ORIENT==='land')buildLandBar();
   else buildPortCards();
+}
+
+/* ── 멀티 액션바 ── */
+var mlTab2='tower';
+function mlSwitchTab2(t){
+  mlTab2=t;
+  ['tower','skill','unit','info'].forEach(function(n){
+    var tab=document.getElementById('ml-pt-'+n);
+    var panel=document.getElementById('ml-pa-'+n);
+    if(tab)tab.classList.toggle('active',n===t);
+    if(panel)panel.style.display=(n===t)?'block':'none';
+  });
+  if(t==='info')buildInfoPanel();
+}
+
+function buildMultiBar(){
+  // 타워 카드
+  var tc=document.getElementById('ml-towers');
+  if(tc){
+    tc.innerHTML='';
+    if(G.selTower||G.selAlly){
+      var sel=G.selTower||G.selAlly;
+      var hd=document.createElement('div');hd.className=(G.selAlly?'uc':'tc')+' sel';
+      hd.style.minWidth='60px';
+      hd.innerHTML='<div class="'+(G.selAlly?'ui':'ti')+'">'+sel.icon+'</div><div class="'+(G.selAlly?'un':'tn')+'">'+sel.name+'</div><div class="'+(G.selAlly?'uc2':'tc2')+'">강화</div>';
+      tc.appendChild(hd);
+      if(G.selTower){
+        var tw=G.selTower,miss=tw.maxHp-tw.hp,rc=Math.floor(miss*.5);
+        var fx=document.createElement('div');fx.className='hc land-hc'+(miss<=0||G.gold<rc?' nd':'');
+        fx.innerHTML='<div style="font-size:14px">🔧</div><div style="font-size:6px">수리</div><div style="font-size:6px;color:#88ee88">'+(miss>0?'💰'+rc:'MAX')+'</div>';
+        if(miss>0&&G.gold>=rc)fx.onclick=function(){repairTower();};tc.appendChild(fx);
+        ['dmg','rate','range'].forEach(function(key){
+          var info=getTowerUpgradeData(tw,key),done=!info.next,can=info.next&&G.gold>=info.next.c;
+          var b=document.createElement('div');b.className='uc land-uc'+((done||!can)?' nd':'');
+          b.innerHTML='<div class="ui">'+(done?'✅':info.tree.icon)+'</div><div class="un">'+info.tree.name+' '+info.level+'/10</div><div class="uc2">'+(done?'MAX':'💰'+(info.next?info.next.c:''))+'</div>';
+          if(can)b.onclick=function(){upgradeTower(key);};tc.appendChild(b);
+        });
+        var sb=document.createElement('div');sb.className='tc land-tc';sb.style.borderColor='#773333';
+        sb.innerHTML='<div class="ti">💰</div><div class="tn">판매</div><div class="tc2">+'+getTowerSellPrice(tw)+'g</div>';
+        sb.onclick=function(){sellTower();};tc.appendChild(sb);
+      } else if(G.selAlly){
+        var a=G.selAlly,adef=a.defRef,nIdx=a.done.length,nUp=adef.ups[nIdx];
+        var canU=nUp&&G.gold>=nUp.c;
+        var ub=document.createElement('div');ub.className='uc land-uc'+((!nUp||!canU)?' nd':'');
+        ub.innerHTML='<div class="ui">'+(nUp?'⬆️':'✅')+'</div><div class="un">강화 '+(nIdx)+(nUp?'/'+adef.ups.length:'MAX')+'</div><div class="uc2">'+(nUp?'💰'+nUp.c:'완료')+'</div>';
+        if(canU)ub.onclick=function(){upgradeAlly();};tc.appendChild(ub);
+      }
+      var cl=document.createElement('div');cl.className='tc land-tc';cl.style.borderColor='#666';
+      cl.innerHTML='<div class="ti">✕</div><div class="tn">닫기</div>';cl.onclick=function(){deselect();};tc.appendChild(cl);
+    } else {
+      TDEFS.forEach(function(def){
+        var fc=applyGemCostReduction(def.cost,'tower_cost');
+        var locked=G.unlocked.indexOf(def.id)<0,ns=!locked&&G.gold<fc,sel=G.selType===def.id;
+        var b=document.createElement('div');b.className='tc land-tc'+(locked?' lk':'')+(ns?' ns':'')+(sel?' sel':'');
+        var costTxt=fc<def.cost?'<span style="color:#88ff88">💰'+fc+'</span>':'💰'+fc;
+        b.innerHTML='<div class="ti">'+def.icon+'</div><div class="tn">'+def.name+'</div><div class="tc2">'+costTxt+'</div>'+(locked?'<span style="position:absolute;top:1px;right:2px;font-size:8px">🔒</span>':'');
+        if(!locked)(function(d,c){b.onclick=function(){if(G.gold<c)return;if(G.selType===d.id){deselect();return;}G.selType=d.id;G.placing=true;G.selTower=null;G.selAlly=null;G.targetingSkill=null;buildMultiBar();buildInfoPanel();setDesel(true);addLog('🏗️ '+d.name,'sys');};})(def,fc);
+        tc.appendChild(b);
+      });
+    }
+  }
+  // 스킬 카드
+  var sc=document.getElementById('ml-skills');
+  if(sc){
+    sc.innerHTML='';
+    SKILLS.forEach(function(sk){
+      var cd=G.scd[sk.id],mpLow=G.mp<sk.mp,lv=getSkillLevel(sk);
+      var b=document.createElement('div');b.className='skc land-skc'+(cd>0?' cd':'')+(mpLow?' mp-low':'')+(G.targetingSkill===sk.id?' targeting':'');
+      b.id='skb-'+sk.id;
+      var lvBadge=lv>0?'<span style="position:absolute;top:1px;left:2px;font-size:6px;color:#ffcc44;font-family:Cinzel,serif">★'+lv+'</span>':'';
+      b.innerHTML=lvBadge+'<div class="si2">'+sk.icon+'</div><div class="sn">'+sk.name+'</div><div class="sm">MP:'+sk.mp+'</div>';
+      if(cd>0){var ov2=document.createElement('div');ov2.className='cd-ov';ov2.textContent=Math.ceil(cd/60)+'s';b.appendChild(ov2);}
+      b.onclick=function(){clickSkill(sk.id);mlSwitchTab2('skill');};sc.appendChild(b);
+    });
+  }
+  // 유닛 카드
+  var uc=document.getElementById('ml-units');
+  if(uc){
+    uc.innerHTML='';
+    UDEFS.forEach(function(ud){
+      var fc=applyGemCostReduction(ud.cost,'unit_cost');
+      var nd=G.gold<fc||getAliveAlliesCount()>=getAllyCap();
+      var b=document.createElement('div');b.className='uc land-uc'+(nd?' nd':'');
+      var costTxt=fc<ud.cost?'<span style="color:#88ff88">💰'+fc+'</span>':'💰'+fc;
+      b.innerHTML='<div class="ui">'+ud.icon+'</div><div class="un">'+ud.name+'</div><div class="uc2">'+(getAliveAlliesCount()>=getAllyCap()?'BOSS':costTxt)+'</div>';
+      if(!nd)b.onclick=function(){deployUnit(ud.id);};uc.appendChild(b);
+    });
+    // 치료/파워업/부스트
+    var hb=document.createElement('div');hb.className='hc land-hc'+(G.gold<300||G.mp<10?' nd':'');
+    hb.innerHTML='<div style="font-size:14px">⛑️</div><div style="font-size:6px">치료</div><div style="font-size:6px;color:#f0d080">💰300</div><div style="font-size:6px;color:#44ccff">MP:10</div>';
+    if(G.gold>=300&&G.mp>=10)hb.onclick=function(){healUnits();};uc.appendChild(hb);
+    var puOn=G.buff.steamAtk>0;
+    var pu=document.createElement('div');pu.className='hc land-hc'+(puOn?'':(G.gold<600||G.mp<20)?' nd':'');
+    if(puOn)pu.style.borderColor='#ff8844';
+    pu.innerHTML='<div style="font-size:14px">⚔️💚</div><div style="font-size:6px;color:'+(puOn?'#ff8844':'var(--txt)'+';font-weight:700')+'">'+(puOn?'파워'+Math.ceil(G.buff.steamAtk/60)+'s':'파워업')+'</div><div style="font-size:6px;color:#ffaa66">'+(puOn?'×2':'💰600 MP:20')+'</div>';
+    if(!puOn&&G.gold>=600&&G.mp>=20)pu.onclick=function(){unitPowerUp();};uc.appendChild(pu);
+    var buOn=G.buff.steamHeal>0;
+    var bu=document.createElement('div');bu.className='hc land-hc'+(buOn?'':(G.gold<500||G.mp<15)?' nd':'');
+    if(buOn)bu.style.borderColor='#44ccff';
+    bu.innerHTML='<div style="font-size:14px">💨⚡</div><div style="font-size:6px;color:'+(buOn?'#44ccff':'var(--txt)')+';">'+(buOn?'부스트'+Math.ceil(G.buff.steamHeal/60)+'s':'부스트')+'</div><div style="font-size:6px;color:#88ddff">'+(buOn?'×2':'💰500 MP:15')+'</div>';
+    if(!buOn&&G.gold>=500&&G.mp>=15)bu.onclick=function(){unitBoost();};uc.appendChild(bu);
+    // 모드 토글
+    var isAtk=G.unitMode==='attack';
+    var mb=document.createElement('div');mb.className='hc land-hc';mb.style.borderColor=isAtk?'#ff6644':'#4488ff';
+    mb.innerHTML='<div style="font-size:16px">'+(isAtk?'⚔️':'🛡️')+'</div><div style="font-size:6px;color:'+(isAtk?'#ff8866':'#88aaff')+'">'+(isAtk?'공격':'수비')+'</div>';
+    mb.onclick=function(){toggleUnitMode();};uc.appendChild(mb);
+  }
 }
 function buildLandBar(){
   var c=document.getElementById('land-bot-inner');if(!c)return;c.innerHTML='';
@@ -2840,6 +2985,7 @@ function buildInfoPanel(){
     }
     html=barricadeHtml+'<p style="color:var(--dim);font-size:9px;text-align:center;padding:8px 0">타워, 유닛, 적을 탭하면 정보가 표시됩니다</p>';
   }
+  if(ML.active){setInner('ml-pa-info',html);if(ORIENT==='port'||ML.active)return;}
   setInner('l-info',html);setInner('p-info-panel','<div style="height:100%;overflow-y:auto;padding-right:2px">'+html+'</div>');setInner('p-inline-info',html);
   if(ORIENT==='port'){buildPortCards();}
 }
@@ -3413,6 +3559,8 @@ function mlStartMulti(){
   resetG();
   buildPath(true); initCamera(true);
   G.running=false; // 준비 완료 후 시작
+  mlTab2='tower';
+  mlSwitchTab2('tower');
   buildActionBar(); buildInfoPanel(); updateNextBoss();
   mlBindMyCanvas();
   mlListenFirebase();
