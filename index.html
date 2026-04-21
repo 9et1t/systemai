@@ -706,14 +706,8 @@ canvas{display:block;width:100%;height:100%;}
       </div>
       <div class="sp"><span class="l">💰</span><span class="v" id="ml-gold">150</span></div>
       <div class="sp"><span class="l">🌊</span><span class="v" id="ml-wave">0</span></div>
-      <div style="margin-left:auto;display:flex;gap:4px;">
-        <button class="wavebtn" id="ml-wbtn" onclick="startWave()" style="width:auto;padding:2px 10px;font-size:9px;margin-top:0;">▶ Wave</button>
-        <span style="font-size:7px;color:#7755aa;font-family:'Cinzel',serif;align-self:center;">침공:</span>
-        <button class="split-send-btn" onclick="mlSendInvader('archer_u')">🏹<span style="color:#ffcc44">300g</span></button>
-        <button class="split-send-btn" onclick="mlSendInvader('wizard')">🔮<span style="color:#ffcc44">600g</span></button>
-        <button class="split-send-btn" onclick="mlSendInvader('giant')">💪<span style="color:#ffcc44">800g</span></button>
-        <button class="split-send-btn" onclick="mlSendInvader('pekka')">🤖<span style="color:#ffcc44">1200g</span></button>
-        <button class="split-send-btn" onclick="mlSendInvader('dragon')">🐲<span style="color:#ffcc44">1800g</span></button>
+      <div style="margin-left:auto;">
+        <button class="wavebtn" id="ml-wbtn" onclick="startWave()" style="width:auto;padding:2px 12px;font-size:9px;margin-top:0;">▶ Wave</button>
       </div>
     </div>
     <!-- 탭 -->
@@ -2755,6 +2749,29 @@ function buildMultiBar(){
     var mb=document.createElement('div');mb.className='hc land-hc';mb.style.borderColor=isAtk?'#ff6644':'#4488ff';
     mb.innerHTML='<div style="font-size:16px">'+(isAtk?'⚔️':'🛡️')+'</div><div style="font-size:6px;color:'+(isAtk?'#ff8866':'#88aaff')+'">'+(isAtk?'공격':'수비')+'</div>';
     mb.onclick=function(){toggleUnitMode();};uc.appendChild(mb);
+
+    // 침공 구분선 + 버튼 (멀티모드일 때만)
+    if(ML.active){
+      var sep=document.createElement('div');sep.className='bsep';uc.appendChild(sep);
+      var lbl=document.createElement('span');lbl.style.cssText='font-size:7px;color:#9966cc;font-family:Cinzel,serif;align-self:center;padding:0 2px;';lbl.textContent='⚔️침공';uc.appendChild(lbl);
+      [
+        {id:'archer_u', icon:'🏹', name:'아처', cost:300},
+        {id:'wizard',   icon:'🔮', name:'위자드', cost:600},
+        {id:'giant',    icon:'💪', name:'자이언트', cost:800},
+        {id:'pekka',    icon:'🤖', name:'페카', cost:1200},
+        {id:'dragon',   icon:'🐲', name:'드래곤', cost:1800},
+      ].forEach(function(inv){
+        var canSend=G.gold>=inv.cost;
+        var ib=document.createElement('div');
+        ib.className='uc land-uc'+(canSend?'':' nd');
+        ib.style.cssText='border-color:#884499;background:linear-gradient(180deg,#200d30,#130820);';
+        ib.innerHTML='<div class="ui">'+inv.icon+'</div>'
+          +'<div class="un" style="color:#cc88ff">'+inv.name+'</div>'
+          +'<div class="uc2" style="color:#ffcc44">💰'+inv.cost+'</div>';
+        if(canSend)(function(id){ib.onclick=function(){mlSendInvader(id);};})(inv.id);
+        uc.appendChild(ib);
+      });
+    }
   }
 }
 function buildLandBar(){
@@ -3530,11 +3547,16 @@ function mlCreateRoom(){
       document.getElementById('ml-main').style.display='none';
       document.getElementById('ml-waiting').style.display='flex';
       document.getElementById('ml-room-code').textContent=code;
-      // 게스트 입장 감지
-      fb.onValue(fb.db.ref('rooms/'+code+'/guest'),function(snap){
+      // 게스트 입장 감지 — 한 번만 실행
+      var _started=false;
+      var guestRef=fb.db.ref('rooms/'+code+'/guest');
+      guestRef.on('value',function(snap){
+        if(_started)return;
         if(snap.val()&&snap.val().hp!==undefined){
+          _started=true;
+          guestRef.off('value');
           mlSetWaitStatus('상대방 입장! 게임 시작...','#44ff88');
-          setTimeout(mlStartMulti,1200);
+          setTimeout(mlStartMulti, 800);
         }
       });
     }).catch(function(e){mlSetStatus('오류: '+e.message,'#ff4444');});
