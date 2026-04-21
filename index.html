@@ -2571,7 +2571,7 @@ function waveComplete(){
   setWaveBtn(false);
   floatTxt(G.camera.x,G.camera.y,'Wave Clear x'+rewards.length,'#f0d080');
 }
-function setWaveBtn(){var disabled=!!G.over;var a=document.getElementById('l-wbtn'),b=document.getElementById('p-wbtn');if(a)a.disabled=disabled;if(b)b.disabled=disabled;}
+function setWaveBtn(){var disabled=!!G.over;var a=document.getElementById('l-wbtn'),b=document.getElementById('p-wbtn'),m=document.getElementById('ml-wbtn');if(a)a.disabled=disabled;if(b)b.disabled=disabled;if(m)m.disabled=disabled;}
 function updateNextBoss(){var n=Math.ceil(G.wave/10)*10;if(n===G.wave)n+=10;var d=n-G.wave;var txt='Boss: Wave '+n+' ('+d+'웨이브)';setElC('l-nbt',txt,d<=2?'#ff6666':'var(--dim)');setElC('p-nbt','Boss:W'+n,d<=2?'#ff6666':'var(--dim)');}
 function checkLvUp(){while(G.xp>=G.xpNext){G.xp-=G.xpNext;G.lv++;G.xpNext=Math.floor(100*Math.pow(1.3,G.lv-1));G.maxHp+=2;G.hp=Math.min(G.hp+3,G.maxHp);G.maxMp=Math.min(200,G.maxMp+5);G.mp=Math.min(G.maxMp,G.mp+20);addLog('🌟 레벨업! Lv.'+G.lv,'unlk');var fl=document.getElementById('lvfl'),fl2=document.getElementById('lvfl2');if(fl){fl.classList.add('on');setTimeout(function(){fl.classList.remove('on');},500);}if(fl2){fl2.classList.add('on');setTimeout(function(){fl2.classList.remove('on');},500);}buildActionBar();}}
 function unlockTower(boss){var id=boss.unlocks;if(!id||G.unlocked.indexOf(id)>=0)return;G.unlocked.push(id);var def=TDEFS.find(function(d){return d.id===id;});if(def)def.isNew=true;addLog('🔓 해금: '+(def?def.name:id),'unlk');buildActionBar();if(def){var ca=document.getElementById(ORIENT==='land'?'land-ca':'port-ca');var p=document.createElement('div');p.className='upop';p.innerHTML='<h3>🔓 '+def.name+' 해금!</h3><p>'+def.icon+'</p>';ca.appendChild(p);setTimeout(function(){if(p.parentNode)p.parentNode.removeChild(p);},2500);}}
@@ -2579,11 +2579,11 @@ function placeTower(x,y){markUIInteraction();if(G.pendingBuild||G.buildConfirmOp
 if(pos.snapped){showEdgePlacementConfirm(def,x,y,finalX,finalY);}else{G.pendingBuild={id:def.id,x:finalX,y:finalY,cost:finalCost,name:def.name,icon:def.icon};showBuildConfirm();}}
 function showBuildConfirm(){if(!G.pendingBuild)return;G.buildConfirmOpen=true;var msg=G.pendingBuild.name+' 건설<br>비용: 💰'+G.pendingBuild.cost+'<br>위치: ('+Math.round(G.pendingBuild.x)+', '+Math.round(G.pendingBuild.y)+')';setInner('bc-title','🏗️ '+G.pendingBuild.name+' 건설');setInner('bc-desc',msg);setInner('bc-title2','🏗️ '+G.pendingBuild.name+' 건설');setInner('bc-desc2',msg);setInner('bc-title-ml','🏗️ '+G.pendingBuild.name+' 건설');setInner('bc-desc-ml',msg);var a=document.getElementById('build-confirm');if(a)a.style.display='block';var b=document.getElementById('build-confirm2');if(b)b.style.display='block';var m=document.getElementById('build-confirm-ml');if(m)m.style.display='block';}
 function hideBuildConfirm(){G.buildConfirmOpen=false;var a=document.getElementById('build-confirm');if(a)a.style.display='none';var b=document.getElementById('build-confirm2');if(b)b.style.display='none';var m=document.getElementById('build-confirm-ml');if(m)m.style.display='none';}
-function confirmPlaceTower(){markUIInteraction();if(!G.pendingBuild||!G.buildConfirmOpen)return;var def=TDEFS.find(function(d){return d.id===G.pendingBuild.id;});if(!def){cancelPlaceTower();return;}var x=G.pendingBuild.x,y=G.pendingBuild.y;var finalCost=applyGemCostReduction(def.cost,'tower_cost');if(G.gold<finalCost){addLog('❌ 골드부족','sys');cancelPlaceTower();return;}if(onPath(x,y)||towerAt(x,y)){addLog('❌ 배치 불가','sys');cancelPlaceTower();return;}G.gold-=finalCost;G.towers.push(makeTower(def,x,y));def.isNew=false;addLog('🏗️ '+def.name+' 건설','sys');G.pendingBuild=null;hideBuildConfirm();buildActionBar();buildInfoPanel();}
+function confirmPlaceTower(){markUIInteraction();if(!G.pendingBuild||!G.buildConfirmOpen)return;var def=TDEFS.find(function(d){return d.id===G.pendingBuild.id;});if(!def){cancelPlaceTower();return;}var x=G.pendingBuild.x,y=G.pendingBuild.y;var finalCost=G.pendingBuild.cost;if(G.gold<finalCost){addLog('❌ 골드부족','sys');cancelPlaceTower();return;}if(onPath(x,y)||towerAt(x,y)){addLog('❌ 배치 불가','sys');cancelPlaceTower();return;}G.gold-=finalCost;G.towers.push(makeTower(def,x,y));def.isNew=false;addLog('🏗️ '+def.name+' 건설','sys');G.pendingBuild=null;hideBuildConfirm();buildActionBar();buildInfoPanel();}
 function cancelPlaceTower(){markUIInteraction();G.pendingBuild=null;hideBuildConfirm();addLog('↩️ 건설 취소','sys');}
 function showEdgePlacementConfirm(def,origX,origY,snapX,snapY){
   G.edgePlacePending={def:def,origX:origX,origY:origY,snapX:snapX,snapY:snapY};
-  var ca=document.getElementById(ORIENT==='land'?'land-ca':'port-ca');
+  var ca=ML.active ? document.getElementById('sp-me') : document.getElementById(ORIENT==='land'?'land-ca':'port-ca');
   var old=document.getElementById('edge-place-popup');if(old)old.remove();
   var popup=document.createElement('div');popup.id='edge-place-popup';
   popup.style.cssText='position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);z-index:130;min-width:220px;max-width:min(88vw,300px);background:linear-gradient(135deg,rgba(10,8,5,.98),rgba(20,18,8,.98));border:2px solid #c9a84c;border-radius:8px;padding:12px 14px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.55);';
@@ -3617,10 +3617,10 @@ function mlSwitchView(which){
   document.getElementById('sp-enemy').classList.toggle('active', which==='enemy');
   document.getElementById('svt-me').classList.toggle('active', which==='me');
   document.getElementById('svt-enemy').classList.toggle('active', which==='enemy');
-  if(which==='me'){
-    // 내 맵으로 전환 시 캔버스 크기 재조정
-    setTimeout(mlResizeCanvases,50);
-  }
+  // 전환 후 캔버스 크기 재조정
+  setTimeout(function(){
+    mlResizeCanvases();
+  }, 50);
 }
 
 // ── 준비 완료 ──
@@ -3658,13 +3658,26 @@ function mlCheckBothReady(){
 }
 
 function mlResizeCanvases(){
+  // 내 캔버스 - sp-me의 canvas-wrap 기준
+  var myWrap=document.querySelector('#sp-me .split-canvas-wrap');
+  if(myWrap&&ML.myCanvas){
+    var w=myWrap.clientWidth,h=myWrap.clientHeight;
+    if(w>0&&h>0){ML.myCanvas.width=w;ML.myCanvas.height=h;}
+  }
+  // 상대 캔버스 - sp-enemy의 canvas-wrap 기준
+  var enWrap=document.querySelector('#sp-enemy .split-canvas-wrap');
+  if(enWrap&&ML.enemyCanvas){
+    var w2=enWrap.clientWidth,h2=enWrap.clientHeight;
+    if(w2>0&&h2>0){ML.enemyCanvas.width=w2;ML.enemyCanvas.height=h2;}
+  }
+  // 크기가 0이면 split-canvases 컨테이너 기준으로 폴백
   var container=document.getElementById('split-canvases');
-  if(!container)return;
-  var w=container.clientWidth||window.innerWidth;
-  var h=container.clientHeight||(window.innerHeight-100);
-  [ML.myCanvas, ML.enemyCanvas].forEach(function(cv){
-    if(cv){cv.width=Math.floor(w);cv.height=Math.floor(h);}
-  });
+  if(container){
+    var cw=container.clientWidth||window.innerWidth;
+    var ch=container.clientHeight||(window.innerHeight-160);
+    if(ML.myCanvas&&(ML.myCanvas.width===0||ML.myCanvas.height===0)){ML.myCanvas.width=cw;ML.myCanvas.height=ch;}
+    if(ML.enemyCanvas&&(ML.enemyCanvas.width===0||ML.enemyCanvas.height===0)){ML.enemyCanvas.width=cw;ML.enemyCanvas.height=ch;}
+  }
 }
 
 // ── 내 캔버스 이벤트 ──
@@ -3888,8 +3901,11 @@ function mlLoop(ts){
     if(G.frame%3===0)syncDynamicUI(false);
     updateUI();updateCds();
   }
+  // 내 캔버스 크기 0이면 재조정
+  if(ML.myCanvas&&(ML.myCanvas.width===0||ML.myCanvas.height===0))mlResizeCanvases();
+  // 항상 내 캔버스에 그림 (백그라운드에서도)
   canvas=ML.myCanvas;ctx=ML.myCtx;
-  draw();
+  if(canvas&&canvas.width>0&&canvas.height>0)draw();
   requestAnimationFrame(mlLoop);
 }
 
