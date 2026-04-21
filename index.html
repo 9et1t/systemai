@@ -692,24 +692,30 @@ canvas{display:block;width:100%;height:100%;}
   <!-- 멀티 액션 영역 -->
   <div id="split-action-area" style="flex-shrink:0;background:linear-gradient(180deg,#0d0b08,#080604);border-top:1px solid rgba(90,69,32,.4);">
     <!-- 상태바 -->
-    <div style="height:30px;display:flex;align-items:center;gap:4px;padding:0 6px;border-bottom:1px solid rgba(90,69,32,.25);">
-      <div class="sp"><span class="l">Lv</span><span class="v" id="ml-lv">1</span></div>
-      <div class="sp bar" style="max-width:90px;">
-        <span class="l">HP</span>
-        <div style="flex:1;margin:0 2px"><div class="sbar"><div class="sbi hp-i" id="ml-hp" style="width:100%"></div></div></div>
-        <span class="v" id="ml-hpt" style="font-size:8px">20/20</span>
+    <div style="display:flex;flex-direction:column;border-bottom:1px solid rgba(90,69,32,.25);">
+      <!-- 1행: 스탯 -->
+      <div style="height:28px;display:flex;align-items:center;gap:3px;padding:0 6px;overflow:hidden;">
+        <div class="sp"><span class="l">Lv</span><span class="v" id="ml-lv">1</span></div>
+        <div class="sp bar" style="max-width:80px;min-width:50px;">
+          <span class="l">HP</span>
+          <div style="flex:1;margin:0 2px"><div class="sbar"><div class="sbi hp-i" id="ml-hp" style="width:100%"></div></div></div>
+          <span class="v" id="ml-hpt" style="font-size:8px">20/20</span>
+        </div>
+        <div class="sp bar" style="max-width:70px;min-width:44px;">
+          <span class="l">MP</span>
+          <div style="flex:1;margin:0 2px"><div class="sbar"><div class="sbi mp-i" id="ml-mp" style="width:0%"></div></div></div>
+          <span class="v" id="ml-mpt" style="font-size:8px;color:#5599ff">0</span>
+        </div>
+        <div class="sp"><span class="l">💰</span><span class="v" id="ml-gold">150</span></div>
+        <div class="sp"><span class="l">🌊</span><span class="v" id="ml-wave">0</span></div>
       </div>
-      <div class="sp bar" style="max-width:80px;">
-        <span class="l">MP</span>
-        <div style="flex:1;margin:0 2px"><div class="sbar"><div class="sbi mp-i" id="ml-mp" style="width:0%"></div></div></div>
-        <span class="v" id="ml-mpt" style="font-size:8px;color:#5599ff">0</span>
-      </div>
-      <div class="sp"><span class="l">💰</span><span class="v" id="ml-gold">150</span></div>
-      <div class="sp"><span class="l">🌊</span><span class="v" id="ml-wave">0</span></div>
-      <div id="ml-desel" onclick="deselect()" style="width:26px;height:26px;flex-shrink:0;display:none;align-items:center;justify-content:center;background:rgba(180,40,40,.2);border:1px solid #662222;border-radius:3px;cursor:pointer;font-size:13px;color:#ff8888;">✕</div>
-      <div style="margin-left:auto;display:flex;align-items:center;gap:4px;">
-        <button class="gem-open-btn" onclick="openGemModal();return false;" style="padding:2px 7px;font-size:9px;">💎 <span id="gem-inv-badge-ml" class="gem-badge">0</span></button>
-        <button class="wavebtn" id="ml-wbtn" onclick="startWave()" style="width:auto;padding:2px 12px;font-size:9px;margin-top:0;">▶ Wave</button>
+      <!-- 2행: 버튼 -->
+      <div style="height:28px;display:flex;align-items:center;gap:4px;padding:0 6px;">
+        <div id="ml-desel" onclick="deselect()" style="width:26px;height:22px;flex-shrink:0;display:none;align-items:center;justify-content:center;background:rgba(180,40,40,.2);border:1px solid #662222;border-radius:3px;cursor:pointer;font-size:13px;color:#ff8888;">✕</div>
+        <button class="gem-open-btn" onclick="openGemModal();return false;" style="height:22px;padding:0 8px;font-size:9px;flex-shrink:0;">💎 인벤토리 <span id="gem-inv-badge-ml" class="gem-badge">0</span></button>
+        <div style="margin-left:auto;">
+          <button class="wavebtn" id="ml-wbtn" onclick="startWave()" style="width:auto;padding:2px 14px;font-size:9px;margin-top:0;">▶ Wave</button>
+        </div>
       </div>
     </div>
     <!-- 탭 -->
@@ -3736,7 +3742,18 @@ function mlListenFirebase(){
 
   // 1) 상대 게임 state 수신 (ready 포함)
   db.ref('rooms/'+ML.roomId+'/'+enemyId).on('value',function(snap){
-    var val=snap.val(); if(!val)return;
+    var val=snap.val();
+
+    // 상대방 데이터가 사라진 경우 → 상대방 나감 → 승리 처리
+    if(!val){
+      if(ML.active&&!ML.gameOver&&G.running){
+        ML.gameOver=true;
+        addLog('🚪 상대방이 게임을 나갔습니다. 승리!','boss');
+        mlShowResult(true, true);
+      }
+      return;
+    }
+
     ML.enemyState=val;
     var el=document.getElementById('split-enemy-stats');
     if(el)el.textContent='HP:'+(val.hp||0)+'/'+(val.maxHp||20)+' W:'+(val.wave||0);
@@ -3758,6 +3775,10 @@ function mlListenFirebase(){
       mlSpawnInvader(val[k]);
     });
   });
+
+  // 3) Firebase onDisconnect: 내가 끊기면 내 데이터 자동 삭제 → 상대방이 승리 감지
+  var myRef=db.ref('rooms/'+ML.roomId+'/'+ML.myRole);
+  myRef.onDisconnect().remove();
 }
 
 // ── 침공 유닛 전송 ──
@@ -3914,11 +3935,15 @@ function gameOver(){
     setInner('ov',html);setVis('ov',true);setInner('ov2',html);setVis('ov2',true);
   }
 }
-function mlShowResult(win){
+function mlShowResult(win, forfeit){
   var ov=document.createElement('div');
   ov.className='ml-win-overlay';
-  ov.innerHTML='<div style="font-family:Cinzel,serif;font-size:32px;color:'+(win?'#ffcc44':'#ff4444')+';text-shadow:0 0 20px '+(win?'gold':'#ff0000')+';">'+(win?'🏆 승리!':'💀 패배...')+'</div>'
-    +'<div style="font-size:13px;color:#aaa;">'+(win?'상대 요새를 함락했습니다!':'요새가 함락되었습니다...')+'</div>'
+  var title=win?(forfeit?'🏃 상대방 기권!':'🏆 승리!'):'💀 패배...';
+  var titleColor=win?'#ffcc44':'#ff4444';
+  var glowColor=win?'gold':'#ff0000';
+  var desc=win?(forfeit?'상대방이 게임을 나갔습니다.':'상대 요새를 함락했습니다!'):'요새가 함락되었습니다...';
+  ov.innerHTML='<div style="font-family:Cinzel,serif;font-size:32px;color:'+titleColor+';text-shadow:0 0 20px '+glowColor+';">'+title+'</div>'
+    +'<div style="font-size:13px;color:#aaa;">'+desc+'</div>'
     +'<button onclick="mlQuit()" style="padding:10px 28px;border-radius:8px;border:1px solid #c9a84c;background:linear-gradient(135deg,#2a1a05,#3a2508);color:#f0d080;font-family:Cinzel,serif;font-size:12px;cursor:pointer;margin-top:8px;">🏠 메인으로</button>';
   document.body.appendChild(ov);
 }
@@ -3930,8 +3955,11 @@ function mlQuit(){
   if(_listRefreshInterval){clearInterval(_listRefreshInterval);_listRefreshInterval=null;}
   if(ML.roomId&&window._fb){
     try{
+      // onDisconnect 취소 (정상 나가기이므로 자동 삭제 불필요)
+      window._fb.db.ref('rooms/'+ML.roomId+'/'+ML.myRole).onDisconnect().cancel();
       window._fb.off(window._fb.db.ref('rooms/'+ML.roomId));
       if(ML.myRole==='host')window._fb.remove(window._fb.db.ref('rooms/'+ML.roomId));
+      else window._fb.remove(window._fb.db.ref('rooms/'+ML.roomId+'/'+ML.myRole));
     }catch(e){}
   }
   ML.roomId=null;ML.myRole=null;ML.enemyState=null;ML.appliedAttacks={};
