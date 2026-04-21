@@ -722,7 +722,7 @@ canvas{display:block;width:100%;height:100%;}
       <div id="ml-pa-tower" style="padding:4px;"><div class="cards-row" id="ml-towers"></div></div>
       <div id="ml-pa-skill" style="display:none;padding:4px;"><div class="cards-row" id="ml-skills"></div></div>
       <div id="ml-pa-unit" style="display:none;padding:4px;"><div class="cards-row" id="ml-units"></div></div>
-      <div id="ml-pa-info" style="display:none;padding:4px;overflow-y:auto;max-height:86px;" id="ml-info-panel"></div>
+      <div id="ml-pa-info" style="display:none;padding:4px;overflow-y:auto;max-height:86px;"><div id="ml-info-panel"></div></div>
     </div>
   </div>
 </div>
@@ -846,6 +846,7 @@ canvas{display:block;width:100%;height:100%;}
           <button class="obtn" onclick="toggleGameSpeed();return false;">⏩ 게임 속도 <span class="js-speed-badge">x1.0</span></button>
           <button class="obtn" onclick="toggleDragSpeed();return false;">🖐️ 드래그 속도 <span class="js-drag-badge">x1.8</span></button>
           <button class="obtn" onclick="confirmRestart();return false;">🔄 게임 재시작</button>
+          <button class="obtn" onclick="exitToLobby();return false;" style="border-color:#aa4444;color:#ff8888;">🏠 메인으로</button>
           <button class="obtn" onclick="closeSettingsMenu();return false;">닫기</button>
         </div>
       </div>
@@ -969,6 +970,7 @@ canvas{display:block;width:100%;height:100%;}
         <button class="obtn" onclick="toggleGameSpeed();return false;">⏩ 게임 속도 <span class="js-speed-badge">x1.0</span></button>
         <button class="obtn" onclick="toggleDragSpeed();return false;">🖐️ 드래그 속도 <span class="js-drag-badge">x1.8</span></button>
         <button class="obtn" onclick="confirmRestart();return false;">🔄 게임 재시작</button>
+        <button class="obtn" onclick="exitToLobby();return false;" style="border-color:#aa4444;color:#ff8888;">🏠 메인으로</button>
         <button class="obtn" onclick="closeSettingsMenu();return false;">닫기</button>
       </div>
     </div>
@@ -1140,6 +1142,13 @@ function updateSpeedUI(){ var els=document.querySelectorAll('.js-speed-badge'); 
 function openSettingsMenu(){ markUIInteraction(); setVis('settings-menu',true); setVis('settings-menu2',true); }
 function closeSettingsMenu(){ markUIInteraction(); setVis('settings-menu',false); setVis('settings-menu2',false); }
 function confirmRestart(){ closeSettingsMenu(); startGame(); }
+function exitToLobby(){
+  closeSettingsMenu();
+  G.running=false; G.over=false;
+  setVis('ov',true); setVis('ov2',true);
+  setVis('ba',false); setVis('ba2',false);
+  document.getElementById('multi-lobby').classList.add('open');
+}
 function moveCam(dx,dy){ markUIInteraction(); if(!G.camera)return; G.camera.x+=(dx/G.camera.zoom)*DRAG_BOOST; G.camera.y+=(dy/G.camera.zoom)*DRAG_BOOST; clampCamera(); }
 function stopUIEvent(e){
   markUIInteraction();
@@ -2579,7 +2588,7 @@ function placeTower(x,y){markUIInteraction();if(G.pendingBuild||G.buildConfirmOp
 if(pos.snapped){showEdgePlacementConfirm(def,x,y,finalX,finalY);}else{G.pendingBuild={id:def.id,x:finalX,y:finalY,cost:finalCost,name:def.name,icon:def.icon};showBuildConfirm();}}
 function showBuildConfirm(){if(!G.pendingBuild)return;G.buildConfirmOpen=true;var msg=G.pendingBuild.name+' 건설<br>비용: 💰'+G.pendingBuild.cost+'<br>위치: ('+Math.round(G.pendingBuild.x)+', '+Math.round(G.pendingBuild.y)+')';setInner('bc-title','🏗️ '+G.pendingBuild.name+' 건설');setInner('bc-desc',msg);setInner('bc-title2','🏗️ '+G.pendingBuild.name+' 건설');setInner('bc-desc2',msg);setInner('bc-title-ml','🏗️ '+G.pendingBuild.name+' 건설');setInner('bc-desc-ml',msg);var a=document.getElementById('build-confirm');if(a)a.style.display='block';var b=document.getElementById('build-confirm2');if(b)b.style.display='block';var m=document.getElementById('build-confirm-ml');if(m)m.style.display='block';}
 function hideBuildConfirm(){G.buildConfirmOpen=false;var a=document.getElementById('build-confirm');if(a)a.style.display='none';var b=document.getElementById('build-confirm2');if(b)b.style.display='none';var m=document.getElementById('build-confirm-ml');if(m)m.style.display='none';}
-function confirmPlaceTower(){markUIInteraction();if(!G.pendingBuild||!G.buildConfirmOpen)return;var def=TDEFS.find(function(d){return d.id===G.pendingBuild.id;});if(!def){cancelPlaceTower();return;}var x=G.pendingBuild.x,y=G.pendingBuild.y;var finalCost=G.pendingBuild.cost;if(G.gold<finalCost){addLog('❌ 골드부족','sys');cancelPlaceTower();return;}if(onPath(x,y)||towerAt(x,y)){addLog('❌ 배치 불가','sys');cancelPlaceTower();return;}G.gold-=finalCost;G.towers.push(makeTower(def,x,y));def.isNew=false;addLog('🏗️ '+def.name+' 건설','sys');G.pendingBuild=null;hideBuildConfirm();buildActionBar();buildInfoPanel();}
+function confirmPlaceTower(){markUIInteraction();if(!G.pendingBuild||!G.buildConfirmOpen)return;var def=TDEFS.find(function(d){return d.id===G.pendingBuild.id;});if(!def){cancelPlaceTower();return;}var x=G.pendingBuild.x,y=G.pendingBuild.y;var finalCost=G.pendingBuild.cost;if(G.gold<finalCost){addLog('❌ 골드부족','sys');cancelPlaceTower();return;}if(onPath(x,y)||towerAt(x,y)){addLog('❌ 배치 불가','sys');cancelPlaceTower();return;}G.gold-=finalCost;G.towers.push(makeTower(def,x,y));def.isNew=false;addLog('🏗️ '+def.name+' 건설','sys');G.pendingBuild=null;hideBuildConfirm();buildActionBar();buildInfoPanel();if(ML.active){mlPushState();}}
 function cancelPlaceTower(){markUIInteraction();G.pendingBuild=null;hideBuildConfirm();addLog('↩️ 건설 취소','sys');}
 function showEdgePlacementConfirm(def,origX,origY,snapX,snapY){
   G.edgePlacePending={def:def,origX:origX,origY:origY,snapX:snapX,snapY:snapY};
@@ -3010,7 +3019,7 @@ function buildInfoPanel(){
     }
     html=barricadeHtml+'<p style="color:var(--dim);font-size:9px;text-align:center;padding:8px 0">타워, 유닛, 적을 탭하면 정보가 표시됩니다</p>';
   }
-  if(ML.active){setInner('ml-pa-info',html);if(ORIENT==='port'||ML.active)return;}
+  if(ML.active){setInner('ml-info-panel',html);if(ORIENT==='port'||ML.active)return;}
   setInner('l-info',html);setInner('p-info-panel','<div style="height:100%;overflow-y:auto;padding-right:2px">'+html+'</div>');setInner('p-inline-info',html);
   if(ORIENT==='port'){buildPortCards();}
 }
@@ -3023,12 +3032,6 @@ function addLog(msg,type){
     var d=document.createElement('div');d.className='lge l'+(type||'sys');d.textContent=msg;
     el.insertBefore(d,el.firstChild);while(el.children.length>20)el.removeChild(el.lastChild);
   });
-}
-
-/* ── GAME OVER ── */
-function gameOver(){G.over=true;G.running=false;hideBuildConfirm();
-  var html='<h1 style="color:#cc3333">DEFEATED</h1><div style="color:#ff8888;font-size:12px;margin-bottom:6px;font-style:italic">요새가 함락되었습니다...</div><div style="color:var(--dim);font-size:11px;margin-bottom:14px;text-align:center;line-height:2">Level <span style="color:var(--gold)">'+G.lv+'</span> | Wave <span style="color:var(--gold)">'+G.wave+'</span> | Kills <span style="color:var(--gold)">'+G.kills+'</span></div><button class="obtn" onclick="startGame()">⚔️ 다시 시작</button>';
-  setInner('ov',html);setVis('ov',true);setInner('ov2',html);setVis('ov2',true);
 }
 
 /* ── EVENTS ── */
@@ -3587,7 +3590,7 @@ function mlStartMulti(){
   TDEFS.forEach(function(d){d.isNew=false;});
   resetG();
   buildPath(true); initCamera(true);
-  G.running=false;
+  G.running=true; // 입장 즉시 게임 시작 (준비 오버레이는 UI용)
 
   mlListenFirebase();
   ML.syncInterval=setInterval(mlPushState,600);
@@ -3604,9 +3607,12 @@ function mlStartMulti(){
     buildInfoPanel();
     updateNextBoss();
     mlBindMyCanvas();
-    // 준비 오버레이 표시
+    // 준비 오버레이 표시 (게임은 이미 running=true)
     var ov=document.getElementById('ml-ready-overlay');
     if(ov)ov.style.display='flex';
+    // 준비 완료 전까지 wave 버튼 비활성화
+    var wb=document.getElementById('ml-wbtn');
+    if(wb)wb.disabled=true;
     mlUpdateReadyStatus();
   }, 150);
 }
@@ -3643,11 +3649,12 @@ function mlUpdateReadyStatus(){
 }
 
 function mlCheckBothReady(){
-  if(ML.myReady&&ML.enemyReady&&!G.running){
+  if(ML.myReady&&ML.enemyReady){
     var ov=document.getElementById('ml-ready-overlay');
     if(ov)ov.style.display='none';
-    G.running=true;
-    addLog('🌐 양측 준비 완료! 대결 시작!','sys');
+    var wb=document.getElementById('ml-wbtn');
+    if(wb)wb.disabled=false;
+    addLog('🌐 양측 준비 완료! Wave를 시작하세요!','sys');
   }
 }
 
@@ -3878,8 +3885,8 @@ function mlLoop(ts){
   G.frame++;
   if(G.shakeDur>0)G.shakeDur--;
   if(G.running&&!G.over){
-    tickEnemies();tickTowers();tickProjs();tickAllies();tickParts();
-    spawnWaveEnemies();
+    tickSpawn();tickEnemies();tickTowers();tickProjs();tickAllies();tickParts();
+    if(G.waveActive&&G.spIdx>=G.waveQ.length&&G.enemies.length===0)waveComplete();
     if(G.frame%3===0)syncDynamicUI(false);
     updateUI();updateCds();
   }
@@ -3895,13 +3902,14 @@ function mlOnEnemyDefeated(){
   mlShowResult(true);
 }
 function gameOver(){
-  G.over=true;G.running=false;
+  G.over=true;G.running=false;hideBuildConfirm();
   if(ML.active){
     mlPushState();
     setTimeout(function(){mlShowResult(false);},800);
   } else {
     // 싱글 게임오버
-    setVis('ov',true);setVis('ov2',true);
+    var html='<h1 style="color:#cc3333">DEFEATED</h1><div style="color:#ff8888;font-size:12px;margin-bottom:6px;font-style:italic">요새가 함락되었습니다...</div><div style="color:var(--dim);font-size:11px;margin-bottom:14px;text-align:center;line-height:2">Level <span style="color:var(--gold)">'+G.lv+'</span> | Wave <span style="color:var(--gold)">'+G.wave+'</span> | Kills <span style="color:var(--gold)">'+G.kills+'</span></div><button class="obtn" onclick="startGame()">⚔️ 다시 시작</button>';
+    setInner('ov',html);setVis('ov',true);setInner('ov2',html);setVis('ov2',true);
   }
 }
 function mlShowResult(win){
