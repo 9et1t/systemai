@@ -706,7 +706,9 @@ canvas{display:block;width:100%;height:100%;}
       </div>
       <div class="sp"><span class="l">💰</span><span class="v" id="ml-gold">150</span></div>
       <div class="sp"><span class="l">🌊</span><span class="v" id="ml-wave">0</span></div>
-      <div style="margin-left:auto;">
+      <div id="ml-desel" onclick="deselect()" style="width:26px;height:26px;flex-shrink:0;display:none;align-items:center;justify-content:center;background:rgba(180,40,40,.2);border:1px solid #662222;border-radius:3px;cursor:pointer;font-size:13px;color:#ff8888;">✕</div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:4px;">
+        <button class="gem-open-btn" onclick="openGemModal();return false;" style="padding:2px 7px;font-size:9px;">💎 <span id="gem-inv-badge-ml" class="gem-badge">0</span></button>
         <button class="wavebtn" id="ml-wbtn" onclick="startWave()" style="width:auto;padding:2px 12px;font-size:9px;margin-top:0;">▶ Wave</button>
       </div>
     </div>
@@ -1623,7 +1625,7 @@ function showGemDropNotif(gem){
 
 function updateGemBadge(){
   var n=G.gemInv.length;
-  ['gem-inv-badge','gem-inv-badge2'].forEach(function(id){
+  ['gem-inv-badge','gem-inv-badge2','gem-inv-badge-ml'].forEach(function(id){
     var el=document.getElementById(id);
     if(!el)return;
     el.textContent=n;
@@ -2626,7 +2628,7 @@ function cancelEdgePlacement(){
 function setEl(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
 function setElC(id,v,c){var e=document.getElementById(id);if(e){e.textContent=v;if(c)e.style.color=c;}}
 function setVis(id,v){var e=document.getElementById(id);if(e)e.style.display=v?'block':'none';}
-function setDesel(v){var d=document.getElementById('desel'),d2=document.getElementById('desel2');if(d){if(v)d.classList.add('on');else d.classList.remove('on');}if(d2){if(v)d2.classList.add('on');else d2.classList.remove('on');}}
+function setDesel(v){var d=document.getElementById('desel'),d2=document.getElementById('desel2'),d3=document.getElementById('ml-desel');if(d){if(v)d.classList.add('on');else d.classList.remove('on');}if(d2){if(v)d2.classList.add('on');else d2.classList.remove('on');}if(d3)d3.style.display=v?'flex':'none';}
 
 function updateUI(){
   if(ML.active){
