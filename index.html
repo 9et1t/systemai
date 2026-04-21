@@ -2754,8 +2754,7 @@ function buildMultiBar(){
     var isAtk=G.unitMode==='attack';
     var mb=document.createElement('div');mb.className='hc land-hc';mb.style.borderColor=isAtk?'#ff6644':'#4488ff';
     mb.innerHTML='<div style="font-size:16px">'+(isAtk?'⚔️':'🛡️')+'</div>'
-      +'<div style="font-size:6px;color:'+(isAtk?'#ff8866':'#88aaff')+'">'+(isAtk?'공격':'수비')+'</div>'
-      +(ML.active?'<div style="font-size:5px;color:'+(isAtk?'#ff6644':'#4488ff')+'">'+(isAtk?'→침공':'→수비')+'</div>':'');
+      +'<div style="font-size:6px;color:'+(isAtk?'#ff8866':'#88aaff')+'">'+(isAtk?'공격':'수비')+'</div>';
     mb.onclick=function(){toggleUnitMode();};uc.appendChild(mb);
   }
 }
@@ -3630,18 +3629,13 @@ function mlToggleReady(){
   ML.myReady=!ML.myReady;
   var btn=document.getElementById('ml-ready-btn');
   if(btn){
-    if(ML.myReady){
-      btn.textContent='⏳ 대기 중... (취소하려면 탭)';
-      btn.classList.add('ready');
-    } else {
-      btn.textContent='✅ 준비 완료';
-      btn.classList.remove('ready');
-    }
+    btn.textContent=ML.myReady?'⏳ 준비됨 (취소하려면 탭)':'✅ 준비 완료';
+    if(ML.myReady)btn.classList.add('ready');else btn.classList.remove('ready');
   }
-  // 전체 state를 즉시 push (ready 포함)
+  // Firebase에 ready 상태 직접 기록 (state 덮어쓰기 위험 없이 별도 경로도 함께)
+  window._fb.db.ref('rooms/'+ML.roomId+'/'+ML.myRole+'/ready').set(ML.myReady).catch(function(){});
   mlPushState();
   mlUpdateReadyStatus();
-  // 내가 이미 준비됐고 상대도 준비됐으면 바로 시작
   mlCheckBothReady();
 }
 
@@ -3703,12 +3697,11 @@ function mlBindMyCanvas(){
     if(G.camera.pointerId!==e.pointerId)return;
     var moved=G.camera.moved;
     G.camera.dragging=false;G.camera.moved=false;G.camera.pointerId=null;
-    if(!moved&&!G.recentUIAction){
+    if(!moved){
       var r=mc.getBoundingClientRect();
       var wp=screenToWorld(e.clientX-r.left,e.clientY-r.top);
       handleMapTap(wp.x,wp.y);
     }
-    if(G.recentUIAction>0)G.recentUIAction--;
   });
   mc.addEventListener('pointercancel',function(){G.camera.dragging=false;G.camera.pointerId=null;});
   mc.addEventListener('wheel',function(e){e.preventDefault();zoomMap(e.deltaY<0?1.1:0.9);},{passive:false});
@@ -3717,8 +3710,6 @@ function mlBindMyCanvas(){
 // ── Firebase 동기화 ──
 function mlPushState(){
   if(!ML.active||!ML.roomId||!window._fb)return;
-  var fb=window._fb;
-  var myId=ML.myRole;
   var state={
     hp:G.hp,maxHp:G.maxHp,wave:G.wave,gold:G.gold,mp:Math.floor(G.mp),
     kills:G.kills,over:!!G.over,
@@ -3730,21 +3721,22 @@ function mlPushState(){
     allies:G.allies.filter(function(a){return a.alive;}).map(function(a){return{x:Math.round(a.x),y:Math.round(a.y),icon:a.icon};}),
     path:PP.map(function(p){return{x:Math.round(p.x),y:Math.round(p.y)};})
   };
-  fb.set(fb.db.ref('rooms/'+ML.roomId+'/'+myId),state).catch(function(){});
-  // UI 갱신 (ms- 요소는 이제 없으므로 무시)
-  document.getElementById('split-my-stats').textContent='HP:'+G.hp+'/'+G.maxHp+' W:'+G.wave;
+  window._fb.db.ref('rooms/'+ML.roomId+'/'+ML.myRole).set(state).catch(function(){});
+  var el=document.getElementById('split-my-stats');
+  if(el)el.textContent='HP:'+G.hp+'/'+G.maxHp+' W:'+G.wave;
 }
 
 function mlListenFirebase(){
   if(!window._fb||!ML.roomId)return;
   var fb=window._fb;
   var enemyId=ML.myRole==='host'?'guest':'host';
-  // 상대 상태 수신
-  fb.onValue(fb.db.ref('rooms/'+ML.roomId+'/'+enemyId),function(snap){
+
+  // 상대 전체 state 수신
+  fb.db.ref('rooms/'+ML.roomId+'/'+enemyId).on('value',function(snap){
     var val=snap.val(); if(!val)return;
     ML.enemyState=val;
     document.getElementById('split-enemy-stats').textContent='HP:'+(val.hp||0)+'/'+(val.maxHp||20)+' W:'+(val.wave||0);
-    // 상대 준비 상태 감지
+    // ready 감지
     var wasReady=ML.enemyReady;
     ML.enemyReady=!!(val.ready);
     if(ML.enemyReady!==wasReady)mlUpdateReadyStatus();
@@ -3752,9 +3744,9 @@ function mlListenFirebase(){
     if(val.over&&!ML.gameOver)mlOnEnemyDefeated();
     mlDrawEnemy();
   });
+
   // 침공 유닛 수신
-  var invPath='rooms/'+ML.roomId+'/inv_'+ML.myRole;
-  fb.onValue(fb.db.ref(invPath),function(snap){
+  fb.db.ref('rooms/'+ML.roomId+'/inv_'+ML.myRole).on('value',function(snap){
     var val=snap.val(); if(!val)return;
     Object.keys(val).forEach(function(k){
       if(ML.appliedAttacks[k])return;
