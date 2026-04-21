@@ -3628,9 +3628,11 @@ function mlToggleReady(){
     btn.textContent=ML.myReady?'⏳ 준비됨 (취소하려면 탭)':'✅ 준비 완료';
     if(ML.myReady)btn.classList.add('ready');else btn.classList.remove('ready');
   }
-  // 별도 ready 경로에 직접 씀 (state 덮어쓰기와 무관)
-  window._fb.db.ref('rooms/'+ML.roomId+'/ready_'+ML.myRole).set(ML.myReady);
+  // state 전체를 즉시 push (ready 포함) + 별도 경로도 함께
+  mlPushState();
+  window._fb.db.ref('rooms/'+ML.roomId+'/'+ML.myRole+'/ready').set(ML.myReady).catch(function(){});
   mlUpdateReadyStatus();
+  mlCheckBothReady();
 }
 
 function mlUpdateReadyStatus(){
@@ -3642,8 +3644,10 @@ function mlUpdateReadyStatus(){
 
 function mlCheckBothReady(){
   if(ML.myReady&&ML.enemyReady&&!G.running){
-    // gameStart 신호 Firebase에 기록 (양쪽 모두 감지)
-    window._fb.db.ref('rooms/'+ML.roomId+'/gameStart').set(true);
+    var ov=document.getElementById('ml-ready-overlay');
+    if(ov)ov.style.display='none';
+    G.running=true;
+    addLog('🌐 양측 준비 완료! 대결 시작!','sys');
   }
 }
 
@@ -3721,35 +3725,22 @@ function mlListenFirebase(){
   var db=window._fb.db;
   var enemyId=ML.myRole==='host'?'guest':'host';
 
-  // 1) 상대 게임 state 수신 (맵 렌더용)
+  // 1) 상대 게임 state 수신 (ready 포함)
   db.ref('rooms/'+ML.roomId+'/'+enemyId).on('value',function(snap){
     var val=snap.val(); if(!val)return;
     ML.enemyState=val;
     var el=document.getElementById('split-enemy-stats');
     if(el)el.textContent='HP:'+(val.hp||0)+'/'+(val.maxHp||20)+' W:'+(val.wave||0);
+    // ready 감지
+    var wasReady=ML.enemyReady;
+    ML.enemyReady=!!(val.ready);
+    if(ML.enemyReady!==wasReady)mlUpdateReadyStatus();
+    mlCheckBothReady();
     if(val.over&&!ML.gameOver)mlOnEnemyDefeated();
     mlDrawEnemy();
   });
 
-  // 2) 상대 ready 상태 감지 (별도 경로)
-  db.ref('rooms/'+ML.roomId+'/ready_'+enemyId).on('value',function(snap){
-    var val=snap.val();
-    ML.enemyReady=!!val;
-    mlUpdateReadyStatus();
-    mlCheckBothReady();
-  });
-
-  // 3) gameStart 신호 감지 — 어느 쪽이 쓰든 둘 다 시작
-  db.ref('rooms/'+ML.roomId+'/gameStart').on('value',function(snap){
-    if(snap.val()&&!G.running){
-      var ov=document.getElementById('ml-ready-overlay');
-      if(ov)ov.style.display='none';
-      G.running=true;
-      addLog('🌐 대결 시작!','sys');
-    }
-  });
-
-  // 4) 침공 유닛 수신
+  // 2) 침공 유닛 수신
   db.ref('rooms/'+ML.roomId+'/inv_'+ML.myRole).on('value',function(snap){
     var val=snap.val(); if(!val)return;
     Object.keys(val).forEach(function(k){
