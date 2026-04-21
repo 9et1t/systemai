@@ -693,6 +693,7 @@ canvas{display:block;width:100%;height:100%;}
       </div>
       <div class="split-canvas-wrap">
         <canvas id="gc-multi-me"></canvas>
+        <div class="skfx" id="skfx-ml"></div>
         <div class="build-confirm" id="build-confirm-ml">
           <div class="bc-title" id="bc-title-ml">🏗️ 타워 건설</div>
           <div class="bc-desc" id="bc-desc-ml">건설하시겠습니까?</div>
@@ -720,8 +721,8 @@ canvas{display:block;width:100%;height:100%;}
       <div class="split-canvas-wrap"><canvas id="gc-multi-enemy"></canvas></div>
     </div>
   </div>
-  <!-- 멀티 액션 영역 -->
-  <div id="split-action-area" style="flex-shrink:0;background:linear-gradient(180deg,#0d0b08,#080604);border-top:1px solid rgba(90,69,32,.4);position:relative;z-index:10;pointer-events:auto;">
+  <!-- 멀티 액션 영역 - 고정 높이로 캔버스 크기 변동 방지 -->
+  <div id="split-action-area" style="flex-shrink:0;height:186px;min-height:186px;max-height:186px;background:linear-gradient(180deg,#0d0b08,#080604);border-top:1px solid rgba(90,69,32,.4);position:relative;z-index:10;pointer-events:auto;">
     <!-- 상태바 -->
     <div style="display:flex;flex-direction:column;border-bottom:1px solid rgba(90,69,32,.25);">
       <!-- 1행: 스탯 -->
@@ -740,11 +741,11 @@ canvas{display:block;width:100%;height:100%;}
         <div class="sp"><span class="l">💰</span><span class="v" id="ml-gold">150</span></div>
         <div class="sp"><span class="l">🌊</span><span class="v" id="ml-wave">0</span></div>
       </div>
-      <!-- 2행: 버튼 -->
+      <!-- 2행: 버튼 (Wave + 인벤토리 나란히) -->
       <div style="height:28px;display:flex;align-items:center;gap:4px;padding:0 6px;">
         <div id="ml-desel" onclick="deselect()" style="width:26px;height:22px;flex-shrink:0;display:none;align-items:center;justify-content:center;background:rgba(180,40,40,.2);border:1px solid #662222;border-radius:3px;cursor:pointer;font-size:13px;color:#ff8888;">✕</div>
-        <button class="gem-open-btn" onpointerdown="stopUIEvent(event)" onclick="openGemModal();return false;" style="height:22px;padding:0 8px;font-size:9px;flex-shrink:0;">💎 인벤토리 <span id="gem-inv-badge-ml" class="gem-badge">0</span></button>
-        <div style="margin-left:auto;">
+        <div style="margin-left:auto;display:flex;align-items:center;gap:4px;">
+          <button class="gem-open-btn" onpointerdown="stopUIEvent(event)" onclick="openGemModal();return false;" style="height:22px;padding:0 8px;font-size:9px;flex-shrink:0;">💎 <span id="gem-inv-badge-ml" class="gem-badge">0</span></button>
           <button class="wavebtn" id="ml-wbtn" onclick="startWave()" style="width:auto;padding:2px 14px;font-size:9px;margin-top:0;">▶ Wave</button>
         </div>
       </div>
@@ -757,11 +758,11 @@ canvas{display:block;width:100%;height:100%;}
       <div class="ptab" id="ml-pt-info" onclick="mlSwitchTab2('info')"><span class="ptab-icon">📋</span><span>정보</span></div>
     </div>
     <!-- 카드 영역 -->
-    <div style="height:90px;overflow-y:auto;">
+    <div style="height:102px;overflow-y:auto;">
       <div id="ml-pa-tower" style="padding:4px;"><div class="cards-row" id="ml-towers"></div></div>
       <div id="ml-pa-skill" style="display:none;padding:4px;"><div class="cards-row" id="ml-skills"></div></div>
       <div id="ml-pa-unit" style="display:none;padding:4px;"><div class="cards-row" id="ml-units"></div></div>
-      <div id="ml-pa-info" style="display:none;padding:4px;overflow-y:auto;max-height:86px;"><div id="ml-info-panel"></div></div>
+      <div id="ml-pa-info" style="display:none;padding:4px;overflow-y:auto;max-height:98px;"><div id="ml-info-panel"></div></div>
     </div>
   </div>
 </div>
@@ -1613,8 +1614,18 @@ function pickWeighted(arr, weightKey){
 function genGem(gradeId){
   var grade=GEM_GRADES.find(function(g){return g.id===gradeId;})||GEM_GRADES[0];
   var stat=GEM_STATS[Math.floor(Math.random()*GEM_STATS.length)];
-  var val=Math.round((stat.base+(Math.random()*(stat.max-stat.base)))*grade.effMul*10)/10;
-  val=Math.min(val,stat.max*grade.effMul);
+  // 등급별 범위 (stat.max 대비 비율) - 등급간 절대 겹치지 않음
+  var gradeRange={
+    normal: [0.20, 0.40],  // stat.max의 20~40%
+    rare:   [0.40, 0.60],  // stat.max의 40~60%
+    epic:   [0.60, 0.80],  // stat.max의 60~80%
+    unique: [0.80, 1.10],  // stat.max의 80~110%
+    legend: [1.10, 1.60],  // stat.max의 110~160%
+  };
+  var r=gradeRange[grade.id]||gradeRange.normal;
+  var minVal=stat.max*r[0];
+  var maxVal=stat.max*r[1];
+  var val=Math.round((minVal+Math.random()*(maxVal-minVal))*10)/10;
   return {
     id:Date.now()+Math.random(),
     grade:grade.id,
@@ -1699,6 +1710,8 @@ function openGemModal(){
 }
 function closeGemModal(){
   document.getElementById('gem-modal-overlay').classList.remove('open');
+  synthGrade=null;
+  synthPicked=[null,null,null];
 }
 
 function renderGemModal(){
@@ -1764,18 +1777,41 @@ function renderGemInvGrid(){
   c.innerHTML='';
   var countEl=document.getElementById('gem-inv-count');
   if(countEl)countEl.textContent=G.gemInv.length+'/10';
+  // 합성 섹션이 화면에 보이면 합성 모드 안내 표시
+  var synthSection=document.querySelector('.gem-synth-section');
+  var synthVisible=synthSection&&synthSection.getBoundingClientRect().top<window.innerHeight;
+  // synthGrade가 설정된 상태면 합성 모드
+  var isSynthMode=!!synthGrade;
+  var invTitle=document.getElementById('gem-inv-count');
+  if(invTitle){
+    var titleEl=invTitle.parentNode.querySelector('span:first-child');
+    if(titleEl)titleEl.textContent=isSynthMode?'🎒 인벤토리 (탭하여 합성 재료 선택)':'🎒 인벤토리';
+  }
   for(var i=0;i<10;i++){
     (function(idx){
       var gem=G.gemInv[idx];
       var el=document.createElement('div');
-      el.className='gem-inv-slot'+(gem?'':'  empty')+(idx===gemSelectedIdx?' selected':'');
+      var inSynthSlot=synthPicked.indexOf(idx)>=0;
+      var isSelected=idx===gemSelectedIdx;
+      el.className='gem-inv-slot'+(gem?'':'  empty')+(isSelected?' selected':'');
       if(gem){
         var sd=getStatDef(gem.stat);
-        el.style.borderColor=idx===gemSelectedIdx?'#ffcc44':getGradeColor(gem.grade);
+        var borderCol=inSynthSlot?'#cc99ff':isSelected?'#ffcc44':getGradeColor(gem.grade);
+        el.style.borderColor=borderCol;
+        if(inSynthSlot)el.style.background='rgba(80,30,140,.8)';
         el.innerHTML='<span class="gi-icon">'+gem.icon+'</span>'
           +'<span class="gi-grade" style="color:'+getGradeColor(gem.grade)+'">'+getGradeText(gem.grade)+(gem.enhLv?'<b style="color:#66ccff"> +'+gem.enhLv+'</b>':'')+'</span>'
-          +'<span class="gi-stat" style="color:#aaa">'+(sd?sd.icon+sd.name.slice(0,4):'')+'</span>';
-        el.onclick=function(){gemSelectedIdx=(gemSelectedIdx===idx)?null:idx;renderGemModal();};
+          +'<span class="gi-stat" style="color:#aaa">'+(sd?sd.icon+sd.name.slice(0,4):'')+'</span>'
+          +(inSynthSlot?'<span style="position:absolute;top:1px;right:2px;font-size:8px;color:#cc99ff">✓</span>':'');
+        el.onclick=function(){
+          if(isSynthMode){
+            // 합성 모드: 슬롯 추가/제거
+            synthPickFromInv(idx);
+          } else {
+            // 일반 모드: 선택
+            gemSelectedIdx=(gemSelectedIdx===idx)?null:idx;renderGemModal();
+          }
+        };
       }else{
         el.innerHTML='<span style="opacity:.18;font-size:14px">💎</span>';
       }
@@ -1898,17 +1934,23 @@ function getNextGrade(gradeId){
 }
 
 function renderSynthSection(){
-  // 등급 버튼 (인벤에 3개 이상 있는 등급만 활성화)
   var btnC=document.getElementById('gem-synth-grade-btns');
   if(!btnC)return;
   btnC.innerHTML='';
+  // 안내 문구
+  var guide=document.createElement('div');
+  guide.style.cssText='width:100%;font-size:8px;color:#9977cc;margin-bottom:4px;';
+  guide.textContent=synthGrade
+    ? '① 아래 인벤토리에서 '+getGradeText(synthGrade)+' 보석 3개 탭 선택 → ② 합성하기'
+    : '① 등급 선택 → ② 인벤토리에서 보석 3개 탭';
+  btnC.appendChild(guide);
   GRADE_ORDER.forEach(function(gid){
-    if(!getNextGrade(gid))return; // 레전드는 합성 불가
+    if(!getNextGrade(gid))return;
     var count=G.gemInv.filter(function(g){return g&&g.grade===gid;}).length;
     var btn=document.createElement('button');
-    btn.style.cssText='padding:3px 8px;border-radius:4px;border:1px solid '+(synthGrade===gid?getGradeColor(gid):'rgba(100,60,180,.4)')+';background:'+(synthGrade===gid?'rgba(80,30,160,.7)':'rgba(20,10,40,.6)')+';color:'+getGradeColor(gid)+';font-size:9px;cursor:'+(count>=3?'pointer':'default')+';opacity:'+(count>=3?1:.35)+';font-family:Cinzel,serif;';
+    btn.style.cssText='padding:3px 8px;border-radius:4px;border:1px solid '+(synthGrade===gid?getGradeColor(gid):'rgba(100,60,180,.4)')+';background:'+(synthGrade===gid?'rgba(80,30,160,.7)':'rgba(20,10,40,.6)')+';color:'+getGradeColor(gid)+';font-size:9px;cursor:'+(count>=1?'pointer':'default')+';opacity:'+(count>=1?1:.35)+';font-family:Cinzel,serif;';
     btn.textContent=getGradeText(gid)+' ('+count+')';
-    if(count>=3)btn.onclick=function(){selectSynthGrade(gid);};
+    if(count>=1)btn.onclick=function(){selectSynthGrade(gid);};
     btnC.appendChild(btn);
   });
 
@@ -1958,13 +2000,29 @@ function renderSynthSection(){
 
 function selectSynthGrade(gid){
   synthGrade=gid;
-  synthPicked=[null,null,null];
-  // 해당 등급 보석 자동으로 첫 3개 채우기
-  var matched=[];
-  for(var i=0;i<G.gemInv.length&&matched.length<3;i++){
-    if(G.gemInv[i]&&G.gemInv[i].grade===gid)matched.push(i);
-  }
-  for(var j=0;j<matched.length;j++)synthPicked[j]=matched[j];
+  // 등급 변경 시 슬롯 초기화 (다른 등급 보석 들어있으면 제거)
+  synthPicked=synthPicked.map(function(idx){
+    if(idx===null)return null;
+    var g=G.gemInv[idx];
+    return (g&&g.grade===gid)?idx:null;
+  });
+  renderSynthSection();
+}
+
+function synthPickFromInv(invIdx){
+  // 인벤토리에서 합성 슬롯으로 추가/제거
+  var gem=G.gemInv[invIdx];if(!gem)return;
+  // 등급 선택 안됐으면 이 보석 등급으로 자동 설정
+  if(!synthGrade)synthGrade=gem.grade;
+  // 다른 등급이면 무시
+  if(gem.grade!==synthGrade){addLog('⚠️ 같은 등급 보석만 합성 가능','sys');return;}
+  // 이미 슬롯에 있으면 제거
+  var existingSlot=synthPicked.indexOf(invIdx);
+  if(existingSlot>=0){synthPicked[existingSlot]=null;renderSynthSection();return;}
+  // 빈 슬롯에 추가
+  var emptySlot=synthPicked.indexOf(null);
+  if(emptySlot<0){addLog('⚠️ 슬롯이 가득 찼습니다 (탭해서 제거)','sys');return;}
+  synthPicked[emptySlot]=invIdx;
   renderSynthSection();
 }
 
@@ -2408,7 +2466,7 @@ function execSkill(id,tx,ty){
   }
   buildActionBar();setDesel(false);
 }
-function showFX(col){var f=document.getElementById('skfx'),f2=document.getElementById('skfx2');if(f){f.style.background=col;f.style.opacity='1';setTimeout(function(){f.style.opacity='0';},320);}if(f2){f2.style.background=col;f2.style.opacity='1';setTimeout(function(){f2.style.opacity='0';},320);}}
+function showFX(col){var ids=['skfx','skfx2','skfx-ml'];ids.forEach(function(id){var f=document.getElementById(id);if(f){f.style.background=col;f.style.opacity='1';setTimeout(function(){f.style.opacity='0';},320);}});}
 function showSkillDesc(sk){
   var lv=getSkillLevel(sk);
   var descText=sk.desc;
@@ -2578,7 +2636,27 @@ function applyAllyUp(a,def,idx){
 function repairTower(){markUIInteraction();if(!G.selTower)return;var m=G.selTower.maxHp-G.selTower.hp;if(m<=0)return;var c=Math.floor(m*.5);if(G.gold<c){addLog('❌ 골드부족','sys');return;}G.gold-=c;G.selTower.hp=G.selTower.maxHp;addLog('🔧 타워수리','unlk');buildInfoPanel();}
 function repairAlly(){markUIInteraction();if(!G.selAlly)return;var m=G.selAlly.maxHp-G.selAlly.hp;if(m<=0)return;var c=Math.floor(m*.4);if(G.gold<c){addLog('❌ 골드부족','sys');return;}G.gold-=c;G.selAlly.hp=G.selAlly.maxHp;addLog('🩹 유닛수리','unlk');buildInfoPanel();}
 function sellTower(){markUIInteraction();if(!G.selTower)return;var p=getTowerSellPrice(G.selTower);G.gold+=p;for(var i=G.towers.length-1;i>=0;i--)if(G.towers[i].uid===G.selTower.uid){G.towers.splice(i,1);break;}addLog('💰 판매+'+p+'g','sys');G.selTower=null;buildInfoPanel();}
-function showEnhPop(ok){var el=document.createElement('div');el.className='enh-pop';el.style.color=ok?'#88ff44':'#ff4444';el.textContent=ok?'✨ 강화 성공!':'💥 강화 실패!';el.style.top=(canvas.height*.38)+'px';el.style.left='50%';document.getElementById(ORIENT==='land'?'land-ca':'port-ca').appendChild(el);setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);},1800);}
+function showEnhPop(ok){
+  var el=document.createElement('div');
+  el.className='enh-pop';
+  el.style.color=ok?'#88ff44':'#ff4444';
+  el.textContent=ok?'✨ 강화 성공!':'💥 강화 실패!';
+  // 멀티모드: sp-me 컨테이너, 싱글: land-ca / port-ca
+  var container;
+  if(ML.active){
+    container=document.querySelector('#sp-me .split-canvas-wrap')||document.getElementById('sp-me');
+  } else {
+    container=document.getElementById(ORIENT==='land'?'land-ca':'port-ca');
+  }
+  var cv=ML.active?ML.myCanvas:canvas;
+  el.style.top=(cv?(cv.height*.38)+'px':'38%');
+  el.style.left='50%';
+  if(container)container.appendChild(el);
+  setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);},1800);
+  // showFX도 멀티에서 적용
+  if(ok){showFX(ok?'rgba(100,255,80,.18)':'rgba(255,50,50,.18)');}
+  else{doShake(4,6);}
+}
 function deselect(){markUIInteraction();G.selType=null;G.placing=false;G.selTower=null;G.selAlly=null;G.selEnemy=null;G.targetingSkill=null;G.pendingBuild=null;G.pendingSkill=null;hideBuildConfirm();hideSkillConfirm();buildInfoPanel();buildActionBar();setDesel(false);if(ORIENT==='port')updateTabLabels();}
 
 // Called when tower or ally gets selected - auto switch portrait tab to upgrade
@@ -3824,8 +3902,18 @@ function mlResizeCanvases(){
   var w=container.clientWidth||window.innerWidth;
   var h=container.clientHeight||(window.innerHeight-200);
   if(w<=0||h<=0)return;
-  if(ML.myCanvas&&(ML.myCanvas.width!==w||ML.myCanvas.height!==h)){ML.myCanvas.width=w;ML.myCanvas.height=h;}
-  if(ML.enemyCanvas&&(ML.enemyCanvas.width!==w||ML.enemyCanvas.height!==h)){ML.enemyCanvas.width=w;ML.enemyCanvas.height=h;}
+  var changed=false;
+  if(ML.myCanvas&&(ML.myCanvas.width!==w||ML.myCanvas.height!==h)){
+    ML.myCanvas.width=w;ML.myCanvas.height=h;changed=true;
+  }
+  if(ML.enemyCanvas&&(ML.enemyCanvas.width!==w||ML.enemyCanvas.height!==h)){
+    ML.enemyCanvas.width=w;ML.enemyCanvas.height=h;
+  }
+  // 캔버스 크기가 바뀐 경우에만 카메라 재초기화 (zoom 변동 방지)
+  if(changed&&ML.active){
+    canvas=ML.myCanvas;
+    initCamera(false);
+  }
 }
 
 // ── 내 캔버스 이벤트 ──
