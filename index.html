@@ -255,7 +255,7 @@ canvas{display:block;width:100%;height:100%;}
 
 /* ═══ GEM SYSTEM ═══ */
 #gem-modal-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:500;
+  position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:620;
   display:none;align-items:center;justify-content:center;
 }
 #gem-modal-overlay.open{display:flex;}
@@ -721,7 +721,7 @@ canvas{display:block;width:100%;height:100%;}
     </div>
   </div>
   <!-- 멀티 액션 영역 -->
-  <div id="split-action-area" style="flex-shrink:0;background:linear-gradient(180deg,#0d0b08,#080604);border-top:1px solid rgba(90,69,32,.4);">
+  <div id="split-action-area" style="flex-shrink:0;background:linear-gradient(180deg,#0d0b08,#080604);border-top:1px solid rgba(90,69,32,.4);position:relative;z-index:10;pointer-events:auto;">
     <!-- 상태바 -->
     <div style="display:flex;flex-direction:column;border-bottom:1px solid rgba(90,69,32,.25);">
       <!-- 1행: 스탯 -->
@@ -3780,6 +3780,15 @@ function mlBindMyCanvas(){
     G.mx=wp.x;G.my=wp.y;
   },{passive:true});
   mc.addEventListener('pointerdown',function(e){
+    // 액션 영역 위에서 발생한 이벤트면 무시 (인벤토리 버튼 등 UI 보호)
+    var actionArea=document.getElementById('split-action-area');
+    if(actionArea){
+      var ar=actionArea.getBoundingClientRect();
+      if(e.clientY>=ar.top&&e.clientY<=ar.bottom&&e.clientX>=ar.left&&e.clientX<=ar.right)return;
+    }
+    // 모달/오버레이가 열려있으면 캔버스 입력 무시
+    var gemOverlay=document.getElementById('gem-modal-overlay');
+    if(gemOverlay&&gemOverlay.classList.contains('open'))return;
     markUIInteraction();
     G.camera.dragging=true;G.camera.pointerId=e.pointerId;
     G.camera.startX=e.clientX;G.camera.startY=e.clientY;
