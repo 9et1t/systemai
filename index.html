@@ -1,734 +1,946 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>NH농협 IT 작업 업무확인 게시판</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Noto+Serif+KR:wght@600;700&display=swap" rel="stylesheet"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>우리집 찾기 — 부부를 위한 최적 주거지 탐색</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;700&family=DM+Mono:wght@400;500&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+<script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=3wwumsfkd2&submodules=geocoder"></script>
 <style>
-:root{
-  --g1:#006633;--g2:#008844;--g3:#00aa55;
-  --gold:#c8a84b;--gold2:#e8c86e;
-  --light:#f0f7f2;--white:#ffffff;
-  --gray1:#f5f6f7;--gray2:#e8eaed;--gray3:#c4c8cc;--gray4:#8a9099;
-  --text:#1a2530;--text2:#3d4a55;--text3:#6b7a87;
-  --red:#cc3300;
-  --ss:0 1px 4px rgba(0,102,51,.08);
-  --sm:0 4px 16px rgba(0,102,51,.12);
-  --sl:0 8px 32px rgba(0,102,51,.16);
-  --r:10px;
-  --sans:'Noto Sans KR',sans-serif;
-  --serif:'Noto Serif KR',serif;
+:root {
+  --bg:#0e0e0e; --bg2:#161616; --bg3:#1e1e1e;
+  --border:#2a2a2a; --borderL:#383838;
+  --text:#f0ece4; --muted:#8a8580; --dim:#4a4642;
+  --a:#c8a96e; --a2:#7fb5a0; --a3:#d4756e;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--sans);background:var(--gray1);color:var(--text);min-height:100vh}
-.topband{height:4px;background:linear-gradient(90deg,var(--g1) 0%,var(--gold) 60%,var(--g2) 100%)}
-header{background:#fff;border-bottom:2px solid var(--g1);box-shadow:var(--ss);position:sticky;top:0;z-index:200}
-.hi{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;height:64px}
-.logo{display:flex;align-items:center;gap:14px}
-.logo img{height:36px;width:auto;object-fit:contain}
-.logo-div{width:1px;height:28px;background:var(--gray2)}
-.logo-text strong{display:block;font-size:1rem;font-weight:700;color:var(--g1);letter-spacing:-.02em}
-.logo-text span{font-size:.7rem;color:var(--text3)}
-.conn-bar{display:flex;align-items:center;gap:10px}
-.conn-status{font-size:.72rem;padding:4px 12px;border-radius:20px;border:1px solid;font-weight:600}
-.conn-ok{background:#e6f4ec;color:var(--g1);border-color:#99d4b3}
-.conn-no{background:#fff8e1;color:#a07000;border-color:#ffe082}
-.hero{background:linear-gradient(135deg,var(--g1) 0%,var(--g2) 50%,#005522 100%);color:#fff;padding:2rem 1.5rem;position:relative;overflow:hidden}
-.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 90% 50%,rgba(200,168,75,.15) 0%,transparent 60%)}
-.hero-in{max-width:1100px;margin:0 auto;position:relative}
-.hero h1{font-family:var(--serif);font-size:1.5rem;font-weight:700;letter-spacing:-.02em;margin-bottom:4px}
-.hero h1 span{color:var(--gold2)}
-.hero p{font-size:.8rem;opacity:.8;margin-bottom:1.2rem}
-.stats-row{display:flex;gap:1rem;flex-wrap:wrap}
-.sp{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:6px 16px;font-size:.78rem;display:flex;align-items:center;gap:6px}
-.sp b{font-size:1rem;font-weight:700}
-.main{max-width:1100px;margin:0 auto;padding:1.5rem}
-.sl-row{display:flex;align-items:center;gap:10px;margin-bottom:.8rem}
-.sl-row h2{font-size:.78rem;font-weight:700;color:var(--g1);text-transform:uppercase;letter-spacing:.1em}
-.sl-line{flex:1;height:1px;background:var(--gray2)}
-.reg-card{background:#fff;border:1px solid var(--gray2);border-top:3px solid var(--g1);border-radius:var(--r);box-shadow:var(--ss);padding:1.2rem;margin-bottom:1.5rem}
-.reg-row{display:grid;grid-template-columns:150px 1fr auto;gap:.75rem;align-items:end}
-.fg{display:flex;flex-direction:column;gap:5px}
-.fg label{font-size:.7rem;font-weight:700;color:var(--g1);letter-spacing:.05em}
-.fg input,.fg select,.fg textarea{border:1px solid var(--gray2);border-radius:6px;padding:.55rem .8rem;font-family:var(--sans);font-size:.85rem;color:var(--text);background:#fff;outline:none;transition:border-color .2s,box-shadow .2s}
-.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--g1);box-shadow:0 0 0 3px rgba(0,102,51,.1)}
-.fg textarea{resize:vertical;min-height:60px}
-.btn{padding:.55rem 1.2rem;border:none;border-radius:6px;font-family:var(--sans);font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap}
-.btn-p{background:var(--g1);color:#fff}.btn-p:hover{background:var(--g2)}
-.btn-gold{background:var(--gold);color:#fff}.btn-gold:hover{background:var(--gold2);color:var(--text)}
-.btn-ghost{background:transparent;color:var(--text3);border:1px solid var(--gray3)}.btn-ghost:hover{border-color:var(--g1);color:var(--g1)}
-.btn-danger{background:#fdf0ed;color:var(--red);border:1px solid #f5c4b8}.btn-danger:hover{background:#fbe0d9}
-.btn-sm{padding:.35rem .75rem;font-size:.72rem}
-.btn-xs{padding:.25rem .6rem;font-size:.68rem}
-.fbar{display:flex;align-items:center;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap}
-.fb{font-size:.75rem;padding:5px 14px;border-radius:20px;border:1px solid var(--gray3);background:#fff;color:var(--text3);cursor:pointer;transition:all .2s;font-family:var(--sans)}
-.fb.active{background:var(--g1);color:#fff;border-color:var(--g1)}
-.fb:hover:not(.active){border-color:var(--g1);color:var(--g1)}
-.sw{margin-left:auto;position:relative}
-.sw input{border:1px solid var(--gray3);border-radius:20px;padding:5px 14px 5px 32px;font-family:var(--sans);font-size:.78rem;background:#fff;outline:none;width:200px;transition:border-color .2s}
-.sw input:focus{border-color:var(--g1)}
-.sw::before{content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:.72rem}
-.board{display:flex;flex-direction:column;gap:.8rem}
-.tc{background:#fff;border:1px solid var(--gray2);border-left:4px solid var(--g1);border-radius:var(--r);box-shadow:var(--ss);overflow:hidden;transition:box-shadow .2s;animation:fu .35s ease both}
-.tc:hover{box-shadow:var(--sm)}
-.tc.done{border-left-color:var(--gold)}
-.tc.expanded{border-color:var(--g3);box-shadow:var(--sm)}
-.th{padding:1rem 1.2rem;display:flex;align-items:center;gap:.8rem;cursor:pointer;user-select:none}
-.th:hover{background:var(--light)}
-.tseq{font-size:.68rem;font-weight:700;color:var(--gray4);min-width:32px}
-.dtag{font-size:.72rem;font-weight:700;background:var(--light);border:1px solid #c8dfd0;color:var(--g1);border-radius:6px;padding:3px 10px;white-space:nowrap}
-.ti{flex:1;min-width:0}
-.tname{font-size:.92rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tsub{font-size:.72rem;color:var(--text3);margin-top:2px}
-.tact{display:flex;align-items:center;gap:.5rem;flex-shrink:0}
-.rbadge{font-size:.7rem;background:#e8f4ee;color:var(--g2);border:1px solid #b3d9c0;border-radius:20px;padding:2px 9px;font-weight:700}
-.stag{font-size:.68rem;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.03em}
-.s-open{background:#fff8e1;color:#a07000;border:1px solid #ffe082}
-.s-closed{background:#e8f4ee;color:var(--g1);border:1px solid #b3d9c0}
-.chev{width:16px;height:16px;color:var(--gray4);transition:transform .3s;flex-shrink:0}
-.expanded .chev{transform:rotate(180deg)}
-.tbody{display:none;border-top:1px solid var(--gray2)}
-.tbody.show{display:block}
-.tdesc{background:var(--light);border-bottom:1px dashed var(--gray2);padding:.9rem 1.2rem}
-.tdesc .lbl{font-size:.68rem;font-weight:700;color:var(--g1);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
-.tdesc p{font-size:.82rem;color:var(--text2);line-height:1.6}
-.rw{padding:1rem 1.2rem}
-.rhead{display:flex;align-items:center;gap:8px;margin-bottom:.8rem}
-.rhead span{font-size:.72rem;font-weight:700;color:var(--g1);text-transform:uppercase;letter-spacing:.08em}
-.rhead small{font-size:.7rem;color:var(--text3)}
-.rlist{display:flex;flex-direction:column;gap:.6rem;margin-bottom:1rem}
-.ri{background:var(--gray1);border:1px solid var(--gray2);border-radius:8px;padding:.8rem 1rem;display:grid;grid-template-columns:36px 1fr auto;gap:.7rem;align-items:start;animation:fu .25s ease both}
-.av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--g1),var(--g2));display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:700;color:#fff;border:2px solid var(--gold);flex-shrink:0}
-.rmeta{display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap}
-.rname{font-size:.85rem;font-weight:700}
-.rdept{font-size:.66rem;background:#e8f4ee;color:var(--g1);border:1px solid #b3d9c0;border-radius:4px;padding:1px 6px;font-weight:700}
-.rduty{font-size:.66rem;background:#fff8e1;color:#a07000;border:1px solid #ffe082;border-radius:4px;padding:1px 6px;font-weight:700}
-.rtime{font-size:.65rem;color:var(--text3)}
-.rtxt{font-size:.82rem;color:var(--text2);line-height:1.6;white-space:pre-wrap}
-.rchk{display:inline-flex;align-items:center;gap:3px;font-size:.66rem;color:var(--g1);font-weight:700;margin-top:4px}
-.rctrl{display:flex;flex-direction:column;gap:3px;flex-shrink:0}
-.rea{width:100%;border:1px solid var(--g1);border-radius:6px;padding:.5rem;font-family:var(--sans);font-size:.82rem;color:var(--text);background:#fff;outline:none;resize:vertical;min-height:60px;margin-top:4px}
-.rebtns{display:flex;gap:4px;margin-top:4px}
-.rf{background:linear-gradient(135deg,#f0f7f2,#e8f4ee);border:1px solid #c8dfd0;border-radius:8px;padding:1rem}
-.rft{font-size:.75rem;font-weight:700;color:var(--g1);margin-bottom:.7rem;display:flex;align-items:center;gap:6px}
-.rft::before{content:'';display:inline-block;width:3px;height:14px;background:var(--gold);border-radius:2px}
-.rfg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-bottom:.5rem}
-.rfb{display:grid;grid-template-columns:1fr auto;gap:.5rem;align-items:end}
-.modal-back{display:none;position:fixed;inset:0;background:rgba(0,60,20,.5);backdrop-filter:blur(4px);z-index:400;align-items:center;justify-content:center;padding:1rem}
-.modal-back.show{display:flex}
-.modal{background:#fff;border-radius:12px;box-shadow:var(--sl);width:100%;max-width:560px;border-top:4px solid var(--g1);animation:fu .3s ease;max-height:90vh;overflow-y:auto}
-.mh{padding:1.2rem 1.5rem 1rem;border-bottom:1px solid var(--gray2);display:flex;align-items:center;gap:10px}
-.mh h3{font-size:1rem;font-weight:700;flex:1}
-.mh .xbtn{background:none;border:none;font-size:1.3rem;color:var(--gray4);cursor:pointer}
-.mb{padding:1.2rem 1.5rem}
-.mg{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem}
-.mf{margin-bottom:.75rem}
-.mft{padding:1rem 1.5rem;border-top:1px solid var(--gray2);display:flex;justify-content:flex-end;gap:.5rem}
-.loading{text-align:center;padding:3rem;color:var(--text3);font-size:.85rem}
-.spinner{width:32px;height:32px;border:3px solid var(--gray2);border-top-color:var(--g1);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
-.empty{text-align:center;padding:4rem 2rem;color:var(--text3);font-size:.82rem}
-.empty-icon{font-size:2.5rem;margin-bottom:10px;opacity:.5}
-.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--g1);color:#fff;border-radius:8px;padding:.75rem 1.2rem;font-size:.8rem;font-weight:500;z-index:500;opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none;box-shadow:var(--sm);max-width:300px}
-.toast.err{background:var(--red)}
-.toast.show{opacity:1;transform:translateY(0)}
-@keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-@keyframes spin{to{transform:rotate(360deg)}}
-@media(max-width:720px){
-  .reg-row{grid-template-columns:1fr}
-  .rfg{grid-template-columns:1fr 1fr}
-  .mg{grid-template-columns:1fr}
-}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-weight:300;}
+input,select,button{font-family:'Noto Sans KR',sans-serif;}
+input[type=range]{-webkit-appearance:none;appearance:none;height:2px;background:var(--border);outline:none;cursor:pointer;width:100%;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:var(--a);border-radius:50%;cursor:pointer;}
+
+/* ── PROGRESS ── */
+#progress{position:fixed;top:0;left:0;height:2px;background:var(--a);transition:width .4s;z-index:200;}
+
+/* ── HERO ── */
+#hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 24px;text-align:center;position:relative;overflow:hidden;}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(200,169,110,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(200,169,110,.04) 1px,transparent 1px);background-size:60px 60px;animation:gridShift 20s linear infinite;}
+@keyframes gridShift{100%{transform:translate(60px,60px);}}
+.hero-badge{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.3em;color:var(--a);border:1px solid rgba(200,169,110,.3);padding:5px 16px;margin-bottom:32px;display:inline-block;}
+.hero-title{font-family:'Noto Serif KR',serif;font-size:clamp(44px,8vw,80px);font-weight:300;line-height:1.1;margin-bottom:20px;}
+.hero-title em{font-style:normal;color:var(--a);}
+.hero-sub{font-size:14px;color:var(--muted);line-height:1.9;margin-bottom:40px;}
+.hero-feats{display:flex;gap:28px;justify-content:center;flex-wrap:wrap;margin-top:32px;}
+.feat{font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);}
+
+/* ── STEP NAV ── */
+#stepNav{display:none;position:sticky;top:0;z-index:100;background:rgba(14,14,14,.95);border-bottom:1px solid var(--border);backdrop-filter:blur(20px);}
+.nav-inner{display:flex;align-items:center;overflow-x:auto;padding:14px 20px;gap:0;scrollbar-width:none;}
+.nav-inner::-webkit-scrollbar{display:none;}
+.sitem{display:flex;align-items:center;gap:7px;padding:4px 10px;opacity:.3;cursor:default;transition:opacity .2s;}
+.sitem.active{opacity:1;}
+.sitem.done{opacity:.65;cursor:pointer;}
+.snum{width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:11px;border:1px solid var(--border);transition:all .2s;}
+.sitem.active .snum{background:var(--a);border-color:var(--a);color:#0e0e0e;}
+.sitem.done .snum{background:var(--a2);border-color:var(--a2);color:#0e0e0e;}
+.slabel{font-size:11px;color:var(--muted);white-space:nowrap;}
+.sitem.active .slabel{color:var(--text);}
+.ssep{width:20px;height:1px;background:var(--border);flex-shrink:0;}
+
+/* ── FORM ── */
+.fwrap{max-width:900px;margin:0 auto;padding:56px 20px 80px;}
+.stag{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.3em;color:var(--a);text-transform:uppercase;margin-bottom:14px;}
+.stitle{font-family:'Noto Serif KR',serif;font-size:clamp(26px,4vw,38px);font-weight:300;margin-bottom:10px;}
+.sdesc{font-size:13px;color:var(--muted);line-height:1.8;margin-bottom:40px;}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:640px){.pgrid{grid-template-columns:1fr;}}
+.pcard{background:var(--bg2);border:1px solid var(--border);padding:28px;position:relative;}
+.pcard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.pcard.a::before{background:var(--a);}
+.pcard.b::before{background:var(--a2);}
+.plabel{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.25em;color:var(--dim);margin-bottom:22px;display:flex;align-items:center;gap:8px;}
+.pdot{width:6px;height:6px;border-radius:50%;}
+.field{margin-bottom:20px;}
+.field:last-child{margin-bottom:0;}
+.flabel{font-size:11px;color:var(--muted);margin-bottom:8px;display:block;}
+.finput{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:13px;font-weight:300;padding:11px 14px;outline:none;transition:border-color .2s;}
+.finput:focus{border-color:var(--a);}
+.finput::placeholder{color:var(--dim);}
+.chips{display:flex;gap:6px;flex-wrap:wrap;}
+.chip{padding:7px 14px;font-size:12px;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--muted);transition:all .15s;white-space:nowrap;}
+.chip:hover{border-color:var(--borderL);color:var(--text);}
+.chip.on{border-color:var(--a);background:rgba(200,169,110,.12);color:var(--a);}
+.chip.on2{border-color:var(--a2);background:rgba(127,181,160,.12);color:var(--a2);}
+.rval{font-family:'DM Mono',monospace;font-size:20px;color:var(--a);margin-bottom:10px;}
+.rlabels{display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:6px;}
+
+/* shuttle */
+.shuttle-block{background:var(--bg3);border:1px solid var(--border);padding:18px;margin-top:10px;}
+.stop-row{display:grid;grid-template-columns:1fr 32px;gap:8px;margin-bottom:8px;}
+.stop-row input{background:var(--bg2);border:1px solid var(--border);color:var(--text);font-size:13px;padding:9px 12px;outline:none;width:100%;}
+.btn-rm{background:none;border:1px solid var(--border);color:var(--dim);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.btn-rm:hover{border-color:var(--a3);color:var(--a3);}
+.btn-add{width:100%;background:none;border:1px dashed var(--borderL);color:var(--dim);padding:9px;font-size:12px;cursor:pointer;margin-bottom:14px;}
+.btn-add:hover{border-color:var(--a);color:var(--a);}
+
+/* nav buttons */
+.fnav{display:flex;justify-content:space-between;align-items:center;margin-top:48px;padding-top:28px;border-top:1px solid var(--border);}
+.btn-prev{display:flex;align-items:center;gap:8px;padding:12px 24px;background:none;border:1px solid var(--border);color:var(--muted);font-size:13px;cursor:pointer;}
+.btn-prev:hover{border-color:var(--borderL);color:var(--text);}
+.btn-next{padding:12px 28px;background:var(--a);border:none;color:#0e0e0e;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;}
+.btn-next:hover{background:#d4ba80;transform:translateY(-1px);}
+.btn-next.big{padding:16px 44px;font-size:15px;}
+.divider{display:flex;align-items:center;gap:14px;margin:32px 0;}
+.divider-line{flex:1;height:1px;background:var(--border);}
+.divider-text{font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:.2em;text-transform:uppercase;}
+
+/* cond block */
+.cond{overflow:hidden;max-height:0;opacity:0;transition:max-height .4s ease,opacity .3s ease;}
+.cond.show{max-height:2000px;opacity:1;}
+
+/* ── RESULT ── */
+#result{display:none;max-width:1100px;margin:0 auto;padding:56px 20px 80px;}
+.result-hero{text-align:center;margin-bottom:48px;}
+.score-ring{width:100px;height:100px;border-radius:50%;border:2px solid var(--a);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 0 0 8px rgba(200,169,110,.1);}
+.score-num{font-family:'DM Mono',monospace;font-size:28px;color:var(--a);}
+.score-lbl{font-size:10px;color:var(--dim);}
+.rtitle{font-family:'Noto Serif KR',serif;font-size:clamp(22px,4vw,32px);font-weight:300;margin-bottom:8px;}
+
+/* strips */
+.strips{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;margin-bottom:2px;}
+@media(max-width:600px){.strips{grid-template-columns:repeat(2,1fr);}}
+.strip{background:var(--bg2);padding:18px 20px;}
+.strip-lbl{font-size:11px;color:var(--dim);margin-bottom:6px;}
+.strip-val{font-family:'DM Mono',monospace;font-size:18px;color:var(--text);}
+
+/* region cards */
+.rcards{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-bottom:2px;}
+@media(max-width:700px){.rcards{grid-template-columns:1fr;}}
+.rcard{background:var(--bg2);border:1px solid var(--border);padding:24px;position:relative;}
+.rcard-rank-bg{position:absolute;top:14px;right:18px;font-family:'DM Mono',monospace;font-size:48px;color:rgba(200,169,110,.08);line-height:1;}
+.rcard-tag{font-family:'DM Mono',monospace;font-size:10px;color:var(--a);letter-spacing:.2em;margin-bottom:10px;}
+.rcard-area{font-family:'Noto Serif KR',serif;font-size:22px;margin-bottom:4px;}
+.rcard-sub{font-size:12px;color:var(--muted);margin-bottom:20px;}
+
+/* commute rows */
+.crow{margin-bottom:12px;}
+.crow-top{display:flex;gap:10px;align-items:flex-start;margin-bottom:5px;}
+.cperson{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:11px;flex-shrink:0;margin-top:2px;}
+.cinfo{flex:1;}
+.ctime{font-family:'DM Mono',monospace;font-size:20px;line-height:1;margin-bottom:4px;}
+.ctime span{font-size:12px;color:var(--muted);margin-left:2px;}
+.croute{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.tbadge{font-family:'DM Mono',monospace;font-size:10px;padding:2px 8px;white-space:nowrap;}
+.tbadge.sub{background:rgba(79,130,213,.12);border:1px solid rgba(79,130,213,.3);color:#7da8e0;}
+.tbadge.car{background:rgba(200,169,110,.12);border:1px solid rgba(200,169,110,.3);color:var(--a);}
+.tbadge.shuttle{background:rgba(200,110,110,.12);border:1px solid rgba(200,110,110,.3);color:#e09090;}
+.tbadge.walk{background:rgba(127,181,160,.12);border:1px solid rgba(127,181,160,.3);color:var(--a2);}
+.cbar{height:2px;background:var(--border);}
+.cbar-fill{height:100%;transition:width 1s ease;}
+.gprow{display:flex;align-items:center;gap:10px;background:rgba(127,181,160,.06);border:1px solid rgba(127,181,160,.15);padding:8px 12px;margin-bottom:12px;}
+.gprow-info{display:flex;flex-direction:column;gap:2px;}
+.gprow-lbl{font-size:11px;color:var(--dim);}
+.gprow-val{font-family:'DM Mono',monospace;font-size:13px;color:var(--a2);}
+.divthin{height:1px;background:var(--border);margin:12px 0;}
+.mrow{display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;}
+.mrow-k{color:var(--dim);}
+.mrow-v{font-family:'DM Mono',monospace;color:var(--muted);}
+.rprice{margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-end;}
+.rprice-lbl{font-size:10px;color:var(--dim);}
+.rprice-val{font-family:'DM Mono',monospace;font-size:20px;color:var(--a);}
+
+/* MAP */
+#mapWrap{background:var(--bg2);border:1px solid var(--border);margin-top:2px;position:relative;}
+#naverMap{width:100%;height:420px;}
+.map-legend{position:absolute;bottom:16px;left:16px;background:rgba(14,14,14,.88);border:1px solid var(--border);padding:10px 14px;backdrop-filter:blur(8px);z-index:10;}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);margin-bottom:5px;}
+.legend-item:last-child{margin-bottom:0;}
+.legend-dot{width:10px;height:10px;border-radius:50%;}
+
+/* apt section */
+.apt-section{margin-top:48px;}
+.apt-tabs{display:flex;gap:2px;margin-bottom:2px;}
+.apt-tab{padding:9px 18px;font-size:12px;cursor:pointer;background:var(--bg2);border:1px solid var(--border);color:var(--dim);transition:all .15s;}
+.apt-tab.on{background:rgba(200,169,110,.12);border-color:var(--a);color:var(--a);}
+.apt-row{display:grid;grid-template-columns:44px 1fr auto;gap:16px;background:var(--bg2);border:1px solid var(--border);border-left:2px solid transparent;padding:18px 22px;margin-bottom:2px;transition:border-color .2s;}
+.apt-row:hover{border-color:var(--borderL);}
+.apt-row.r1{border-left-color:var(--a);}
+.apt-row.r2{border-left-color:var(--a2);}
+.apt-row.r3{border-left-color:var(--a3);}
+.apt-rank{font-family:'DM Mono',monospace;font-size:20px;color:var(--dim);opacity:.5;padding-top:2px;}
+.apt-name-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px;}
+.apt-name{font-size:14px;font-weight:400;color:var(--text);}
+.atag{font-family:'DM Mono',monospace;font-size:10px;padding:2px 7px;}
+.atag.r1{background:rgba(200,169,110,.1);border:1px solid rgba(200,169,110,.25);color:var(--a);}
+.atag.r2{background:rgba(127,181,160,.1);border:1px solid rgba(127,181,160,.25);color:var(--a2);}
+.atag.r3{background:rgba(212,117,110,.1);border:1px solid rgba(212,117,110,.25);color:var(--a3);}
+.atag.new{background:rgba(200,169,110,.08);border:1px solid rgba(200,169,110,.2);color:var(--a);}
+.atag.gtx{background:rgba(127,181,160,.08);border:1px solid rgba(127,181,160,.2);color:var(--a2);}
+.atag.etc{background:rgba(160,160,200,.08);border:1px solid rgba(160,160,200,.2);color:#a0a0c8;}
+.apt-addr{font-size:11px;color:var(--dim);margin-bottom:8px;}
+.apt-chips{display:flex;gap:5px;flex-wrap:wrap;}
+.apt-chip{font-size:11px;padding:3px 9px;background:var(--bg3);border:1px solid var(--border);color:var(--muted);}
+.apt-price-block{text-align:right;flex-shrink:0;}
+.apt-size{font-family:'DM Mono',monospace;font-size:11px;color:var(--dim);margin-bottom:4px;}
+.apt-price{font-family:'DM Mono',monospace;font-size:18px;color:var(--a);}
+.apt-pdate{font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:2px;}
+.apt-row.hidden{display:none;}
+@media(max-width:560px){.apt-row{grid-template-columns:32px 1fr;}.apt-price-block{grid-column:2;}}
+
+.btn-restart{background:none;border:1px solid var(--borderL);color:var(--muted);padding:12px 28px;font-size:13px;cursor:pointer;margin-top:48px;display:inline-block;}
+.btn-restart:hover{border-color:var(--a);color:var(--a);}
 </style>
 </head>
 <body>
-<div class="topband"></div>
-<header>
-  <div class="hi">
-    <div class="logo">
-      <img src="data:image/jpeg;base64,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" alt="농협"/>
-      <div class="logo-div"></div>
-      <div class="logo-text">
-        <strong>IT 업무확인 게시판</strong>
-        <span>NH Nonghyup · IT Work Confirmation Board</span>
+<div id="progress" style="width:0%"></div>
+
+<!-- ── HERO ── -->
+<section id="hero">
+  <div class="hero-grid"></div>
+  <div style="position:relative;">
+    <div class="hero-badge">COUPLE HOME FINDER · 우리집 찾기</div>
+    <h1 class="hero-title">두 사람의 삶이<br>만나는 <em>집</em></h1>
+    <p class="hero-sub">각자의 직장, 이동 방식, 가족 상황을 입력하면<br>최적의 주거 지역과 아파트 실거래가를 분석해드립니다</p>
+    <button onclick="startForm()" style="background:var(--a);color:#0e0e0e;border:none;padding:16px 44px;font-size:15px;font-weight:500;cursor:pointer;">시작하기 →</button>
+    <div class="hero-feats">
+      <div class="feat">✦ 출퇴근 동선 분석</div>
+      <div class="feat">✦ 셔틀·대중교통 구분</div>
+      <div class="feat">✦ 조부모 동선 반영</div>
+      <div class="feat">✦ 네이버 지도 연동</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── STEP NAV ── -->
+<nav id="stepNav">
+  <div class="nav-inner">
+    <div class="sitem active" id="nav1" onclick="tryGo(1)"><div class="snum">1</div><div class="slabel">출근 정보</div></div>
+    <div class="ssep"></div>
+    <div class="sitem" id="nav2" onclick="tryGo(2)"><div class="snum">2</div><div class="slabel">이동 수단</div></div>
+    <div class="ssep"></div>
+    <div class="sitem" id="nav3" onclick="tryGo(3)"><div class="snum">3</div><div class="slabel">자녀·조부모</div></div>
+    <div class="ssep"></div>
+    <div class="sitem" id="nav4" onclick="tryGo(4)"><div class="snum">4</div><div class="slabel">조건·예산</div></div>
+    <div class="ssep"></div>
+    <div class="sitem" id="nav5" onclick="tryGo(5)"><div class="snum">5</div><div class="slabel">결과</div></div>
+  </div>
+</nav>
+
+<!-- ════ STEP 1 ════ -->
+<div id="step1" class="fwrap" style="display:none;">
+  <div class="stag">Step 01 · Commute</div>
+  <div class="stitle">두 분의 출근지를 알려주세요</div>
+  <div class="sdesc">직장 주소 또는 역명·지역명도 괜찮아요.</div>
+
+  <div class="pgrid">
+    <div class="pcard a">
+      <div class="plabel"><div class="pdot" style="background:var(--a)"></div>배우자 A</div>
+      <div class="field">
+        <label class="flabel">출근지</label>
+        <input class="finput" id="work1" placeholder="예: 강남구 테헤란로 / 판교역">
       </div>
-    </div>
-    <div class="conn-bar">
-      <span class="conn-status conn-no" id="connStatus">● 연결중...</span>
-    </div>
-  </div>
-</header>
-
-<div class="hero">
-  <div class="hero-in">
-    <h1>IT 작업 <span>업무확인</span> 게시판</h1>
-    <p>작업 등록 후 담당자가 업무확인 응답을 남기는 협업 시스템 · GitHub Issues 기반 영구저장</p>
-    <div class="stats-row">
-      <div class="sp">전체 작업 <b id="sTotal">0</b>건</div>
-      <div class="sp">진행중 <b id="sOngoing">0</b>건</div>
-      <div class="sp">완료 <b id="sDone">0</b>건</div>
-      <div class="sp">업무확인 응답 <b id="sReplies">0</b>건</div>
-    </div>
-  </div>
-</div>
-
-<div class="main">
-  <div class="sl-row"><h2>작업 등록</h2><div class="sl-line"></div></div>
-  <div class="reg-card">
-    <div class="reg-row">
-      <div class="fg"><label>작업 날짜</label><input type="date" id="qDate"/></div>
-      <div class="fg"><label>작업명</label><input type="text" id="qTitle" placeholder="예) 운영서버 보안패치, DB 백업 작업..."/></div>
-      <button class="btn btn-p" onclick="openNewModal()">＋ 작업 등록</button>
-    </div>
-  </div>
-  <div class="fbar">
-    <button class="fb active" onclick="setFilter('all',this)">전체</button>
-    <button class="fb" onclick="setFilter('open',this)">진행중</button>
-    <button class="fb" onclick="setFilter('closed',this)">완료</button>
-    <div class="sw"><input type="text" placeholder="작업명 검색..." oninput="doSearch(this.value)"/></div>
-  </div>
-  <div class="sl-row"><h2>작업 목록</h2><div class="sl-line"></div></div>
-  <div class="board" id="board">
-    <div class="loading"><div class="spinner"></div>작업 목록 불러오는 중...</div>
-  </div>
-</div>
-
-<div class="modal-back" id="newModal">
-  <div class="modal">
-    <div class="mh"><h3>📋 IT 작업 등록</h3><button class="xbtn" onclick="closeNewModal()">✕</button></div>
-    <div class="mb">
-      <div class="mg">
-        <div class="fg"><label>작업 날짜</label><input type="date" id="mDate"/></div>
-        <div class="fg"><label>작업 유형</label>
-          <select id="mType">
-            <option>서버 작업</option><option>네트워크 작업</option>
-            <option>DB 작업</option><option>보안 패치</option>
-            <option>시스템 점검</option><option>소프트웨어 배포</option>
-            <option>하드웨어 교체</option><option>기타</option>
-          </select>
+      <div class="field">
+        <label class="flabel">출퇴근 허용 시간 (편도)</label>
+        <div class="rval" id="c1v">45분</div>
+        <input type="range" id="c1" min="10" max="120" value="45" step="5" oninput="document.getElementById('c1v').textContent=this.value+'분'">
+        <div class="rlabels"><span>10분</span><span>120분</span></div>
+      </div>
+      <div class="field">
+        <label class="flabel">재택근무 빈도</label>
+        <div class="chips" id="r1">
+          <div class="chip on" onclick="pick(this,'r1')">없음</div>
+          <div class="chip" onclick="pick(this,'r1')">주 1일</div>
+          <div class="chip" onclick="pick(this,'r1')">주 2~3일</div>
+          <div class="chip" onclick="pick(this,'r1')">거의 재택</div>
         </div>
       </div>
-      <div class="mf fg"><label>작업명</label><input type="text" id="mTitle" placeholder="작업명을 입력하세요"/></div>
-      <div class="mf fg"><label>작업 설명 (선택)</label><textarea id="mDesc" placeholder="작업 내용, 영향 범위, 주의사항..."></textarea></div>
-      <div class="mg">
-        <div class="fg"><label>시작 시간</label><input type="time" id="mSt"/></div>
-        <div class="fg"><label>종료 시간</label><input type="time" id="mEt"/></div>
+    </div>
+
+    <div class="pcard b">
+      <div class="plabel"><div class="pdot" style="background:var(--a2)"></div>배우자 B</div>
+      <div class="field">
+        <label class="flabel">출근지</label>
+        <input class="finput" id="work2" placeholder="예: 여의도 / 마곡나루역">
       </div>
-      <div class="mf fg"><label>등록자</label><input type="text" id="mAuthor" placeholder="등록자 이름"/></div>
+      <div class="field">
+        <label class="flabel">출퇴근 허용 시간 (편도)</label>
+        <div class="rval" id="c2v">45분</div>
+        <input type="range" id="c2" min="10" max="120" value="45" step="5" oninput="document.getElementById('c2v').textContent=this.value+'분'">
+        <div class="rlabels"><span>10분</span><span>120분</span></div>
+      </div>
+      <div class="field">
+        <label class="flabel">재택근무 빈도</label>
+        <div class="chips" id="r2">
+          <div class="chip on" onclick="pick(this,'r2')">없음</div>
+          <div class="chip" onclick="pick(this,'r2')">주 1일</div>
+          <div class="chip" onclick="pick(this,'r2')">주 2~3일</div>
+          <div class="chip" onclick="pick(this,'r2')">거의 재택</div>
+        </div>
+      </div>
     </div>
-    <div class="mft">
-      <button class="btn btn-ghost" onclick="closeNewModal()">취소</button>
-      <button class="btn btn-p" onclick="submitTask()">등록</button>
-    </div>
+  </div>
+
+  <div class="divider"><div class="divider-line"></div><div class="divider-text">우선순위 가중치</div><div class="divider-line"></div></div>
+  <div style="background:var(--bg2);border:1px solid var(--border);padding:24px;">
+    <div class="flabel" id="wlbl">A와 B 동등 — 50% / 50%</div>
+    <input type="range" id="wt" min="0" max="100" value="50" step="10" oninput="updW(this.value)">
+    <div class="rlabels"><span>A 우선</span><span>동등</span><span>B 우선</span></div>
+  </div>
+
+  <div class="fnav" style="justify-content:flex-end;">
+    <button class="btn-next" onclick="go(2)">다음: 이동 수단 →</button>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<!-- ════ STEP 2 ════ -->
+<div id="step2" class="fwrap" style="display:none;">
+  <div class="stag">Step 02 · Transport</div>
+  <div class="stitle">어떻게 출근하시나요?</div>
+  <div class="sdesc">셔틀 이용 시 탑승 정류장이 출근 기점이 됩니다.</div>
+
+  <div class="pgrid">
+    <!-- A -->
+    <div class="pcard a">
+      <div class="plabel"><div class="pdot" style="background:var(--a)"></div>배우자 A</div>
+      <div class="field">
+        <label class="flabel">주 이동 수단</label>
+        <div class="chips" id="tr1">
+          <div class="chip on" onclick="pick(this,'tr1')">🚇 대중교통</div>
+          <div class="chip" onclick="pick(this,'tr1')">🚗 자가용</div>
+          <div class="chip" onclick="pick(this,'tr1')">🚌 셔틀버스</div>
+          <div class="chip" onclick="pick(this,'tr1')">🚶 도보/자전거</div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="flabel">차량 보유</label>
+        <div class="chips" id="ca1">
+          <div class="chip on" onclick="pick(this,'ca1')">있음</div>
+          <div class="chip" onclick="pick(this,'ca1')">없음</div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="flabel">셔틀버스 이용</label>
+        <div class="chips" id="sh1">
+          <div class="chip on" onclick="pick(this,'sh1');toggleShuttle('sb1',false)">없음</div>
+          <div class="chip" onclick="pick(this,'sh1');toggleShuttle('sb1',true)">이용함</div>
+        </div>
+        <div class="shuttle-block" id="sb1" style="display:none;">
+          <div class="flabel" style="margin-bottom:10px;">탑승 정류장</div>
+          <div id="stops1">
+            <div class="stop-row"><input placeholder="정류장명 또는 주소"><button class="btn-rm" onclick="rmStop(this)">×</button></div>
+          </div>
+          <button class="btn-add" onclick="addStop('stops1')">+ 정류장 추가</button>
+          <div class="field">
+            <label class="flabel">정류장까지 이동수단</label>
+            <div class="chips" id="st1"><div class="chip on" onclick="pick(this,'st1')">도보</div><div class="chip" onclick="pick(this,'st1')">차량</div><div class="chip" onclick="pick(this,'st1')">대중교통</div></div>
+          </div>
+          <div class="field">
+            <label class="flabel">셔틀 첫차</label>
+            <input type="time" class="finput" value="07:30" style="width:auto;">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- B -->
+    <div class="pcard b">
+      <div class="plabel"><div class="pdot" style="background:var(--a2)"></div>배우자 B</div>
+      <div class="field">
+        <label class="flabel">주 이동 수단</label>
+        <div class="chips" id="tr2">
+          <div class="chip on" onclick="pick(this,'tr2')">🚇 대중교통</div>
+          <div class="chip" onclick="pick(this,'tr2')">🚗 자가용</div>
+          <div class="chip" onclick="pick(this,'tr2')">🚌 셔틀버스</div>
+          <div class="chip" onclick="pick(this,'tr2')">🚶 도보/자전거</div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="flabel">차량 보유</label>
+        <div class="chips" id="ca2">
+          <div class="chip on" onclick="pick(this,'ca2')">있음</div>
+          <div class="chip" onclick="pick(this,'ca2')">없음</div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="flabel">셔틀버스 이용</label>
+        <div class="chips" id="sh2">
+          <div class="chip on" onclick="pick(this,'sh2');toggleShuttle('sb2',false)">없음</div>
+          <div class="chip" onclick="pick(this,'sh2');toggleShuttle('sb2',true)">이용함</div>
+        </div>
+        <div class="shuttle-block" id="sb2" style="display:none;">
+          <div class="flabel" style="margin-bottom:10px;">탑승 정류장</div>
+          <div id="stops2">
+            <div class="stop-row"><input placeholder="정류장명 또는 주소"><button class="btn-rm" onclick="rmStop(this)">×</button></div>
+          </div>
+          <button class="btn-add" onclick="addStop('stops2')">+ 정류장 추가</button>
+          <div class="field">
+            <label class="flabel">정류장까지 이동수단</label>
+            <div class="chips" id="st2"><div class="chip on" onclick="pick(this,'st2')">도보</div><div class="chip" onclick="pick(this,'st2')">차량</div><div class="chip" onclick="pick(this,'st2')">대중교통</div></div>
+          </div>
+          <div class="field">
+            <label class="flabel">셔틀 첫차</label>
+            <input type="time" class="finput" value="07:30" style="width:auto;">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fnav">
+    <button class="btn-prev" onclick="go(1)">← 이전</button>
+    <button class="btn-next" onclick="go(3)">다음: 자녀·조부모 →</button>
+  </div>
+</div>
+
+<!-- ════ STEP 3 ════ -->
+<div id="step3" class="fwrap" style="display:none;">
+  <div class="stag">Step 03 · Family</div>
+  <div class="stitle">가족 구성을 알려주세요</div>
+  <div class="sdesc">조부모 거주지와 돌봄 가능 여부는 픽업 동선 계산에 반영됩니다.</div>
+
+  <div class="field">
+    <label class="flabel">자녀 유무</label>
+    <div class="chips" id="ch">
+      <div class="chip on" onclick="pick(this,'ch');showChildren(false)">자녀 없음</div>
+      <div class="chip" onclick="pick(this,'ch');showChildren(true)">계획 중</div>
+      <div class="chip" onclick="pick(this,'ch');showChildren(true)">자녀 있음</div>
+    </div>
+  </div>
+
+  <div class="cond" id="childBlock">
+    <div class="pgrid" style="margin-top:24px;">
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:24px;">
+        <div class="plabel">👶 자녀 정보</div>
+        <div class="field">
+          <label class="flabel">자녀 나이대 (복수 선택)</label>
+          <div class="chips">
+            <div class="chip" onclick="toggle(this)">영유아(0~3세)</div>
+            <div class="chip" onclick="toggle(this)">유치원(4~7세)</div>
+            <div class="chip" onclick="toggle(this)">초등 저학년</div>
+            <div class="chip" onclick="toggle(this)">초등 고학년+</div>
+          </div>
+        </div>
+        <div class="field">
+          <label class="flabel">교육 환경 우선순위</label>
+          <div class="chips">
+            <div class="chip" onclick="toggle(this)">학군</div>
+            <div class="chip" onclick="toggle(this)">어린이집 접근성</div>
+            <div class="chip" onclick="toggle(this)">학원가 근접</div>
+            <div class="chip" onclick="toggle(this)">자연·공원</div>
+          </div>
+        </div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:24px;">
+        <div class="plabel">👴 조부모 돌봄</div>
+        <div class="field">
+          <label class="flabel">조부모 돌봄 가능 여부</label>
+          <div class="chips" id="gp">
+            <div class="chip on" onclick="pick(this,'gp');showGp(false)">불가/해당없음</div>
+            <div class="chip" onclick="pick(this,'gp');showGp(true)">가능</div>
+          </div>
+        </div>
+        <div class="cond" id="gpBlock">
+          <div class="field">
+            <label class="flabel">조부모 거주지</label>
+            <input class="finput" id="gpAddr" placeholder="예: 노원구 / 분당 / 인천">
+          </div>
+          <div class="field">
+            <label class="flabel">조부모 차량 보유</label>
+            <div class="chips" id="gpc"><div class="chip on" onclick="pick(this,'gpc')">있음</div><div class="chip" onclick="pick(this,'gpc')">없음</div></div>
+          </div>
+          <div class="field">
+            <label class="flabel">픽업 유형</label>
+            <div class="chips" id="pu">
+              <div class="chip on" onclick="pick(this,'pu')">우리집에서 돌봄</div>
+              <div class="chip" onclick="pick(this,'pu')">조부모집에서 돌봄</div>
+              <div class="chip" onclick="pick(this,'pu')">어린이집 픽업</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fnav">
+    <button class="btn-prev" onclick="go(2)">← 이전</button>
+    <button class="btn-next" onclick="go(4)">다음: 조건·예산 →</button>
+  </div>
+</div>
+
+<!-- ════ STEP 4 ════ -->
+<div id="step4" class="fwrap" style="display:none;">
+  <div class="stag">Step 04 · Conditions</div>
+  <div class="stitle">주거 조건과 예산을 설정해주세요</div>
+  <div class="sdesc">예산·평형·선호 환경을 설정하면 더 정확한 결과를 드려요.</div>
+
+  <div class="pgrid">
+    <div>
+      <div class="field">
+        <label class="flabel">주거 형태 (복수 선택)</label>
+        <div class="chips">
+          <div class="chip on" onclick="toggle(this)">🏢 아파트</div>
+          <div class="chip" onclick="toggle(this)">🏠 빌라/다세대</div>
+          <div class="chip" onclick="toggle(this)">🏙 오피스텔</div>
+          <div class="chip" onclick="toggle(this)">🏡 단독주택</div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="flabel">거래 방식</label>
+        <div class="chips" id="dt">
+          <div class="chip on" onclick="pick(this,'dt')">매매</div>
+          <div class="chip" onclick="pick(this,'dt')">전세</div>
+          <div class="chip" onclick="pick(this,'dt')">월세</div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="flabel">예산</label>
+        <div class="rval" id="budv">8억</div>
+        <input type="range" id="bud" min="1" max="30" value="8" step="0.5" oninput="document.getElementById('budv').textContent=this.value+'억'">
+        <div class="rlabels"><span>1억</span><span>30억+</span></div>
+      </div>
+      <div class="field">
+        <label class="flabel">희망 평형</label>
+        <div class="chips" id="sz">
+          <div class="chip" onclick="pick(this,'sz')">~20평</div>
+          <div class="chip on" onclick="pick(this,'sz')">25~32평</div>
+          <div class="chip" onclick="pick(this,'sz')">33~42평</div>
+          <div class="chip" onclick="pick(this,'sz')">43평+</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="field">
+        <label class="flabel">선호 지역 (선택)</label>
+        <input class="finput" placeholder="예: 마포구, 성동구">
+      </div>
+      <div class="field">
+        <label class="flabel">기피 지역 (선택)</label>
+        <input class="finput" placeholder="예: 강남구 (예산 초과 등)">
+      </div>
+      <div class="field">
+        <label class="flabel">주거 환경 우선순위 (복수 선택)</label>
+        <div class="chips">
+          <div class="chip" onclick="toggle(this)">🌿 공원·자연</div>
+          <div class="chip" onclick="toggle(this)">🏫 학군</div>
+          <div class="chip" onclick="toggle(this)">🛒 생활편의</div>
+          <div class="chip" onclick="toggle(this)">🔇 조용함</div>
+          <div class="chip" onclick="toggle(this)">📈 개발호재</div>
+          <div class="chip" onclick="toggle(this)">🚉 역세권</div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="flabel">미래 교통 호재 반영</label>
+        <div class="chips" id="ft">
+          <div class="chip on" onclick="pick(this,'ft')">반영 (GTX·신규노선 포함)</div>
+          <div class="chip" onclick="pick(this,'ft')">현재 기준만</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fnav">
+    <button class="btn-prev" onclick="go(3)">← 이전</button>
+    <button class="btn-next big" onclick="showResult()">✦ 최적 지역 분석하기</button>
+  </div>
+</div>
+
+<!-- ════ STEP 5: 결과 ════ -->
+<div id="result">
+  <div class="result-hero">
+    <div class="score-ring"><div class="score-num">87</div><div class="score-lbl">적합도</div></div>
+    <div class="rtitle">분석이 완료되었습니다</div>
+    <p style="font-size:13px;color:var(--muted);">두 분의 조건을 종합한 최적 주거 지역 TOP 3</p>
+  </div>
+
+  <!-- strips -->
+  <div class="strips">
+    <div class="strip"><div class="strip-lbl">분석 지역</div><div class="strip-val">47개 구/동</div></div>
+    <div class="strip"><div class="strip-lbl">A 최대 출퇴근</div><div class="strip-val">38분</div></div>
+    <div class="strip"><div class="strip-lbl">B 최대 출퇴근</div><div class="strip-val">42분</div></div>
+    <div class="strip"><div class="strip-lbl">예산 적합 단지</div><div class="strip-val">12개</div></div>
+  </div>
+
+  <!-- region cards -->
+  <div class="rcards">
+    <!-- 마포 -->
+    <div class="rcard">
+      <div class="rcard-rank-bg">01</div>
+      <div class="rcard-tag">✦ 1순위 추천</div>
+      <div class="rcard-area">마포구</div>
+      <div class="rcard-sub">공덕동 · 아현동 · 대흥동</div>
+      <div class="crow">
+        <div class="crow-top">
+          <div class="cperson" style="background:rgba(200,169,110,.15);border:1px solid rgba(200,169,110,.3);color:var(--a);">A</div>
+          <div class="cinfo">
+            <div class="ctime">28<span>분</span></div>
+            <div class="croute"><span class="tbadge sub">🚇 지하철</span><span style="font-size:11px;color:var(--dim);">공덕→강남 1회환승</span></div>
+          </div>
+        </div>
+        <div class="cbar"><div class="cbar-fill" style="width:28%;background:var(--a);"></div></div>
+      </div>
+      <div class="crow">
+        <div class="crow-top">
+          <div class="cperson" style="background:rgba(127,181,160,.15);border:1px solid rgba(127,181,160,.3);color:var(--a2);">B</div>
+          <div class="cinfo">
+            <div class="ctime">35<span>분</span></div>
+            <div class="croute"><span class="tbadge car">🚗 자가용</span><span style="font-size:11px;color:var(--dim);">올림픽대로→여의도</span></div>
+          </div>
+        </div>
+        <div class="cbar"><div class="cbar-fill" style="width:35%;background:var(--a2);"></div></div>
+      </div>
+      <div class="gprow" id="gpRow1"><span style="font-size:15px;">👴</span><div class="gprow-info"><div class="gprow-lbl">조부모(노원구)까지</div><div class="gprow-val">🚇 지하철 42분</div></div></div>
+      <div class="divthin"></div>
+      <div class="mrow"><span class="mrow-k">학군</span><span class="mrow-v">★★★☆☆</span></div>
+      <div class="mrow"><span class="mrow-k">생활편의</span><span class="mrow-v">★★★★☆</span></div>
+      <div class="mrow"><span class="mrow-k">개발호재</span><span class="mrow-v">신촌·홍대 개발</span></div>
+      <div class="rprice"><div><div class="rprice-lbl">30평대 실거래 평균</div><div class="rprice-lbl">최근 6개월</div></div><div class="rprice-val">9.2억</div></div>
+    </div>
+
+    <!-- 성동 -->
+    <div class="rcard">
+      <div class="rcard-rank-bg">02</div>
+      <div class="rcard-tag">2순위</div>
+      <div class="rcard-area">성동구</div>
+      <div class="rcard-sub">행당동 · 금호동 · 왕십리</div>
+      <div class="crow">
+        <div class="crow-top">
+          <div class="cperson" style="background:rgba(200,169,110,.15);border:1px solid rgba(200,169,110,.3);color:var(--a);">A</div>
+          <div class="cinfo">
+            <div class="ctime">32<span>분</span></div>
+            <div class="croute"><span class="tbadge car">🚗 자가용</span><span style="font-size:11px;color:var(--dim);">내부순환→강남</span></div>
+          </div>
+        </div>
+        <div class="cbar"><div class="cbar-fill" style="width:32%;background:var(--a);"></div></div>
+      </div>
+      <div class="crow">
+        <div class="crow-top">
+          <div class="cperson" style="background:rgba(127,181,160,.15);border:1px solid rgba(127,181,160,.3);color:var(--a2);">B</div>
+          <div class="cinfo">
+            <div class="ctime">38<span>분</span></div>
+            <div class="croute"><span class="tbadge sub">🚇 지하철</span><span style="font-size:11px;color:var(--dim);">왕십리→여의도 2호선</span></div>
+          </div>
+        </div>
+        <div class="cbar"><div class="cbar-fill" style="width:38%;background:var(--a2);"></div></div>
+      </div>
+      <div class="gprow" id="gpRow2"><span style="font-size:15px;">👴</span><div class="gprow-info"><div class="gprow-lbl">조부모(노원구)까지</div><div class="gprow-val">🚇 지하철 38분</div></div></div>
+      <div class="divthin"></div>
+      <div class="mrow"><span class="mrow-k">학군</span><span class="mrow-v">★★★★☆</span></div>
+      <div class="mrow"><span class="mrow-k">생활편의</span><span class="mrow-v">★★★★★</span></div>
+      <div class="mrow"><span class="mrow-k">개발호재</span><span class="mrow-v" style="color:var(--a2);">GTX-B 예정 🚄</span></div>
+      <div class="rprice"><div><div class="rprice-lbl">30평대 실거래 평균</div><div class="rprice-lbl">최근 6개월</div></div><div class="rprice-val">10.8억</div></div>
+    </div>
+
+    <!-- 동작 -->
+    <div class="rcard">
+      <div class="rcard-rank-bg">03</div>
+      <div class="rcard-tag">3순위</div>
+      <div class="rcard-area">동작구</div>
+      <div class="rcard-sub">노량진 · 사당동 · 흑석동</div>
+      <div class="crow">
+        <div class="crow-top">
+          <div class="cperson" style="background:rgba(200,169,110,.15);border:1px solid rgba(200,169,110,.3);color:var(--a);">A</div>
+          <div class="cinfo">
+            <div class="ctime">41<span>분</span></div>
+            <div class="croute"><span class="tbadge shuttle">🚌 셔틀</span><span style="font-size:11px;color:var(--dim);">사당역 탑승→판교 07:20</span></div>
+          </div>
+        </div>
+        <div class="cbar"><div class="cbar-fill" style="width:41%;background:var(--a);"></div></div>
+      </div>
+      <div class="crow">
+        <div class="crow-top">
+          <div class="cperson" style="background:rgba(127,181,160,.15);border:1px solid rgba(127,181,160,.3);color:var(--a2);">B</div>
+          <div class="cinfo">
+            <div class="ctime">29<span>분</span></div>
+            <div class="croute"><span class="tbadge sub">🚇 지하철</span><span style="font-size:11px;color:var(--dim);">노량진→여의도 9호선급행</span></div>
+          </div>
+        </div>
+        <div class="cbar"><div class="cbar-fill" style="width:29%;background:var(--a2);"></div></div>
+      </div>
+      <div class="gprow" id="gpRow3"><span style="font-size:15px;">👴</span><div class="gprow-info"><div class="gprow-lbl">조부모(노원구)까지</div><div class="gprow-val">🚇 지하철 55분</div></div></div>
+      <div class="divthin"></div>
+      <div class="mrow"><span class="mrow-k">학군</span><span class="mrow-v">★★★★★</span></div>
+      <div class="mrow"><span class="mrow-k">생활편의</span><span class="mrow-v">★★★☆☆</span></div>
+      <div class="mrow"><span class="mrow-k">예산 적합도</span><span class="mrow-v">★★★★☆</span></div>
+      <div class="rprice"><div><div class="rprice-lbl">30평대 실거래 평균</div><div class="rprice-lbl">최근 6개월</div></div><div class="rprice-val">8.5억</div></div>
+    </div>
+  </div>
+
+  <!-- ── 네이버 지도 ── -->
+  <div id="mapWrap">
+    <div id="naverMap"></div>
+    <div class="map-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--a);"></div>추천 주거지</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#7da8e0;"></div>A 출근지</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--a2);"></div>B 출근지</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#a0a0c8;"></div>조부모 거주지</div>
+    </div>
+  </div>
+
+  <!-- ── 아파트 10선 ── -->
+  <div class="apt-section">
+    <div class="stag" style="margin-top:48px;">Apartment List</div>
+    <div class="stitle">추천 아파트 <span style="color:var(--a);">10선</span></div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:22px;line-height:1.7;">예산·평형·출퇴근 동선을 종합 반영한 실거래 단지입니다</p>
+
+    <div class="apt-tabs">
+      <button class="apt-tab on" onclick="filterApt(this,'all')">전체</button>
+      <button class="apt-tab" onclick="filterApt(this,'1')">마포구</button>
+      <button class="apt-tab" onclick="filterApt(this,'2')">성동구</button>
+      <button class="apt-tab" onclick="filterApt(this,'3')">동작구</button>
+    </div>
+
+    <div id="aptList">
+      <div class="apt-row r1" data-r="1"><div class="apt-rank">01</div><div><div class="apt-name-row"><span class="apt-name">마포래미안푸르지오</span><span class="atag r1">마포구</span><span class="atag new">신축</span></div><div class="apt-addr">아현동 · 아현역 도보 3분</div><div class="apt-chips"><span class="apt-chip">A 🚇 26분 지하철</span><span class="apt-chip">B 🚗 33분 자가용</span><span class="apt-chip">👴 🚇 40분</span></div></div><div class="apt-price-block"><div class="apt-size">34평</div><div class="apt-price">11.2억</div><div class="apt-pdate">실거래 '25.02</div></div></div>
+      <div class="apt-row r1" data-r="1"><div class="apt-rank">02</div><div><div class="apt-name-row"><span class="apt-name">공덕자이</span><span class="atag r1">마포구</span></div><div class="apt-addr">공덕동 · 공덕역 도보 5분</div><div class="apt-chips"><span class="apt-chip">A 🚇 28분 지하철</span><span class="apt-chip">B 🚗 31분 자가용</span><span class="apt-chip">👴 🚇 43분</span></div></div><div class="apt-price-block"><div class="apt-size">33평</div><div class="apt-price">9.8억</div><div class="apt-pdate">실거래 '25.01</div></div></div>
+      <div class="apt-row r1" data-r="1"><div class="apt-rank">03</div><div><div class="apt-name-row"><span class="apt-name">마포한강2차아이파크</span><span class="atag r1">마포구</span></div><div class="apt-addr">대흥동 · 대흥역 도보 7분</div><div class="apt-chips"><span class="apt-chip">A 🚇 31분 지하철</span><span class="apt-chip">B 🚗 36분 자가용</span><span class="apt-chip">👴 🚇 38분</span></div></div><div class="apt-price-block"><div class="apt-size">30평</div><div class="apt-price">8.4억</div><div class="apt-pdate">실거래 '25.01</div></div></div>
+      <div class="apt-row r1" data-r="1"><div class="apt-rank">04</div><div><div class="apt-name-row"><span class="apt-name">신촌숲아이파크</span><span class="atag r1">마포구</span><span class="atag etc">조부모 픽업 유리</span></div><div class="apt-addr">동교동 · 홍대입구역 도보 8분</div><div class="apt-chips"><span class="apt-chip">A 🚇 29분 지하철</span><span class="apt-chip">B 🚗 38분 자가용</span><span class="apt-chip">👴 🚇 41분</span></div></div><div class="apt-price-block"><div class="apt-size">32평</div><div class="apt-price">9.1억</div><div class="apt-pdate">실거래 '24.12</div></div></div>
+      <div class="apt-row r2" data-r="2"><div class="apt-rank">05</div><div><div class="apt-name-row"><span class="apt-name">왕십리자이</span><span class="atag r2">성동구</span><span class="atag gtx">GTX-B</span></div><div class="apt-addr">행당동 · 왕십리역 도보 4분</div><div class="apt-chips"><span class="apt-chip">A 🚗 30분 자가용</span><span class="apt-chip">B 🚇 36분 지하철</span><span class="apt-chip">👴 🚇 37분</span></div></div><div class="apt-price-block"><div class="apt-size">34평</div><div class="apt-price">12.0억</div><div class="apt-pdate">실거래 '25.02</div></div></div>
+      <div class="apt-row r2" data-r="2"><div class="apt-rank">06</div><div><div class="apt-name-row"><span class="apt-name">금호두산위브</span><span class="atag r2">성동구</span></div><div class="apt-addr">금호동 · 금호역 도보 6분</div><div class="apt-chips"><span class="apt-chip">A 🚗 33분 자가용</span><span class="apt-chip">B 🚇 40분 지하철</span><span class="apt-chip">👴 🚇 42분</span></div></div><div class="apt-price-block"><div class="apt-size">31평</div><div class="apt-price">9.5억</div><div class="apt-pdate">실거래 '24.12</div></div></div>
+      <div class="apt-row r2" data-r="2"><div class="apt-rank">07</div><div><div class="apt-name-row"><span class="apt-name">서울숲리버뷰자이</span><span class="atag r2">성동구</span><span class="atag new">신축</span></div><div class="apt-addr">성수동 · 뚝섬역 도보 9분</div><div class="apt-chips"><span class="apt-chip">A 🚗 35분 자가용</span><span class="apt-chip">B 🚇 42분 지하철</span><span class="apt-chip">👴 🚇 39분</span></div></div><div class="apt-price-block"><div class="apt-size">33평</div><div class="apt-price">13.4억</div><div class="apt-pdate">실거래 '25.01</div></div></div>
+      <div class="apt-row r3" data-r="3"><div class="apt-rank">08</div><div><div class="apt-name-row"><span class="apt-name">흑석한강센트레빌</span><span class="atag r3">동작구</span><span class="atag etc">학군 우수</span></div><div class="apt-addr">흑석동 · 흑석역 도보 5분</div><div class="apt-chips"><span class="apt-chip">A 🚌 40분 셔틀</span><span class="apt-chip">B 🚇 27분 지하철</span><span class="apt-chip">👴 🚇 52분</span></div></div><div class="apt-price-block"><div class="apt-size">33평</div><div class="apt-price">9.9억</div><div class="apt-pdate">실거래 '25.02</div></div></div>
+      <div class="apt-row r3" data-r="3"><div class="apt-rank">09</div><div><div class="apt-name-row"><span class="apt-name">사당래미안</span><span class="atag r3">동작구</span><span class="atag etc">셔틀 탑승 최적</span></div><div class="apt-addr">사당동 · 사당역 도보 6분</div><div class="apt-chips"><span class="apt-chip">A 🚌 38분 셔틀</span><span class="apt-chip">B 🚇 28분 지하철</span><span class="apt-chip">👴 🚇 55분</span></div></div><div class="apt-price-block"><div class="apt-size">30평</div><div class="apt-price">7.8억</div><div class="apt-pdate">실거래 '25.01</div></div></div>
+      <div class="apt-row r3" data-r="3"><div class="apt-rank">10</div><div><div class="apt-name-row"><span class="apt-name">노량진e편한세상</span><span class="atag r3">동작구</span></div><div class="apt-addr">노량진동 · 노량진역 도보 4분</div><div class="apt-chips"><span class="apt-chip">A 🚌 42분 셔틀</span><span class="apt-chip">B 🚇 25분 지하철</span><span class="apt-chip">👴 🚇 58분</span></div></div><div class="apt-price-block"><div class="apt-size">32평</div><div class="apt-price">8.2억</div><div class="apt-pdate">실거래 '24.11</div></div></div>
+    </div>
+  </div>
+
+  <div style="text-align:center;">
+    <button class="btn-restart" onclick="restart()">↺ 조건 다시 설정하기</button>
+  </div>
+</div>
 
 <script>
-const WORKER = 'https://systemai.hyunwook565.workers.dev';
-const OWNER  = '9et1t';
-const REPO   = 'systemai';
+let cur = 0;
+let mapInited = false;
+let naverMap = null;
+const markers = [];
 
-let allIssues = [];
-let filter = 'all';
-let search = '';
+// ── 지도 초기화 ──────────────────────────────────────────
+function initMap() {
+  if (mapInited) return;
+  mapInited = true;
 
-async function api(method, path, body){
-  const opts = {
-    method,
-    headers: { 'Content-Type': 'application/json' }
-  };
+  // 서울 중심 (마포구 근방)
+  const center = new naver.maps.LatLng(37.548, 126.965);
 
-  if(body) opts.body = JSON.stringify(body);
+  naverMap = new naver.maps.Map('naverMap', {
+    center,
+    zoom: 12,
+    mapTypeId: naver.maps.MapType.NORMAL,
+    scaleControl: false,
+    logoControl: true,
+    mapDataControl: false,
+    zoomControl: true,
+    zoomControlOptions: { position: naver.maps.Position.TOP_RIGHT }
+  });
 
-  const r = await fetch(WORKER + path, opts);
+  // 추천 지역 마커
+  const regions = [
+    { lat: 37.5497, lng: 126.9521, label: '1위 마포구', color: '#c8a96e' },
+    { lat: 37.5472, lng: 127.0402, label: '2위 성동구', color: '#7fb5a0' },
+    { lat: 37.5097, lng: 126.9390, label: '3위 동작구', color: '#d4756e' },
+  ];
 
-  if(r.status === 204) return true;
-
-  const text = await r.text();
-
-  let data = null;
-  try {
-    data = text ? JSON.parse(text) : null;
-  } catch {
-    throw new Error('응답 파싱 실패: ' + text);
-  }
-
-  if(!r.ok) {
-    throw new Error(
-      (data && data.message)
-        ? `${r.status} ${data.message}`
-        : `${r.status} ${r.statusText}`
-    );
-  }
-
-  return data;
-}
-
-function parseMeta(body, tag){
-  const m = (body || '').match(new RegExp('<!--' + tag + ':(.*?)-->','s'));
-  if(m){
-    try { return JSON.parse(m[1]); } catch(e){}
-  }
-  return {};
-}
-
-function issueToTask(i){
-  const m = parseMeta(i.body,'NH');
-  return {
-    id:i.number,
-    title:i.title,
-    status:i.state,
-    date:m.date || '',
-    type:m.type || '',
-    desc:m.desc || '',
-    st:m.st || '',
-    et:m.et || '',
-    author:m.author || '',
-    createdAt:i.created_at,
-    _replies:[],
-    _loaded:false,
-    _expanded:false
-  };
-}
-
-function commentToReply(c){
-  const m = parseMeta(c.body,'RP');
-  const txt = (c.body || '').replace(/<!--RP:.*?-->/s,'').trim();
-  return {
-    id:c.id,
-    dept:m.dept || '',
-    name:m.name || '',
-    duty:m.duty || '',
-    content:txt,
-    createdAt:c.created_at,
-    updatedAt:c.updated_at
-  };
-}
-
-async function loadBoard(){
-  const el = document.getElementById('board');
-  el.innerHTML = '<div class="loading"><div class="spinner"></div>작업 목록 불러오는 중...</div>';
-  try{
-    const issues = await api('GET', '/repos/' + OWNER + '/' + REPO + '/issues?state=all&per_page=100');
-    allIssues = issues.filter(i => !i.pull_request).map(issueToTask);
-    renderBoard();
-    updateStats();
-    setStatus(true);
-  }catch(e){
-    setStatus(false);
-    el.innerHTML = '<div class="empty"><div class="empty-icon">⚠</div><p>불러오기 실패: ' + esc(e.message) + '</p></div>';
-  }
-}
-
-function renderBoard(){
-  let list = [...allIssues].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
-  if(filter === 'open') list = list.filter(t => t.status === 'open');
-  if(filter === 'closed') list = list.filter(t => t.status === 'closed');
-  if(search) list = list.filter(t => t.title.includes(search) || (t.type || '').includes(search));
-
-  const el = document.getElementById('board');
-  if(!list.length){
-    el.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><p>등록된 작업이 없습니다.</p></div>';
-    return;
-  }
-
-  el.innerHTML = list.map((t,i)=>cardHTML(t, i+1)).join('');
-}
-
-function cardHTML(t,n){
-  const exp = t._expanded;
-  const ds = t.date ? fmtDate(t.date) : '날짜미정';
-  const sl = t.status === 'open' ? '진행중' : '완료';
-  const sc = t.status === 'open' ? 's-open' : 's-closed';
-
-  return `
-<div class="tc ${t.status === 'closed' ? 'done' : ''} ${exp ? 'expanded' : ''}" id="tc_${t.id}">
-  <div class="th" onclick="toggle(${t.id})">
-    <span class="tseq">#${String(n).padStart(3,'0')}</span>
-    <span class="dtag">📅 ${ds}</span>
-    <div class="ti">
-      <div class="tname">${esc(t.title)}</div>
-      <div class="tsub">${esc(t.type)} ${t.st ? '· ' + t.st + (t.et ? ' ~ ' + t.et : '') : ''} ${t.author ? '· 등록: ' + esc(t.author) : ''}</div>
-    </div>
-    <div class="tact">
-      <span class="rbadge" id="rc_${t.id}">💬 ${t._replies.length}</span>
-      <span class="stag ${sc}">${sl}</span>
-      ${t.status === 'open'
-        ? `<button class="btn btn-gold btn-sm" onclick="event.stopPropagation();closeTask(${t.id})">✓ 완료</button>`
-        : `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();reopenTask(${t.id})">↺ 재개</button>`}
-      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6,9 12,15 18,9"/></svg>
-    </div>
-  </div>
-  <div class="tbody ${exp ? 'show' : ''}" id="tb_${t.id}">
-    ${t.desc ? `<div class="tdesc"><div class="lbl">작업 설명</div><p>${esc(t.desc).replace(/\n/g,'<br>')}</p></div>` : ''}
-    <div class="rw">
-      <div class="rhead"><span>업무확인 응답</span><small id="rcount_${t.id}">${t._replies.length}건</small></div>
-      <div class="rlist" id="rl_${t.id}">
-        ${t._replies.length ? t._replies.map(r=>replyHTML(r,t.id)).join('') : '<div style="font-size:.78rem;color:var(--text3);padding:.4rem 0">아직 업무확인 응답이 없습니다.</div>'}
-      </div>
-      <div class="rf">
-        <div class="rft">업무확인 응답 작성</div>
-        <div class="rfg">
-          <div class="fg"><label>소속 부서</label><input type="text" id="fd_${t.id}" placeholder="인프라팀"/></div>
-          <div class="fg"><label>이름</label><input type="text" id="fn_${t.id}" placeholder="홍길동"/></div>
-          <div class="fg"><label>담당 업무</label><input type="text" id="fu_${t.id}" placeholder="서버 담당"/></div>
-        </div>
-        <div class="rfb">
-          <div class="fg"><label>확인 내용</label><textarea id="fc_${t.id}" placeholder="담당 업무 확인 내용을 입력하세요..."></textarea></div>
-          <button class="btn btn-p" onclick="submitReply(${t.id})">확인 등록</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>`;
-}
-
-function replyHTML(r,tid){
-  const init = r.name ? r.name.charAt(0) : '?';
-  const edited = r.updatedAt && r.updatedAt !== r.createdAt ? ' (수정됨)' : '';
-  return `
-<div class="ri" id="ri_${r.id}">
-  <div class="av">${esc(init)}</div>
-  <div>
-    <div class="rmeta">
-      <span class="rname">${esc(r.name)}</span>
-      <span class="rdept">${esc(r.dept)}</span>
-      <span class="rduty">${esc(r.duty)}</span>
-      <span class="rtime">${fmtDt(r.createdAt)}${edited}</span>
-    </div>
-    <div class="rtxt" id="rt_${r.id}">${esc(r.content).replace(/\n/g,'<br>')}</div>
-    <div class="rchk">✅ 업무확인 완료</div>
-    <div id="re_${r.id}" style="display:none">
-      <textarea class="rea" id="retxt_${r.id}">${esc(r.content)}</textarea>
-      <div class="rebtns">
-        <button class="btn btn-p btn-xs" onclick="saveEdit(${tid},${r.id})">저장</button>
-        <button class="btn btn-ghost btn-xs" onclick="cancelEdit(${r.id})">취소</button>
-      </div>
-    </div>
-  </div>
-  <div class="rctrl">
-    <button class="btn btn-ghost btn-xs" onclick="startEdit(${r.id})">✏</button>
-    <button class="btn btn-danger btn-xs" onclick="delReply(${tid},${r.id})">✕</button>
-  </div>
-</div>`;
-}
-
-async function toggle(id){
-  const t = allIssues.find(t=>t.id===id);
-  if(!t) return;
-
-  t._expanded = !t._expanded;
-
-  const card = document.getElementById('tc_' + id);
-  const body = document.getElementById('tb_' + id);
-
-  if(t._expanded){
-    card.classList.add('expanded');
-    body.classList.add('show');
-    if(!t._loaded) await loadReplies(t);
-  }else{
-    card.classList.remove('expanded');
-    body.classList.remove('show');
-  }
-}
-
-async function loadReplies(t){
-  const el = document.getElementById('rl_' + t.id);
-  el.innerHTML = '<div style="font-size:.78rem;color:var(--text3)">댓글 불러오는 중...</div>';
-  try{
-    const cs = await api('GET', '/repos/' + OWNER + '/' + REPO + '/issues/' + t.id + '/comments');
-    t._replies = cs.map(commentToReply);
-    t._loaded = true;
-    refreshReplies(t);
-    updateStats();
-  }catch(e){
-    el.innerHTML = '<div style="font-size:.78rem;color:var(--red)">로드 실패: ' + esc(e.message) + '</div>';
-  }
-}
-
-function refreshReplies(t){
-  const el = document.getElementById('rl_' + t.id);
-  const rc = document.getElementById('rc_' + t.id);
-  const rcount = document.getElementById('rcount_' + t.id);
-
-  if(el){
-    el.innerHTML = t._replies.length
-      ? t._replies.map(r=>replyHTML(r,t.id)).join('')
-      : '<div style="font-size:.78rem;color:var(--text3);padding:.4rem 0">아직 업무확인 응답이 없습니다.</div>';
-  }
-
-  if(rc) rc.textContent = '💬 ' + t._replies.length;
-  if(rcount) rcount.textContent = t._replies.length + '건';
-}
-
-function openNewModal(){
-  const dv = document.getElementById('qDate').value;
-  const tv = document.getElementById('qTitle').value;
-  if(dv) document.getElementById('mDate').value = dv;
-  if(tv) document.getElementById('mTitle').value = tv;
-  document.getElementById('newModal').classList.add('show');
-}
-
-function closeNewModal(){
-  document.getElementById('newModal').classList.remove('show');
-}
-
-document.getElementById('newModal').addEventListener('click', e => {
-  if(e.target === e.currentTarget) closeNewModal();
-});
-
-async function submitTask(){
-  const date = v('mDate');
-  const title = v('mTitle').trim();
-  const type = v('mType');
-  const desc = v('mDesc').trim();
-  const st = v('mSt');
-  const et = v('mEt');
-  const author = v('mAuthor').trim();
-
-  if(!date || !title){
-    toast('날짜와 작업명은 필수입니다.','err');
-    return;
-  }
-
-  const btn = document.querySelector('#newModal .btn-p');
-  btn.textContent = '등록중...';
-  btn.disabled = true;
-
-  try{
-    const meta = { date, type, desc, st, et, author };
-    const body = '<!--NH:' + JSON.stringify(meta) + '-->\n\n' + desc;
-    const issue = await api('POST', '/repos/' + OWNER + '/' + REPO + '/issues', { title, body });
-    const task = issueToTask(issue);
-    task._replies = [];
-    task._loaded = true;
-    allIssues.unshift(task);
-    renderBoard();
-    updateStats();
-
-    ['mDate','mTitle','mDesc','mSt','mEt','mAuthor'].forEach(id=>{
-      const e = document.getElementById(id);
-      if(e) e.value = '';
+  regions.forEach(r => {
+    const marker = new naver.maps.Marker({
+      position: new naver.maps.LatLng(r.lat, r.lng),
+      map: naverMap,
+      icon: {
+        content: `<div style="
+          background:${r.color};
+          color:#0e0e0e;
+          font-family:'DM Mono',monospace;
+          font-size:11px;
+          font-weight:500;
+          padding:5px 10px;
+          white-space:nowrap;
+          box-shadow:0 2px 8px rgba(0,0,0,0.4);
+          position:relative;
+        ">${r.label}<div style="
+          position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);
+          width:0;height:0;
+          border-left:5px solid transparent;
+          border-right:5px solid transparent;
+          border-top:6px solid ${r.color};
+        "></div></div>`,
+        anchor: new naver.maps.Point(40, 34),
+      }
     });
+    markers.push(marker);
+  });
 
-    document.getElementById('qTitle').value = '';
-    closeNewModal();
-    toast('✓ 작업이 등록되었습니다.');
-  }catch(e){
-    toast('등록 실패: ' + e.message, 'err');
-  }finally{
-    btn.textContent = '등록';
-    btn.disabled = false;
-  }
-}
+  // 출근지 마커 (A, B)
+  const workplaces = [
+    { lat: 37.4979, lng: 127.0276, label: 'A 출근지', color: '#7da8e0' }, // 강남
+    { lat: 37.5215, lng: 126.9244, label: 'B 출근지', color: '#7fb5a0' }, // 여의도
+  ];
 
-async function closeTask(id){
-  if(!confirm('작업을 완료 처리하시겠습니까?')) return;
-  try{
-    await api('PATCH', '/repos/' + OWNER + '/' + REPO + '/issues/' + id, { state:'closed' });
-    const t = allIssues.find(t=>t.id===id);
-    if(t) t.status = 'closed';
-    renderBoard();
-    updateStats();
-    toast('✓ 완료 처리되었습니다.');
-  }catch(e){
-    toast('오류: ' + e.message, 'err');
-  }
-}
-
-async function reopenTask(id){
-  try{
-    await api('PATCH', '/repos/' + OWNER + '/' + REPO + '/issues/' + id, { state:'open' });
-    const t = allIssues.find(t=>t.id===id);
-    if(t) t.status = 'open';
-    renderBoard();
-    updateStats();
-    toast('✓ 재개 처리되었습니다.');
-  }catch(e){
-    toast('오류: ' + e.message, 'err');
-  }
-}
-
-async function submitReply(tid){
-  const dept = v('fd_' + tid).trim();
-  const name = v('fn_' + tid).trim();
-  const duty = v('fu_' + tid).trim();
-  const content = v('fc_' + tid).trim();
-
-  if(!dept || !name || !duty || !content){
-    toast('모든 항목을 입력해주세요.','err');
-    return;
-  }
-
-  const btn = document.querySelector(`#tc_${tid} .rf .btn-p`);
-  if(btn){
-    btn.textContent = '등록중...';
-    btn.disabled = true;
-  }
-
-  try{
-    const body = '<!--RP:' + JSON.stringify({ dept, name, duty }) + '-->\n' + content;
-    const c = await api('POST', '/repos/' + OWNER + '/' + REPO + '/issues/' + tid + '/comments', { body });
-    const t = allIssues.find(t=>t.id===tid);
-    if(t){
-      t._replies.push(commentToReply(c));
-      refreshReplies(t);
-    }
-    ['fd_','fn_','fu_','fc_'].forEach(p=>{
-      const e = document.getElementById(p + tid);
-      if(e) e.value = '';
+  workplaces.forEach(w => {
+    new naver.maps.Marker({
+      position: new naver.maps.LatLng(w.lat, w.lng),
+      map: naverMap,
+      icon: {
+        content: `<div style="
+          background:#1e1e1e;
+          border:1px solid ${w.color};
+          color:${w.color};
+          font-family:'DM Mono',monospace;
+          font-size:10px;
+          padding:4px 9px;
+          white-space:nowrap;
+        ">${w.label}</div>`,
+        anchor: new naver.maps.Point(35, 28),
+      }
     });
-    updateStats();
-    toast('✓ 업무확인 응답이 등록되었습니다.');
-  }catch(e){
-    toast('등록 실패: ' + e.message, 'err');
-  }finally{
-    if(btn){
-      btn.textContent = '확인 등록';
-      btn.disabled = false;
-    }
-  }
-}
+  });
 
-function startEdit(rid){
-  const t = allIssues.find(t => t._replies && t._replies.find(r => r.id === rid));
-  if(t){
-    const r = t._replies.find(r => r.id === rid);
-    if(r) document.getElementById('retxt_' + rid).value = r.content;
-  }
-  document.getElementById('rt_' + rid).style.display = 'none';
-  document.getElementById('re_' + rid).style.display = 'block';
-}
-
-function cancelEdit(rid){
-  document.getElementById('rt_' + rid).style.display = '';
-  document.getElementById('re_' + rid).style.display = 'none';
-}
-
-async function saveEdit(tid,rid){
-  const content = document.getElementById('retxt_' + rid).value.trim();
-  if(!content){
-    toast('내용을 입력해주세요.','err');
-    return;
+  // 조부모 마커
+  const gpEl = document.getElementById('gpAddr');
+  if (gpEl && gpEl.value.trim()) {
+    // 조부모 거주지가 있으면 지오코딩으로 위치 표시
+    naver.maps.Service.geocode({ query: gpEl.value }, function(status, res) {
+      if (status === naver.maps.Service.Status.OK && res.v2.addresses.length > 0) {
+        const addr = res.v2.addresses[0];
+        new naver.maps.Marker({
+          position: new naver.maps.LatLng(+addr.y, +addr.x),
+          map: naverMap,
+          icon: {
+            content: `<div style="background:#1e1e1e;border:1px solid #a0a0c8;color:#a0a0c8;font-family:'DM Mono',monospace;font-size:10px;padding:4px 9px;">조부모 거주지</div>`,
+            anchor: new naver.maps.Point(42, 28),
+          }
+        });
+      }
+    });
+  } else {
+    // 기본 노원구
+    new naver.maps.Marker({
+      position: new naver.maps.LatLng(37.6556, 127.0633),
+      map: naverMap,
+      icon: {
+        content: `<div style="background:#1e1e1e;border:1px solid #a0a0c8;color:#a0a0c8;font-family:'DM Mono',monospace;font-size:10px;padding:4px 9px;">조부모 거주지</div>`,
+        anchor: new naver.maps.Point(42, 28),
+      }
+    });
   }
 
-  const t = allIssues.find(t => t.id === tid);
-  if(!t) return;
-
-  const r = t._replies.find(r => r.id === rid);
-  if(!r) return;
-
-  try{
-    const body = '<!--RP:' + JSON.stringify({ dept:r.dept, name:r.name, duty:r.duty }) + '-->\n' + content;
-    const updated = await api('PATCH', '/repos/' + OWNER + '/' + REPO + '/issues/comments/' + rid, { body });
-    const idx = t._replies.findIndex(rr => rr.id === rid);
-    if(idx !== -1) t._replies[idx] = commentToReply(updated);
-    refreshReplies(t);
-    toast('✓ 응답이 수정되었습니다.');
-  }catch(e){
-    toast('수정 실패: ' + e.message, 'err');
-  }
-}
-
-async function delReply(tid,rid){
-  if(!confirm('이 응답을 삭제하시겠습니까?')) return;
-  try{
-    await api('DELETE', '/repos/' + OWNER + '/' + REPO + '/issues/comments/' + rid);
-    const t = allIssues.find(t => t.id === tid);
-    if(t){
-      t._replies = t._replies.filter(r => r.id !== rid);
-      refreshReplies(t);
-    }
-    updateStats();
-    toast('✓ 응답이 삭제되었습니다.');
-  }catch(e){
-    toast('삭제 실패: ' + e.message, 'err');
-  }
-}
-
-function setFilter(f,el){
-  filter = f;
-  document.querySelectorAll('.fb').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
-  renderBoard();
-}
-
-function doSearch(val){
-  search = val;
-  renderBoard();
-}
-
-function updateStats(){
-  document.getElementById('sTotal').textContent = allIssues.length;
-  document.getElementById('sOngoing').textContent = allIssues.filter(t=>t.status==='open').length;
-  document.getElementById('sDone').textContent = allIssues.filter(t=>t.status==='closed').length;
-  document.getElementById('sReplies').textContent = allIssues.reduce((s,t)=>s+(t._replies||[]).length,0);
-}
-
-function setStatus(ok){
-  const el = document.getElementById('connStatus');
-  if(ok){
-    el.className = 'conn-status conn-ok';
-    el.textContent = '● 연결됨';
-  }else{
-    el.className = 'conn-status conn-no';
-    el.textContent = '● 미연결';
-  }
-}
-
-function v(id){
-  const e = document.getElementById(id);
-  return e ? e.value : '';
-}
-
-function esc(s){
-  if(!s) return '';
-  return String(s)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;');
-}
-
-function fmtDate(d){
-  if(!d) return '';
-  const dt = new Date(d + 'T00:00:00');
-  return dt.toLocaleDateString('ko-KR',{
-    year:'numeric',
-    month:'2-digit',
-    day:'2-digit',
-    weekday:'short'
+  // 출근지 → 추천지역 폴리라인
+  const lineA = new naver.maps.Polyline({
+    path: [new naver.maps.LatLng(37.4979,127.0276), new naver.maps.LatLng(37.5497,126.9521)],
+    map: naverMap,
+    strokeColor: '#c8a96e',
+    strokeOpacity: 0.35,
+    strokeWeight: 2,
+    strokeStyle: 'dashed'
+  });
+  const lineB = new naver.maps.Polyline({
+    path: [new naver.maps.LatLng(37.5215,126.9244), new naver.maps.LatLng(37.5497,126.9521)],
+    map: naverMap,
+    strokeColor: '#7fb5a0',
+    strokeOpacity: 0.35,
+    strokeWeight: 2,
+    strokeStyle: 'dashed'
   });
 }
 
-function fmtDt(iso){
-  if(!iso) return '';
-  const d = new Date(iso);
-  return d.toLocaleString('ko-KR',{
-    month:'2-digit',
-    day:'2-digit',
-    hour:'2-digit',
-    minute:'2-digit'
+// ── STEP 전환 ──────────────────────────────────────────
+function startForm() {
+  document.getElementById('hero').style.display = 'none';
+  document.getElementById('stepNav').style.display = 'block';
+  go(1);
+}
+
+function go(n) {
+  [1,2,3,4].forEach(i => {
+    document.getElementById('step'+i).style.display = 'none';
+  });
+  document.getElementById('result').style.display = 'none';
+
+  if (n <= 4) {
+    document.getElementById('step'+n).style.display = 'block';
+  }
+
+  // nav update
+  [1,2,3,4,5].forEach(i => {
+    const el = document.getElementById('nav'+i);
+    el.classList.remove('active','done');
+    if (i === n) el.classList.add('active');
+    else if (i < n) el.classList.add('done');
+  });
+
+  cur = n;
+  document.getElementById('progress').style.width = ((n-1)/4*100) + '%';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function tryGo(n) {
+  if (n < cur) go(n);
+}
+
+function showResult() {
+  [1,2,3,4].forEach(i => document.getElementById('step'+i).style.display='none');
+  document.getElementById('result').style.display = 'block';
+  [1,2,3,4,5].forEach(i => {
+    const el = document.getElementById('nav'+i);
+    el.classList.remove('active','done');
+    if (i === 5) el.classList.add('active');
+    else el.classList.add('done');
+  });
+  document.getElementById('progress').style.width = '100%';
+
+  // 조부모 표시 여부
+  const hasGp = document.querySelector('#gp .on')?.textContent === '가능';
+  ['gpRow1','gpRow2','gpRow3'].forEach(id => {
+    document.getElementById(id).style.display = hasGp ? 'flex' : 'none';
+  });
+
+  window.scrollTo({top:0, behavior:'smooth'});
+
+  // 지도 초기화 (약간 지연 — DOM 렌더 후)
+  setTimeout(initMap, 300);
+}
+
+function restart() {
+  mapInited = false;
+  naverMap = null;
+  document.getElementById('hero').style.display = 'flex';
+  document.getElementById('stepNav').style.display = 'none';
+  document.getElementById('result').style.display = 'none';
+  [1,2,3,4].forEach(i => document.getElementById('step'+i).style.display='none');
+  document.getElementById('progress').style.width = '0%';
+  window.scrollTo({top:0});
+}
+
+// ── UI helpers ─────────────────────────────────────────
+function pick(el, grpId) {
+  document.querySelectorAll('#'+grpId+' .chip').forEach(c => c.classList.remove('on','on2'));
+  el.classList.add('on');
+}
+function toggle(el) { el.classList.toggle('on'); }
+function toggleShuttle(id, show) { document.getElementById(id).style.display = show ? 'block' : 'none'; }
+function showChildren(show) { document.getElementById('childBlock').classList.toggle('show', show); }
+function showGp(show) { document.getElementById('gpBlock').classList.toggle('show', show); }
+function updW(v) {
+  document.getElementById('wlbl').textContent =
+    v==50 ? 'A와 B 동등 — 50% / 50%' :
+    v<50  ? `배우자 A 우선 — ${v}% / ${100-v}%` :
+            `배우자 B 우선 — ${100-v}% / ${v}%`;
+}
+function addStop(containerId) {
+  const row = document.createElement('div');
+  row.className = 'stop-row';
+  row.innerHTML = '<input placeholder="정류장명 또는 주소"><button class="btn-rm" onclick="rmStop(this)">×</button>';
+  document.getElementById(containerId).appendChild(row);
+}
+function rmStop(btn) {
+  const cont = btn.closest('[id^=stops]');
+  if (cont.children.length > 1) btn.closest('.stop-row').remove();
+}
+function filterApt(tabEl, r) {
+  document.querySelectorAll('.apt-tab').forEach(t => t.classList.remove('on'));
+  tabEl.classList.add('on');
+  document.querySelectorAll('.apt-row').forEach(row => {
+    row.classList.toggle('hidden', r !== 'all' && row.dataset.r !== r);
   });
 }
-
-function toast(msg,type=''){
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast' + (type ? ' ' + type : '');
-  t.classList.add('show');
-  clearTimeout(t._t);
-  t._t = setTimeout(()=>t.classList.remove('show'), 2800);
-}
-
-document.addEventListener('DOMContentLoaded', ()=>{
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('qDate').value = today;
-  document.getElementById('mDate').value = today;
-  loadBoard();
-});
 </script>
 </body>
 </html>
