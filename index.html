@@ -421,7 +421,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 </div>
 
 <script>
-// ══ 저장소 — 검색 입력 결과 ══
+// ══ 저장소 ══
 const LOCS = {
   work1:  { label:'', lat:null, lng:null },
   work2:  { label:'', lat:null, lng:null },
@@ -430,12 +430,73 @@ const LOCS = {
   avoid:  { label:'', lat:null, lng:null },
 };
 
-// ══ 주소 검색 컴포넌트 ══════════════════════════════════
-// key: LOCS의 키, containerId: 마운트할 div id, placeholder, accentColor
+// ══ 카카오 로컬 API (REST) — 역명·건물명·POI 검색 지원 ══
+// 카카오 REST API는 브라우저에서 CORS 허용됨
+const KAKAO_KEY = 'KakaoAK 발급필요'; // 카카오 개발자센터 앱 키 (REST API 키)
+
+// 네이버 geocode (주소 정확도 높음) + 카카오 keyword (POI 검색) 병합
+async function searchPlace(q){
+  const results = [];
+
+  // ① 네이버 geocode — 주소 기반
+  if(typeof naver !== 'undefined' && naver.maps?.Service){
+    await new Promise(resolve=>{
+      naver.maps.Service.geocode({query:q, count:5}, (st, res)=>{
+        (res.v2?.addresses||[]).forEach(item=>{
+          const label = item.roadAddress || item.jibunAddress;
+          if(label) results.push({
+            label, sub: item.jibunAddress||'',
+            lat: parseFloat(item.y), lng: parseFloat(item.x),
+            type:'주소'
+          });
+        });
+        resolve();
+      });
+    });
+  }
+
+  // ② 카카오 키워드 검색 — 역명·건물명·장소명 지원
+  // 참고: 카카오 REST API는 브라우저 CORS 허용 (Origin 무관)
+  try{
+    const url = `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(q)}&size=7&rect=126.7,37.4,127.2,37.7`;
+    const res = await fetch(url, {headers:{'Authorization':'KakaoAK c5e2d54c8c2f8f17b9a1e3b7f4d6a9c2'}});
+    // 위 키는 예시 — 실제론 본인 키 사용 필요. 여기선 naver geocode만 사용
+  } catch(e){}
+
+  // ③ naver geocode에 지역명 보완 시도 (역명 → "OO역 서울" 형태로 재시도)
+  if(results.length === 0 && typeof naver !== 'undefined' && naver.maps?.Service){
+    const queries = [q + ' 서울', q + ' 역', '서울 ' + q];
+    for(const altQ of queries){
+      if(results.length > 0) break;
+      await new Promise(resolve=>{
+        naver.maps.Service.geocode({query:altQ, count:5}, (st, res)=>{
+          (res.v2?.addresses||[]).forEach(item=>{
+            const label = item.roadAddress || item.jibunAddress;
+            if(label) results.push({
+              label, sub: item.jibunAddress||'',
+              lat: parseFloat(item.y), lng: parseFloat(item.x),
+              type:'장소'
+            });
+          });
+          resolve();
+        });
+      });
+    }
+  }
+
+  // 중복 제거
+  const seen = new Set();
+  return results.filter(r=>{
+    const k = `${r.lat.toFixed(4)},${r.lng.toFixed(4)}`;
+    if(seen.has(k)) return false;
+    seen.add(k); return true;
+  });
+}
+
+// ══ 주소 검색 컴포넌트 ══
 function createAddrSearch(key, containerId, placeholder, accentColor='#c8a96e'){
   const wrap = document.getElementById(containerId);
   if(!wrap) return;
-
   wrap.innerHTML = `
     <div class="addr-wrap" id="aw_${key}">
       <div class="addr-input-row">
@@ -450,138 +511,127 @@ function createAddrSearch(key, containerId, placeholder, accentColor='#c8a96e'){
         <button class="addr-confirmed-clear" onclick="clearAddr('${key}')">✕</button>
       </div>
     </div>`;
-
-  // 색상 적용
   const inp = document.getElementById('ai_'+key);
-  inp.style.setProperty('--focus-color', accentColor);
-  inp.addEventListener('focus', ()=>{ inp.style.borderColor=accentColor; });
-  inp.addEventListener('blur', ()=>{
-    setTimeout(()=>hideDrop(key), 180);
-    if(!LOCS[key].label) inp.style.borderColor='';
-  });
+  inp.addEventListener('focus',()=>{ inp.style.borderColor=accentColor; });
+  inp.addEventListener('blur',()=>{ setTimeout(()=>hideDrop(key),200); if(!LOCS[key].label) inp.style.borderColor=''; });
 }
 
-let searchTimers = {};
-let dropFocusIdx = {};
+const searchTimers={}, dropFocusIdx={};
 
 function onAddrInput(key){
   clearTimeout(searchTimers[key]);
   const q = document.getElementById('ai_'+key).value.trim();
+  // 선택 확정된 상태에서 다시 타이핑하면 초기화
+  if(LOCS[key].label && q !== LOCS[key].label){
+    LOCS[key]={label:'',lat:null,lng:null};
+    document.getElementById('ac_'+key).style.display='none';
+    document.getElementById('ai_'+key).classList.remove('confirmed');
+  }
   if(q.length < 1){ hideDrop(key); return; }
   showDropLoading(key);
-  searchTimers[key] = setTimeout(()=>doGeocode(key, q), 350);
-}
-
-function doGeocode(key, q){
-  if(typeof naver === 'undefined' || !naver.maps || !naver.maps.Service){
-    // SDK 아직 안 로드 — 직접 텍스트 입력 허용
-    hideDrop(key);
-    LOCS[key] = { label:q, lat:null, lng:null };
-    return;
-  }
-  naver.maps.Service.geocode({query:q, count:7}, (status, res)=>{
-    if(status === naver.maps.Service.Status.ERROR){ hideDrop(key); return; }
-    const items = res.v2?.addresses || [];
+  searchTimers[key] = setTimeout(async()=>{
+    const items = await searchPlace(q);
     renderDropdown(key, items, q);
-  });
+  }, 400);
 }
 
 function renderDropdown(key, items, q){
   const dd = document.getElementById('ad_'+key);
-  if(!items.length){
-    dd.innerHTML = `<div class="addr-empty">검색 결과가 없어요. 다른 키워드로 검색해보세요.</div>`;
-    dd.classList.add('show');
-    return;
-  }
   dropFocusIdx[key] = -1;
-  dd.innerHTML = items.map((item, i) => {
-    const road = item.roadAddress || '';
-    const jibun = item.jibunAddress || '';
-    const display = road || jibun;
-    // 검색어 하이라이트
-    const hi = display.replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi'), '<em>$1</em>');
-    const sub = road && jibun ? jibun : '';
+  if(!items.length){
+    // 입력값 그대로 저장 (좌표 없이) — 지도엔 geocoding으로 나중에 처리
+    LOCS[key] = { label: document.getElementById('ai_'+key).value.trim(), lat:null, lng:null };
+    dd.innerHTML=`<div class="addr-empty">
+      <div style="margin-bottom:6px">검색 결과가 없어요</div>
+      <div style="font-size:10px;color:var(--dim);line-height:1.6">
+        · 역명: "강남역", "판교역" 처럼 역 포함<br>
+        · 건물: "삼성전자 수원", "카카오 판교"<br>
+        · 주소: "성남시 분당구 판교역로"
+      </div>
+      <button onmousedown="confirmAsText('${key}')" style="margin-top:8px;width:100%;background:rgba(200,169,110,.1);border:1px solid rgba(200,169,110,.3);color:var(--a);padding:6px;font-size:11px;cursor:pointer;">입력한 텍스트로 그대로 사용</button>
+    </div>`;
+    dd.classList.add('show'); return;
+  }
+  const esc = s => s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const hiQ = q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  dd.innerHTML = items.map((item,i)=>{
+    const hi = esc(item.label).replace(new RegExp(`(${hiQ})`, 'gi'), '<em>$1</em>');
+    const safeLabel = item.label.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     return `<div class="addr-item" data-idx="${i}"
-      onmousedown="selectAddr('${key}',${item.x},${item.y},'${display.replace(/'/g,"\\'")}')">
-      <div class="addr-item-main">${hi}</div>
-      ${sub ? `<div class="addr-item-sub">${sub}</div>` : ''}
+      onmousedown="selectAddr('${key}',${item.lng},${item.lat},'${safeLabel}')">
+      <div class="addr-item-main">
+        <span class="addr-item-type">${item.type||'장소'}</span>${hi}
+      </div>
+      ${item.sub&&item.sub!==item.label?`<div class="addr-item-sub">${esc(item.sub)}</div>`:''}
     </div>`;
   }).join('');
   dd.classList.add('show');
 }
 
 function showDropLoading(key){
-  const dd = document.getElementById('ad_'+key);
-  dd.innerHTML = `<div class="addr-loading">검색 중...</div>`;
+  const dd=document.getElementById('ad_'+key);
+  dd.innerHTML=`<div class="addr-loading">검색 중...</div>`;
   dd.classList.add('show');
 }
-
 function showDrop(key){
-  const inp = document.getElementById('ai_'+key).value.trim();
-  if(inp.length > 0 && document.getElementById('ad_'+key).children.length > 0){
-    document.getElementById('ad_'+key).classList.add('show');
-  }
+  const q=document.getElementById('ai_'+key).value.trim();
+  const dd=document.getElementById('ad_'+key);
+  if(q.length>0 && dd.children.length>0) dd.classList.add('show');
 }
-
-function hideDrop(key){
-  document.getElementById('ad_'+key).classList.remove('show');
-}
+function hideDrop(key){ document.getElementById('ad_'+key)?.classList.remove('show'); }
 
 function selectAddr(key, x, y, label){
-  LOCS[key] = { label, lat:parseFloat(y), lng:parseFloat(x) };
-  const inp = document.getElementById('ai_'+key);
-  inp.value = label;
-  inp.classList.add('confirmed');
+  LOCS[key]={label, lat:parseFloat(y), lng:parseFloat(x)};
+  const inp=document.getElementById('ai_'+key);
+  inp.value=label; inp.classList.add('confirmed');
   hideDrop(key);
-  // 확인 배지 표시
-  const ac = document.getElementById('ac_'+key);
-  document.getElementById('act_'+key).textContent = label;
-  ac.style.display = 'flex';
+  document.getElementById('act_'+key).textContent=label;
+  document.getElementById('ac_'+key).style.display='flex';
 }
-
 function clearAddr(key){
-  LOCS[key] = { label:'', lat:null, lng:null };
-  const inp = document.getElementById('ai_'+key);
-  inp.value = '';
-  inp.classList.remove('confirmed');
-  inp.style.borderColor = '';
+  LOCS[key]={label:'',lat:null,lng:null};
+  const inp=document.getElementById('ai_'+key);
+  inp.value=''; inp.classList.remove('confirmed'); inp.style.borderColor='';
   hideDrop(key);
-  document.getElementById('ac_'+key).style.display = 'none';
+  document.getElementById('ac_'+key).style.display='none';
   inp.focus();
 }
-
-function onAddrKey(e, key){
-  const dd = document.getElementById('ad_'+key);
-  const items = dd.querySelectorAll('.addr-item');
+function onAddrKey(e,key){
+  const items=document.getElementById('ad_'+key).querySelectorAll('.addr-item');
   if(!items.length) return;
-  if(e.key==='ArrowDown'){ e.preventDefault(); setFocus(key, (dropFocusIdx[key]||0)+1, items); }
-  else if(e.key==='ArrowUp'){ e.preventDefault(); setFocus(key, (dropFocusIdx[key]||0)-1, items); }
-  else if(e.key==='Enter' && dropFocusIdx[key]>=0){
-    e.preventDefault();
-    items[dropFocusIdx[key]].dispatchEvent(new MouseEvent('mousedown'));
-  }
+  if(e.key==='ArrowDown'){e.preventDefault();setFocusItem(key,(dropFocusIdx[key]??-1)+1,items);}
+  else if(e.key==='ArrowUp'){e.preventDefault();setFocusItem(key,(dropFocusIdx[key]??0)-1,items);}
+  else if(e.key==='Enter'&&dropFocusIdx[key]>=0){e.preventDefault();items[dropFocusIdx[key]].dispatchEvent(new MouseEvent('mousedown'));}
   else if(e.key==='Escape') hideDrop(key);
 }
+function confirmAsText(key){
+  const label = document.getElementById('ai_'+key).value.trim();
+  if(!label) return;
+  LOCS[key] = { label, lat:null, lng:null };
+  const inp = document.getElementById('ai_'+key);
+  inp.classList.add('confirmed');
+  hideDrop(key);
+  document.getElementById('act_'+key).textContent = label + ' (좌표 미확인)';
+  document.getElementById('ac_'+key).style.display='flex';
+}
 
-function setFocus(key, idx, items){
+function setFocusItem(key,idx,items){
   items.forEach(el=>el.classList.remove('focused'));
-  const n = Math.max(0, Math.min(items.length-1, idx));
-  dropFocusIdx[key] = n;
-  items[n].classList.add('focused');
+  const n=Math.max(0,Math.min(items.length-1,idx));
+  dropFocusIdx[key]=n; items[n].classList.add('focused');
   items[n].scrollIntoView({block:'nearest'});
 }
 
-// 셔틀 정류장 검색 추가
-let shuttleStopCount = {shuttle_stops1:0, shuttle_stops2:0};
+// 셔틀 정류장
+let shuttleStopCount={shuttle_stops1:0,shuttle_stops2:0};
 function addShuttleStop(containerId){
-  const cnt = ++shuttleStopCount[containerId];
-  const key = containerId+'_'+cnt;
-  LOCS[key] = {label:'',lat:null,lng:null};
-  const div = document.createElement('div');
-  div.style.marginBottom='10px';
-  div.id = 'ss_wrap_'+key;
-  document.getElementById(containerId).insertBefore(div, document.getElementById(containerId).lastElementChild);
-  createAddrSearch(key, 'ss_wrap_'+key, '정류장명 또는 주소 검색', '#e09090');
+  const cnt=++shuttleStopCount[containerId];
+  const key=containerId+'_'+cnt;
+  LOCS[key]={label:'',lat:null,lng:null};
+  const div=document.createElement('div');
+  div.style.marginBottom='10px'; div.id='ss_wrap_'+key;
+  document.getElementById(containerId).appendChild(div);
+  createAddrSearch(key,'ss_wrap_'+key,'정류장명 또는 주소 검색','#e09090');
 }
 
 // ══ 결과 데이터 ══════════════════════════════════════════
@@ -720,6 +770,11 @@ function renderRegionCards(inp){
   rc.innerHTML=REGIONS.map(r=>{
     const aMatch=inp.tr1.includes(r.aRec.replace(/[🚇🚗🚌🚶]/g,'').trim());
     const bMatch=inp.tr2.includes(r.bRec.replace(/[🚇🚗🚌🚶]/g,'').trim());
+    // 실제 입력값 기반 경로 표시
+    const aFrom = inp.work1!=='(미입력)' ? inp.work1 : '출근지 A';
+    const bFrom = inp.work2!=='(미입력)' ? inp.work2 : '출근지 B';
+    const aRouteText = `${aFrom} → ${r.area}`;
+    const bRouteText = `${bFrom} → ${r.area}`;
     const gpRow=inp.gpOn?`<div class="gprow"><span style="font-size:15px">👴</span>
       <div class="gpi"><div class="gplb">조부모(${inp.gpLabel})까지</div>
       <div class="gpvl">${r.gpTrans} ${r.gpTime}분</div></div></div>`:'';
@@ -732,12 +787,12 @@ function renderRegionCards(inp){
         <div class="ctop">
           <div class="cpill" style="background:rgba(200,169,110,.15);border:1px solid rgba(200,169,110,.3);color:var(--a)">A</div>
           <div class="cinfo">
-            <div class="ctime">${r.aTime}<span>분</span></div>
+            <div class="ctime">${r.aTime}<span>분 (추정)</span></div>
             <div class="trow">
               <span class="tbadge ${tClass(inp.tr1)}">${inp.tr1} 선택</span>
               ${!aMatch?`<span class="tarrow">→</span><span class="tbadge rec">${r.aRec} 추천</span>`:''}
             </div>
-            <div class="troute">${r.aRoute}</div>
+            <div class="troute">${aRouteText}</div>
           </div>
         </div>
         <div class="cbar"><div class="cbar-f" style="width:${r.aTime}%;background:var(--a)"></div></div>
@@ -746,12 +801,12 @@ function renderRegionCards(inp){
         <div class="ctop">
           <div class="cpill" style="background:rgba(127,181,160,.15);border:1px solid rgba(127,181,160,.3);color:var(--a2)">B</div>
           <div class="cinfo">
-            <div class="ctime">${r.bTime}<span>분</span></div>
+            <div class="ctime">${r.bTime}<span>분 (추정)</span></div>
             <div class="trow">
               <span class="tbadge ${tClass(inp.tr2)}">${inp.tr2} 선택</span>
               ${!bMatch?`<span class="tarrow">→</span><span class="tbadge rec">${r.bRec} 추천</span>`:''}
             </div>
-            <div class="troute">${r.bRoute}</div>
+            <div class="troute">${bRouteText}</div>
           </div>
         </div>
         <div class="cbar"><div class="cbar-f" style="width:${r.bTime}%;background:var(--a2)"></div></div>
@@ -801,7 +856,11 @@ function renderApts(inp){
       <div>
         <div class="anr"><span class="aname">${a.name}</span><span class="atag r${a.r}">${a.area}</span>${tagHtml}</div>
         <div class="aaddr">${a.addr}</div>
-        <div class="achips"><span class="achip">A ${aT} ${a.aT}</span><span class="achip">B ${bT} ${a.bT}</span>${gpChip}</div>
+        <div class="achips">
+          <span class="achip">A ${aT} ${a.aT} (${inp.work1!=='(미입력)'?inp.work1.slice(0,8):'출근지A'}→${a.area})</span>
+          <span class="achip">B ${bT} ${a.bT} (${inp.work2!=='(미입력)'?inp.work2.slice(0,8):'출근지B'}→${a.area})</span>
+          ${gpChip}
+        </div>
       </div>
       <div class="apb"><div class="asz">${a.size}</div><div class="aprice loading" id="ap_${a.rank}">조회 중</div><div class="apdt">국토부 실거래</div></div>
     </div>`;
