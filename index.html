@@ -352,7 +352,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
       <div style="background:var(--bg2);border:1px solid var(--border);padding:22px">
         <div class="plbl">👶 자녀 정보</div>
         <div class="field"><label class="flbl">나이대 (복수 선택)</label><div class="chips"><div class="chip" onclick="tog(this)">영유아(0~3세)</div><div class="chip" onclick="tog(this)">유치원(4~7세)</div><div class="chip" onclick="tog(this)">초등 저학년</div><div class="chip" onclick="tog(this)">초등 고학년+</div></div></div>
-        <div class="field"><label class="flbl">교육 환경 우선순위</label><div class="chips"><div class="chip" onclick="tog(this)">학군</div><div class="chip" onclick="tog(this)">어린이집 접근성</div><div class="chip" onclick="tog(this)">학원가</div><div class="chip" onclick="tog(this)">자연·공원</div></div></div>
+        <div class="field"><label class="flbl">교육 환경 우선순위 <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--a);border:1px solid rgba(200,169,110,.3);padding:2px 6px;margin-left:6px">NEIS 연동</span></label><div class="chips" id="eduPriority"><div class="chip" onclick="tog(this)" data-env="학군">🏆 학군 (성취도·특목고)</div><div class="chip" onclick="tog(this)" data-env="어린이집">🏠 어린이집 접근성</div><div class="chip" onclick="tog(this)" data-env="학원가">📚 학원가</div></div></div>
       </div>
       <div style="background:var(--bg2);border:1px solid var(--border);padding:22px">
         <div class="plbl">👴 조부모 돌봄</div>
@@ -394,8 +394,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
     <div>
       <div class="field"><label class="flbl">선호 지역 검색 (선택)</label><div id="search_prefer"></div></div>
       <div class="field"><label class="flbl">기피 지역 검색 (선택)</label><div id="search_avoid"></div></div>
-      <div class="field"><label class="flbl">주거 환경 우선순위</label><div class="chips"><div class="chip" onclick="tog(this)">🌿 공원·자연</div><div class="chip" onclick="tog(this)">🏫 학군</div><div class="chip" onclick="tog(this)">🛒 생활편의</div><div class="chip" onclick="tog(this)">🔇 조용함</div><div class="chip" onclick="tog(this)">📈 개발호재</div><div class="chip" onclick="tog(this)">🚉 역세권</div></div></div>
-      <div class="field"><label class="flbl">미래 교통 호재</label><div class="chips" id="ft"><div class="chip on" onclick="pick(this,'ft')">반영 (GTX·신규노선 포함)</div><div class="chip" onclick="pick(this,'ft')">현재 기준만</div></div></div>
+      <div class="field"><label class="flbl">주거 환경 우선순위 <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--a2);border:1px solid rgba(127,181,160,.3);padding:2px 6px;margin-left:6px">카카오 연동</span></label><div class="chips" id="envPriority"><div class="chip" onclick="tog(this)" data-env="역세권">🚉 역세권</div><div class="chip" onclick="tog(this)" data-env="생활편의">🛒 생활편의</div><div class="chip" onclick="tog(this)" data-env="학군">🏫 학군</div></div></div>
+
     </div>
   </div>
   <div class="fnav"><button class="bprev" onclick="go(3)">← 이전</button><button class="bnext big" onclick="showResult()">✦ 최적 지역 분석하기</button></div>
@@ -668,13 +668,16 @@ async function analyzeRegions(inp, onProgress){
         const comW = 1 - gpW;
         const wA   = (parseFloat(inp.weight||50)/100) * comW;
         const wB   = (1 - parseFloat(inp.weight||50)/100) * comW;
+        // 환경 선택 없으면 기본 점수 0
+        const envBonus = 0; // 비동기 환경 점수는 top3 확정 후 후처리
         const score = aTime*wA + bTime*wB + gpTime*gpW;
 
         guResults.push({
           city:gu.city, area:gu.area, dong, lawdCd:gu.lawdCd,
           lat:gu.lat, lng:gu.lng,
           avg, aTime, bTime, gpTime, score,
-          apts: entry.apts, dealCount: entry.dealCount
+          apts: entry.apts, dealCount: entry.dealCount,
+          envScores: {}, neisResult: null // 후처리로 채움
         });
       }
     }));
@@ -683,17 +686,49 @@ async function analyzeRegions(inp, onProgress){
   }
 
   guResults.sort((a,b)=>a.score-b.score);
-  const top3 = guResults.slice(0,3).map((r,i)=>({
-    ...r,
-    sub: r.city+' '+r.area,
-    rank: String(i+1).padStart(2,'0'),
-    tag:  i===0?'✦ 1순위 추천':i===1?'2순위':'3순위',
-    metrics:[
-      ['실거래 평균', Math.floor(r.avg/10000)+'억'+(r.avg%10000?' '+Math.round(r.avg%10000/1000)+'천':'')],
-      ['A 출퇴근', r.aTime+'분 (추정)'],
-      ['B 출퇴근', r.bTime+'분 (추정)'],
-    ]
+
+  // TOP3 확정 후 환경 점수 병렬 조회 (비동기)
+  const top3raw = guResults.slice(0,3);
+  const envSel = inp.envSel || { edu:[], env:[], all:[] };
+  const allEnvTypes = [...new Set([
+    ...envSel.env,
+    ...(envSel.edu.includes('어린이집') ? ['어린이집'] : []),
+    ...(envSel.edu.includes('학원가')   ? ['학원가']   : []),
+  ])].filter(t => ['역세권','생활편의','학원가','어린이집'].includes(t));
+
+  await Promise.all(top3raw.map(async r => {
+    // 카카오 환경 점수
+    if(allEnvTypes.length) {
+      r.envScores = await fetchEnvScore(r.lat, r.lng, allEnvTypes).catch(()=>({}));
+    }
+    // NEIS 학군 점수 (학군 선택시)
+    if(envSel.edu.includes('학군') || envSel.env.includes('학군')) {
+      r.neisResult = await fetchNeisScore(r.city, r.area).catch(()=>null);
+    }
   }));
+
+  const top3 = top3raw.map((r,i)=>{
+    // 환경 보정 점수 계산 (선택한 항목 평균)
+    const envTags = [];
+    if(r.envScores) {
+      Object.entries(r.envScores).forEach(([k,v])=>{
+        if(v.score >= 60) envTags.push({k, score:v.score, count:v.count});
+      });
+    }
+    const neisTag = r.neisResult ? {grade:r.neisResult.grade, label:r.neisResult.label, detail:r.neisResult.detail} : null;
+    return {
+      ...r,
+      sub: r.city+' '+r.area,
+      rank: String(i+1).padStart(2,'0'),
+      tag:  i===0?'✦ 1순위 추천':i===1?'2순위':'3순위',
+      envTags, neisTag,
+      metrics:[
+        ['실거래 평균', Math.floor(r.avg/10000)+'억'+(r.avg%10000?' '+Math.round(r.avg%10000/1000)+'천':'')],
+        ['A 출퇴근', r.aTime+'분 (추정)'],
+        ['B 출퇴근', r.bTime+'분 (추정)'],
+      ]
+    };
+  });
 
   // TOP3 아파트 (예산 초과 제외)
   APTS = [];
@@ -1206,6 +1241,145 @@ function getTransitHint(from, to){
 const MOLIT_KEY = encodeURIComponent('66ee7240d70d045a4d3808209ee995f60fa7195ea6e79ac65cc9124379828e3a');
 const priceCache = {};
 
+// =============================================
+// == NEIS 학교알리미 API ==
+// =============================================
+const NEIS_KEY = '5507af1843bf4b13a0db197dd1033cbe';
+const neisCache = {};
+
+// 시도 코드 매핑 (NEIS API)
+const NEIS_ATPT = {
+  '서울':'B10','부산':'C10','대구':'D10','인천':'E10',
+  '광주':'F10','대전':'G10','울산':'H10','세종':'I10',
+  '경기':'J10','충북':'M10','충남':'N10','전북':'P10',
+  '전남':'Q10','경북':'R10','경남':'S10','제주':'T10'
+};
+
+// 구/시 → NEIS 교육지원청 코드 (주요 지역)
+// 실제 API는 학교 단위 → 구 단위로 집계
+async function fetchNeisScore(city, area) {
+  const ck = city + '_' + area;
+  if(neisCache[ck] !== undefined) return neisCache[ck];
+
+  const atpt = NEIS_ATPT[city];
+  if(!atpt) { neisCache[ck] = null; return null; }
+
+  try {
+    // 1) 학업성취도: 보통학력 이상 비율 (중학교 기준)
+    const schoolRes = await fetch(
+      `https://open.neis.go.kr/hub/schoolInfo` +
+      `?KEY=${NEIS_KEY}&Type=json&pSize=100&pIndex=1` +
+      `&ATPT_OFCDC_SC_CODE=${atpt}&LCTN_SC_NM=${encodeURIComponent(area)}&SCHUL_KND_SC_NM=${encodeURIComponent('중학교')}`
+    );
+    if(!schoolRes.ok) { neisCache[ck] = null; return null; }
+    const schoolData = await schoolRes.json();
+    const schools = schoolData?.schoolInfo?.[1]?.row || [];
+    if(!schools.length) { neisCache[ck] = {score:50, grade:'C', label:'데이터 없음', detail:''}; return neisCache[ck]; }
+
+    // 학교 코드 목록
+    const schoolCodes = schools.slice(0, 5).map(s => s.SD_SCHUL_CODE);
+
+    // 2) 졸업생 진로현황 - 특목고/자사고 진학률
+    let totalGrad = 0, specGrad = 0;
+    for(const code of schoolCodes) {
+      try {
+        const yr = new Date().getFullYear() - 1;
+        const gradRes = await fetch(
+          `https://open.neis.go.kr/hub/stuCrslCrsTrnsInfo` +
+          `?KEY=${NEIS_KEY}&Type=json&pSize=10&pIndex=1` +
+          `&ATPT_OFCDC_SC_CODE=${atpt}&SD_SCHUL_CODE=${code}&AY=${yr}`
+        );
+        if(!gradRes.ok) continue;
+        const gd = await gradRes.json();
+        const rows = gd?.stuCrslCrsTrnsInfo?.[1]?.row || [];
+        rows.forEach(r => {
+          const tot = parseInt(r.TOT_GRSC_PURPHS_DDLN_CNT || 0);
+          // 과학고, 외국어고, 국제고, 자사고, 예술고 합산
+          const spec = parseInt(r.SCIENCE_GRSC_PURPHS_DDLN_CNT || 0)
+                     + parseInt(r.FORLANG_GRSC_PURPHS_DDLN_CNT || 0)
+                     + parseInt(r.INTL_GRSC_PURPHS_DDLN_CNT || 0)
+                     + parseInt(r.AUTONOMY_GRSC_PURPHS_DDLN_CNT || 0)
+                     + parseInt(r.ART_GRSC_PURPHS_DDLN_CNT || 0);
+          totalGrad += tot;
+          specGrad += spec;
+        });
+      } catch(e) {}
+    }
+
+    const specRate = totalGrad > 0 ? (specGrad / totalGrad * 100) : 0;
+
+    // 등급 산정 (특목고·자사고 진학률 기반)
+    let grade, score, label;
+    if(specRate >= 15)      { grade='S'; score=95; label='최상위 학군'; }
+    else if(specRate >= 8)  { grade='A'; score=80; label='상위 학군'; }
+    else if(specRate >= 4)  { grade='B'; score=65; label='양호한 학군'; }
+    else if(specRate >= 1)  { grade='C'; score=45; label='보통 학군'; }
+    else                    { grade='D'; score=25; label='기초 학군'; }
+
+    const detail = totalGrad > 0
+      ? `특목고·자사고 진학률 ${specRate.toFixed(1)}% (${specGrad}/${totalGrad}명)`
+      : '진학 데이터 없음';
+
+    const result = { score, grade, label, detail, schools: schools.length };
+    neisCache[ck] = result;
+    return result;
+  } catch(e) {
+    neisCache[ck] = null;
+    return null;
+  }
+}
+
+// =============================================
+// == 카카오 환경 점수 (역세권·생활편의·학원가·어린이집) ==
+// =============================================
+const envCache = {};
+
+async function fetchEnvScore(lat, lng, types) {
+  // types: 배열 ['역세권','생활편의','학원가','어린이집']
+  const ck = lat.toFixed(3)+'_'+lng.toFixed(3)+'_'+types.join(',');
+  if(envCache[ck]) return envCache[ck];
+
+  const categoryMap = {
+    '역세권':    [{code:'SW8', radius:1000, label:'지하철역'}],
+    '생활편의':  [{code:'MT1', radius:1000, label:'대형마트'}, {code:'CS2', radius:500, label:'편의점'}, {code:'HP8', radius:1500, label:'병원'}],
+    '학원가':    [{code:'AC5', radius:1000, label:'학원'}],
+    '어린이집':  [{code:'PS3', radius:1000, label:'어린이집'}],
+  };
+
+  const scores = {};
+  for(const type of types) {
+    const cats = categoryMap[type] || [];
+    let total = 0;
+    for(const cat of cats) {
+      try {
+        const res = await fetch(
+          `https://dapi.kakao.com/v2/local/search/category.json` +
+          `?category_group_code=${cat.code}&x=${lng}&y=${lat}&radius=${cat.radius}&size=15`,
+          { headers: { Authorization: KAKAO_KEY } }
+        );
+        if(!res.ok) continue;
+        const d = await res.json();
+        total += (d.documents||[]).length;
+      } catch(e) {}
+    }
+    // 점수화 (0~100)
+    let score = Math.min(100, total * (type==='역세권' ? 20 : type==='학원가' ? 8 : 10));
+    scores[type] = { count: total, score };
+  }
+
+  envCache[ck] = scores;
+  return scores;
+}
+
+// 환경 선택값 읽기
+function getEnvSelections() {
+  const edu = [...document.querySelectorAll('#eduPriority .chip.on')].map(el=>el.dataset.env||el.textContent.trim());
+  const env = [...document.querySelectorAll('#envPriority .chip.on')].map(el=>el.dataset.env||el.textContent.trim());
+  return { edu, env, all: [...new Set([...edu, ...env])] };
+}
+
+
+
 function getYM(offset=0){
   // 국토부 API는 신고~등록까지 시간이 걸려 최신달 데이터가 없는 경우가 많음
   // 기본 offset 1 (1개월 전)부터 시작
@@ -1280,6 +1454,7 @@ function getInputs(){
     weight:    document.getElementById('wt')?.value||'50',
     gpMaxTime: parseInt(document.getElementById('gpTime')?.value||'30'),
     gpWeight:  parseInt(document.getElementById('gpWt')?.value||'30'),
+    envSel:    getEnvSelections(),
   };
 }
 
@@ -1302,6 +1477,8 @@ async function showResult(){
     `B 이동: <b>${inp.tr2}</b>`,
     `예산: <b>${inp.budget}억</b>`,
     `거래: <b>${inp.dealType}</b>`,
+    ...(inp.envSel.edu.length ? [`교육환경: <b>${inp.envSel.edu.join('·')}</b>`] : []),
+    ...(inp.envSel.env.length ? [`주거환경: <b>${inp.envSel.env.join('·')}</b>`] : []),
   ].map(t=>`<div class="ibadge">${t}</div>`).join('');
 
   document.getElementById('s_a').textContent=inp.c1+'분 허용';
@@ -1393,6 +1570,36 @@ async function renderRegionCards(inp){
         <div class="cbar"><div class="cbar-f" id="rt_b_bar_${ri}" style="width:${bBarW}%;background:var(--a2)"></div></div>
       </div>
       ${gpRow}
+      ${(()=>{
+        const parts = [];
+        // NEIS 학군 등급
+        if(r.neisTag) {
+          const gc = {'S':'#c8a96e','A':'#7fb5a0','B':'#7da8e0','C':'#8a8580','D':'#d4756e'}[r.neisTag.grade]||'#8a8580';
+          parts.push(`<div style="margin-top:10px;padding:8px 11px;background:rgba(200,169,110,.06);border:1px solid rgba(200,169,110,.2)">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+              <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;color:${gc};border:1px solid ${gc}55;padding:1px 7px">${r.neisTag.grade}등급</span>
+              <span style="font-size:12px;color:var(--text)">${r.neisTag.label}</span>
+            </div>
+            <div style="font-size:10px;color:var(--dim)">${r.neisTag.detail}</div>
+          </div>`);
+        }
+        // 카카오 환경 점수
+        if(r.envTags && r.envTags.length) {
+          const envColors = {'역세권':'#7da8e0','생활편의':'#7fb5a0','학원가':'#c8a96e','어린이집':'#e09090'};
+          const bars = r.envTags.map(t=>{
+            const col = envColors[t.k]||'#888';
+            const w = Math.round(t.score);
+            return `<div style="margin-bottom:5px">
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--dim);margin-bottom:3px">
+                <span>${t.k}</span><span style="color:${col}">${t.count}개 · ${w}점</span>
+              </div>
+              <div style="height:2px;background:var(--border)"><div style="height:100%;width:${w}%;background:${col};transition:width 1s"></div></div>
+            </div>`;
+          }).join('');
+          parts.push(`<div style="margin-top:8px;padding:8px 11px;background:rgba(127,181,160,.05);border:1px solid rgba(127,181,160,.15)">${bars}</div>`);
+        }
+        return parts.join('');
+      })()}
       <div class="dthin"></div>
       ${r.metrics.map(([k,v])=>`<div class="mrow"><span class="mk">${k}</span><span class="mv">${v}</span></div>`).join('')}
       <div class="rpx">
