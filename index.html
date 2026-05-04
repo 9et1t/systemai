@@ -23,7 +23,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 
 /* HERO */
 #hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 24px;text-align:center;position:relative;overflow:hidden;}
-.hgrid{position:absolute;inset:0;background-image:linear-gradient(rgba(200,169,110,.04)1px,transparent 1px),linear-gradient(90deg,rgba(200,169,110,.04)1px,transparent 1px);background-size:60px 60px;animation:gs 20s linear infinite;}
+.hgrid{position:absolute;inset:0;background-image:linear-gradient(rgba(200,169,110,.04)1px,transparent 1px),linear-gradient(90deg,rgba(200,169,110,.04)1px,transparent 1px);background-size:60px 60px;animation:gs 20s linear infinite;pointer-events:none;}
 @keyframes gs{100%{transform:translate(60px,60px);}}
 .hbadge{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.3em;color:var(--a);border:1px solid rgba(200,169,110,.3);padding:5px 16px;margin-bottom:32px;display:inline-block;}
 .htitle{font-family:'Noto Serif KR',serif;font-size:clamp(44px,8vw,80px);font-weight:300;line-height:1.1;margin-bottom:20px;}
@@ -1417,6 +1417,8 @@ async function renderRegionCards(inp){
     if(inp.work2Coord?.lat){const tB=await getAllTimes(inp.work2Coord),sB=getSelKey(inp.tr2),dB=tB[sB];const et2=document.getElementById('rt_b_time_'+ri),er2=document.getElementById('rt_b_route_'+ri),eb2=document.getElementById('rt_b_bar_'+ri);if(sB==='car'&&dB){const rt=dB.data;if(et2)et2.textContent=rt.duration+'분';if(er2)er2.textContent=inp.work2Label+' → '+rt.topRoads.join(' → ')+' → '+(r.dong||r.area)+' ('+rt.distance+'km'+(rt.toll?', 통행료':'')+')';;if(eb2)eb2.style.width=Math.min(95,rt.duration)+'%';}if(sB==='transit'){const el=document.getElementById('rt_b_transit_'+ri);if(dB){const rt=dB.data;if(et2)et2.textContent=rt.totalTime+'분';if(eb2)eb2.style.width=Math.min(95,rt.totalTime)+'%';if(el)el.innerHTML=renderTransitSteps(rt);updateRoute(er2,inp.work2Label,rt,r.dong||r.area);}else if(el)el.innerHTML='<div style="font-size:11px;color:var(--dim)">경로 조회 실패</div>';}if((sB==='walk'||sB==='shuttle')&&dB){if(et2)et2.textContent=dB.time+'분';if(eb2)eb2.style.width=Math.min(95,dB.time)+'%';}showTips('rt_b_route_'+ri,buildAllTips(sB,tB),'#7fb5a0');}
     if(inp.gpOn&&inp.gpCoord?.lat){const gpEl=document.getElementById('gp_transit_'+ri);if(gpEl){const[gpT,gpC]=await Promise.all([fetchTransitRoute(inp.gpCoord,dest).catch(()=>null),fetchCarRoute(inp.gpCoord,dest).catch(()=>null)]);const gpW=Math.round(calcDistKm(inp.gpCoord,dest)*1.3/5*60);let gpH='';if(gpT){const xf=gpT.transferCount!=null?gpT.transferCount+'회 환승 · ':'';gpH+='<div style="color:var(--dim);margin-bottom:4px">'+xf+'도보 '+(gpT.totalWalk||'—')+'m</div>'+renderTransitSteps(gpT);}else gpH='<div style="color:var(--dim)">경로 조회 실패</div>';const gpTimes={};if(gpT)gpTimes.transit={time:gpT.totalTime,label:'대중교통',icon:'🚇'};if(gpC)gpTimes.car={time:gpC.duration,label:'자가용',icon:'🚗'};if(gpW<=60)gpTimes.walk={time:gpW,label:'도보',icon:'🚶'};const gpST=gpTimes.transit?.time||999;const gpF=Object.entries(gpTimes).filter(([k,v])=>k!=='transit'&&v.time<gpST*0.9).sort(([,a],[,b])=>a.time-b.time);if(gpF.length)gpH+='<div style="margin-top:6px;padding:6px 8px;background:rgba(127,181,160,.1);border:1px solid rgba(127,181,160,.3);font-size:11px;line-height:1.7"><span style="color:var(--a2);font-weight:500">다른 수단 비교</span><br>'+gpF.map(([,v])=>'<span style="color:var(--muted)">'+v.icon+' '+v.label+'이 '+v.time+'분으로 더 빠름</span>').join('<br>')+'</div>';gpEl.innerHTML=gpH;}}
   });
+} // end renderRegionCards
+
 function renderApts(inp){
   const el=document.getElementById('aptList');if(!el)return;
   if(!APTS||!APTS.length){el.innerHTML='<div style="padding:32px;text-align:center;color:var(--dim)">실거래 아파트 데이터 없음</div>';const t0=document.getElementById('aptTabs');if(t0)t0.innerHTML='<button class="atab on" onclick=\'fApt(this,"all")\'>전체</button>';return;}
@@ -1709,13 +1711,7 @@ document.addEventListener('click',e=>{
     const aw=document.getElementById('aw_'+key);
     if(aw && !aw.contains(e.target)) hideDrop(key);
   });
-});  REGIONS.forEach((r,ri)=>{
-    const el=document.getElementById('rp_'+ri);
-    if(!el)return;
-    el.classList.remove('loading');
-    if(r.avg){el.textContent=Math.floor(r.avg/10000)+'억'+(r.avg%10000?' '+Math.round(r.avg%10000/1000)+'천':'');el.style.color='var(--a2)';if(!el.parentNode.querySelector('.budget-tag')){const tag=document.createElement('div');tag.className='budget-tag';tag.style.cssText='font-size:10px;margin-top:3px;color:var(--a2)';tag.textContent='✓ '+(inp.sizeType||'선택 평형')+' 예산 내';el.parentNode.appendChild(tag);}}else{el.textContent='데이터 없음';}
-  });
-}
+});
 
 </script>
 </body>
