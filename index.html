@@ -367,17 +367,15 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
           <div class="field"><label class="flbl">조부모 차량</label><div class="chips" id="gpc"><div class="chip on" onclick="pick(this,'gpc')">있음</div><div class="chip" onclick="pick(this,'gpc')">없음</div></div></div>
           <div class="field"><label class="flbl">픽업 유형</label><div class="chips" id="pu"><div class="chip on" onclick="pick(this,'pu')">우리집에서 돌봄</div><div class="chip" onclick="pick(this,'pu')">조부모집에서 돌봄</div><div class="chip" onclick="pick(this,'pu')">어린이집 픽업</div></div></div>
           <div class="field">
-            <label class="flbl" id="gpTimeLbl">조부모까지 허용 이동시간 (편도) — 30분</label>
-            <input type="range" id="gpTime" min="10" max="90" value="30" step="5"
-              oninput="document.getElementById('gpTimeLbl').textContent='조부모까지 허용 이동시간 (편도) — '+this.value+'분'">
+            <label class="flbl" id="gpTimeLbl">조부모까지 허용 이동시간 — 30분</label>
+            <input type="range" id="gpTime" min="10" max="90" value="30" step="5" oninput="document.getElementById('gpTimeLbl').textContent='조부모까지 허용 이동시간 — '+this.value+'분'">
             <div class="rll"><span>10분</span><span>90분</span></div>
           </div>
           <div class="field">
             <label class="flbl" id="gpWtLbl">조부모 동선 가중치 — 30%</label>
-            <div style="font-size:11px;color:var(--dim);margin-bottom:6px">높을수록 조부모 근접 지역 우선 추천</div>
-            <input type="range" id="gpWt" min="0" max="60" value="30" step="10"
-              oninput="document.getElementById('gpWtLbl').textContent='조부모 동선 가중치 — '+this.value+'%'">
-            <div class="rll"><span>0% (출퇴근만)</span><span>60% (조부모 중시)</span></div>
+            <div style="font-size:11px;color:var(--dim);margin-bottom:6px">높을수록 조부모 근접 지역 우선</div>
+            <input type="range" id="gpWt" min="0" max="60" value="30" step="10" oninput="document.getElementById('gpWtLbl').textContent='조부모 동선 가중치 — '+this.value+'%'">
+            <div class="rll"><span>0% (출퇴근만)</span><span>60%</span></div>
           </div>
         </div>
       </div>
@@ -441,7 +439,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
     <div class="stag" style="margin-top:44px">Apartment List · 국토부 실거래가</div>
     <div class="stitle">추천 아파트 <span style="color:var(--a)">10선</span></div>
     <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.7">국토교통부 실거래가 API 기준 - 최근 3개월 거래 데이터</p>
-    <div class="atabs" id="aptTabs"><button class="atab on" onclick="fApt(this,'all')">전체</button></div>
+    <div class="atabs"><button class="atab on" onclick="fApt(this,'all')">전체</button><button class="atab" onclick="fApt(this,'1')">마포구</button><button class="atab" onclick="fApt(this,'2')">성동구</button><button class="atab" onclick="fApt(this,'3')">동작구</button></div>
     <div id="aptList"></div>
   </div>
   <div style="text-align:center"><button class="brst" onclick="restart()">↺ 조건 다시 설정하기</button></div>
@@ -585,6 +583,9 @@ const NATIONAL_GU = [
   {city:"제주",area:"제주시",lawdCd:"50110",lat:33.4996,lng:126.5312,sub:"제주 제주시"},
   {city:"제주",area:"서귀포시",lawdCd:"50130",lat:33.2541,lng:126.56,sub:"제주 서귀포시"},
 ];
+// ====================================================
+// 전국 시군구 데이터 + 분석 엔진
+// ====================================================
 
 // 평형 -> 전용면적(m2) 범위
 function sizeToExclRange(s){
@@ -595,12 +596,13 @@ function sizeToExclRange(s){
   return {min:59, max:85};
 }
 
-// 지역 분석 엔진 - 전국 시군구 실거래가 조회 후 예산/출퇴근 기준 TOP3 추천
+// 빈 배열로 초기화 (analyzeRegions가 채움)
 let REGIONS = [];
+let APTS    = [];
 
 async function analyzeRegions(inp, onProgress){
-  const budgetWan = parseFloat(inp.budget||'8') * 10000;
-  const exclRange = sizeToExclRange(inp.sizeType);
+  const budgetWan  = parseFloat(inp.budget||'8') * 10000;
+  const exclRange  = sizeToExclRange(inp.sizeType);
   const ym0 = getYM(0), ym1 = getYM(1);
   const candidates = [];
   let done = 0;
@@ -610,17 +612,17 @@ async function analyzeRegions(inp, onProgress){
     for(const ym of [ym0, ym1]){
       try{
         const res = await fetch(
-          `https://apis.data.go.kr/1613000/RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade` +
-          `?serviceKey=${MOLIT_KEY}&LAWD_CD=${gu.lawdCd}&DEAL_YMD=${ym}&numOfRows=100&pageNo=1`
+          'https://apis.data.go.kr/1613000/RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade' +
+          '?serviceKey='+MOLIT_KEY+'&LAWD_CD='+gu.lawdCd+'&DEAL_YMD='+ym+'&numOfRows=100&pageNo=1'
         );
         const xml = new DOMParser().parseFromString(await res.text(), 'text/xml');
         xml.querySelectorAll('item').forEach(item => {
-          const excl = parseFloat(item.querySelector('excluUseAr')?.textContent||0);
-          const amt  = parseInt((item.querySelector('dealAmount')?.textContent||'0').replace(/,/g,''));
-          const canceled = (item.querySelector('cdealType')?.textContent||'').trim();
+          const excl    = parseFloat(item.querySelector('excluUseAr')?.textContent||0);
+          const amt     = parseInt((item.querySelector('dealAmount')?.textContent||'0').replace(/,/g,''));
+          const canceled= (item.querySelector('cdealType')?.textContent||'').trim();
           if(!canceled && excl>=exclRange.min && excl<=exclRange.max && amt>0) amounts.push(amt);
         });
-        if(amounts.length >= 5) break;
+        if(amounts.length>=5) break;
       } catch(e){}
     }
     done++;
@@ -628,24 +630,20 @@ async function analyzeRegions(inp, onProgress){
     if(!amounts.length) return;
 
     const avg = Math.round(amounts.reduce((a,b)=>a+b,0)/amounts.length);
-    if(avg > budgetWan * 1.05) return; // 예산 5% 초과 제외
+    if(avg > budgetWan * 1.05) return;
 
-    const aTime = inp.work1Coord?.lat ? (estimateTime(inp.work1Coord, gu, inp.tr1)||60) : 60;
-    const bTime = inp.work2Coord?.lat ? (estimateTime(inp.work2Coord, gu, inp.tr2)||60) : 60;
+    const aTime = inp.work1Coord?.lat ? (estimateTime(inp.work1Coord,gu,inp.tr1)||60) : 60;
+    const bTime = inp.work2Coord?.lat ? (estimateTime(inp.work2Coord,gu,inp.tr2)||60) : 60;
 
-    // 조부모 소요시간 + 허용시간 필터
     let gpTime = 0;
     const hasGp = inp.gpOn && inp.gpCoord?.lat;
     if(hasGp){
-      gpTime = estimateTime(inp.gpCoord, gu, '대중교통') || 999;
+      gpTime = estimateTime(inp.gpCoord, gu, 'transit') || 999;
       if(gpTime > (inp.gpMaxTime||30) * 1.5) return;
     }
-
-    // 허용 출퇴근 시간 초과 제외
     if(aTime > parseFloat(inp.c1||60)*1.5) return;
     if(bTime > parseFloat(inp.c2||60)*1.5) return;
 
-    // 가중 점수
     const gpW  = hasGp ? (inp.gpWeight||30)/100 : 0;
     const comW = 1 - gpW;
     const wA   = (parseFloat(inp.weight||50)/100) * comW;
@@ -656,17 +654,66 @@ async function analyzeRegions(inp, onProgress){
   }));
 
   candidates.sort((a,b)=>a.score-b.score);
-  return candidates.slice(0,3).map((r,i)=>({
+  const top3 = candidates.slice(0,3).map((r,i)=>({
     ...r,
     rank: String(i+1).padStart(2,'0'),
-    tag:  i===0 ? '✦ 1순위 추천' : i===1 ? '2순위' : '3순위',
+    tag:  i===0?'✦ 1순위 추천':i===1?'2순위':'3순위',
     metrics:[
       ['실거래 평균', Math.floor(r.avg/10000)+'억'+(r.avg%10000?' '+Math.round(r.avg%10000/1000)+'천':'')],
       ['A 출퇴근', r.aTime+'분 (추정)'],
       ['B 출퇴근', r.bTime+'분 (추정)'],
     ]
   }));
+
+  // TOP3 지역 실거래 아파트 동적 수집
+  APTS = [];
+  await Promise.all(top3.map(async (r, ri) => {
+    for(const ym of [ym0, ym1]){
+      try{
+        const res = await fetch(
+          'https://apis.data.go.kr/1613000/RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade' +
+          '?serviceKey='+MOLIT_KEY+'&LAWD_CD='+r.lawdCd+'&DEAL_YMD='+ym+'&numOfRows=100&pageNo=1'
+        );
+        const xml = new DOMParser().parseFromString(await res.text(), 'text/xml');
+        const aptMap = {};
+        xml.querySelectorAll('item').forEach(item => {
+          const excl    = parseFloat(item.querySelector('excluUseAr')?.textContent||0);
+          const amt     = parseInt((item.querySelector('dealAmount')?.textContent||'0').replace(/,/g,''));
+          const name    = (item.querySelector('aptNm')?.textContent||'').trim();
+          const dong    = (item.querySelector('umdNm')?.textContent||'').trim();
+          const floor   = (item.querySelector('floor')?.textContent||'').trim();
+          const bldYear = (item.querySelector('buildYear')?.textContent||'').trim();
+          const canceled= (item.querySelector('cdealType')?.textContent||'').trim();
+          if(canceled||!amt||!name) return;
+          if(excl<exclRange.min||excl>exclRange.max) return;
+          const key = name;
+          if(!aptMap[key]||aptMap[key].amt>amt){
+            aptMap[key]={name,dong,excl,amt,floor,bldYear,
+              area:r.area,city:r.city,lawdCd:r.lawdCd,ri:ri+1};
+          }
+        });
+        Object.values(aptMap).sort((a,b)=>a.amt-b.amt).slice(0,5).forEach(apt=>{
+          const priceStr=Math.floor(apt.amt/10000)+'억'+(apt.amt%10000?' '+Math.round(apt.amt%10000/1000)+'천':'');
+          APTS.push({
+            r:String(apt.ri), rank:APTS.length+1,
+            name:apt.name, lawdCd:apt.lawdCd, area:apt.area, city:apt.city,
+            addr:apt.dong+(apt.floor?' · '+apt.floor+'층':''),
+            size:Math.round(apt.excl/3.3)+'평형', excl:apt.excl,
+            price:priceStr, priceNum:apt.amt, bldYear:apt.bldYear,
+            tags:apt.bldYear&&parseInt(apt.bldYear)>=2020?['new']:[],
+            aT:r.aTime+'분', bT:r.bTime+'분', gpT:r.gpTime?r.gpTime+'분':'—'
+          });
+        });
+        if(Object.keys(aptMap).length>0) break;
+      } catch(e){}
+    }
+  }));
+  APTS.sort((a,b)=>a.priceNum-b.priceNum);
+  APTS.forEach((a,i)=>a.rank=i+1);
+  return top3;
 }
+
+
 // == 저장소 ==
 const LOCS = {
   work1:  { label:'', lat:null, lng:null },
@@ -875,17 +922,7 @@ function addShuttleStop(containerId){
 }
 
 // == 결과 데이터 ==========================================
-const REGIONS = [
-  { rank:'01', tag:'✦ 1순위 추천', area:'마포구', sub:'공덕동 · 아현동 · 대흥동',
-    metrics:[['학군','★★★☆☆'],['생활편의','★★★★☆'],['개발호재','신촌·홍대 개발']],
-    lawdCd:'11440', lat:37.5497, lng:126.9521 },
-  { rank:'02', tag:'2순위', area:'성동구', sub:'행당동 · 금호동 · 왕십리',
-    metrics:[['학군','★★★★☆'],['생활편의','★★★★★'],['개발호재','GTX-B 예정 🚄']],
-    lawdCd:'11200', lat:37.5472, lng:127.0402 },
-  { rank:'03', tag:'3순위', area:'동작구', sub:'노량진 · 사당동 · 흑석동',
-    metrics:[['학군','★★★★★'],['생활편의','★★★☆☆'],['예산 적합','★★★★☆']],
-    lawdCd:'11590', lat:37.5097, lng:126.9390 },
-];
+// REGIONS - analyzeRegions()가 채움
 
 // -- 네이버 Directions5 API 경로 조회 ------------------------------
 // 자가용: map-direction/v1/driving, 대중교통: map-direction/v1/transit
@@ -1160,18 +1197,7 @@ function getTransitHint(from, to){
   return hints.join(' → ') + ' 이용';
 }
 
-const APTS = [
-  {r:'1',rank:1,name:'마포래미안푸르지오',lawdCd:'11440',area:'마포구',addr:'아현동 · 아현역 도보 3분',size:'34평',excl:84,tags:['new'],aT:'26분',bT:'33분',gpT:'40분'},
-  {r:'1',rank:2,name:'공덕자이',lawdCd:'11440',area:'마포구',addr:'공덕동 · 공덕역 도보 5분',size:'33평',excl:84,tags:[],aT:'28분',bT:'31분',gpT:'43분'},
-  {r:'1',rank:3,name:'마포한강2차아이파크',lawdCd:'11440',area:'마포구',addr:'대흥동 · 대흥역 도보 7분',size:'30평',excl:59,tags:[],aT:'31분',bT:'36분',gpT:'38분'},
-  {r:'1',rank:4,name:'신촌숲아이파크',lawdCd:'11440',area:'마포구',addr:'동교동 · 홍대입구역 도보 8분',size:'32평',excl:84,tags:[],aT:'29분',bT:'38분',gpT:'41분'},
-  {r:'2',rank:5,name:'왕십리자이',lawdCd:'11200',area:'성동구',addr:'행당동 · 왕십리역 도보 4분',size:'34평',excl:84,tags:['gtx'],aT:'30분',bT:'36분',gpT:'37분'},
-  {r:'2',rank:6,name:'금호두산위브',lawdCd:'11200',area:'성동구',addr:'금호동 · 금호역 도보 6분',size:'31평',excl:84,tags:[],aT:'33분',bT:'40분',gpT:'42분'},
-  {r:'2',rank:7,name:'서울숲리버뷰자이',lawdCd:'11200',area:'성동구',addr:'성수동 · 뚝섬역 도보 9분',size:'33평',excl:84,tags:['new'],aT:'35분',bT:'42분',gpT:'39분'},
-  {r:'3',rank:8,name:'흑석한강센트레빌',lawdCd:'11590',area:'동작구',addr:'흑석동 · 흑석역 도보 5분',size:'33평',excl:84,tags:['etc:학군 우수'],aT:'40분',bT:'27분',gpT:'52분'},
-  {r:'3',rank:9,name:'사당래미안',lawdCd:'11590',area:'동작구',addr:'사당동 · 사당역 도보 6분',size:'30평',excl:84,tags:['etc:셔틀 최적'],aT:'38분',bT:'28분',gpT:'55분'},
-  {r:'3',rank:10,name:'노량진e편한세상',lawdCd:'11590',area:'동작구',addr:'노량진동 · 노량진역 도보 4분',size:'32평',excl:84,tags:[],aT:'42분',bT:'25분',gpT:'58분'},
-];
+// APTS - analyzeRegions()가 채움
 
 const MOLIT_KEY = encodeURIComponent('66ee7240d70d045a4d3808209ee995f60fa7195ea6e79ac65cc9124379828e3a');
 const priceCache = {};
@@ -1192,7 +1218,6 @@ async function fetchPrice(lawdCd, aptName, excl){
       const res=await fetch(`https://apis.data.go.kr/1613000/RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade?serviceKey=${MOLIT_KEY}&LAWD_CD=${lawdCd}&DEAL_YMD=${ym}&numOfRows=100&pageNo=1`);
       const text=await res.text();
       const xml=new DOMParser().parseFromString(text,'text/xml');
-      const curExcl = sizeToExclRange(document.querySelector('#sz .on')?.textContent||'25~32평');
       let best=null, bestDiff=Infinity;
       xml.querySelectorAll('item').forEach(item=>{
         const name=(item.querySelector('aptNm')?.textContent||'').trim();
@@ -1200,7 +1225,6 @@ async function fetchPrice(lawdCd, aptName, excl){
         const amt=(item.querySelector('dealAmount')?.textContent||'').replace(/,/g,'').trim();
         const canceled=(item.querySelector('cdealType')?.textContent||'').trim();
         if(canceled||!amt) return;
-        if(area<curExcl.min||area>curExcl.max) return;
         // 단지명 4자 이상 매칭 or 포함 관계
         const q=aptName.replace(/[\s\(\)]/g,'').slice(0,5);
         const nm=name.replace(/[\s\(\)]/g,'');
@@ -1249,9 +1273,9 @@ function getInputs(){
     budget: document.getElementById('bud').value,
     dealType: document.querySelector('#dt .on')?.textContent.trim()||'매매',
     sizeType: document.querySelector('#sz .on')?.textContent.trim()||'25~32평',
-    weight:   document.getElementById('wt')?.value || '50',
-    gpMaxTime: parseInt(document.getElementById('gpTime')?.value || '30'),
-    gpWeight:  parseInt(document.getElementById('gpWt')?.value || '30'),
+    weight:   document.getElementById('wt')?.value||'50',
+    gpMaxTime: parseInt(document.getElementById('gpTime')?.value||'30'),
+    gpWeight:  parseInt(document.getElementById('gpWt')?.value||'30'),
   };
 }
 
@@ -1266,55 +1290,41 @@ async function showResult(){
   document.getElementById('progress').style.width='100%';
   window.scrollTo({top:0,behavior:'smooth'});
 
-  const inp = getInputs();
-
+  const inp=getInputs();
   document.getElementById('inputSummary').innerHTML=[
     `A 출근지: <b>${inp.work1}</b>`,
     `B 출근지: <b>${inp.work2}</b>`,
     `A 이동: <b>${inp.tr1}</b>`,
     `B 이동: <b>${inp.tr2}</b>`,
-    `예산: <b>${inp.budget}억 (${inp.sizeType})</b>`,
+    `예산: <b>${inp.budget}억</b>`,
     `거래: <b>${inp.dealType}</b>`,
-    ...(inp.gpOn?[`조부모: <b>${inp.gpLabel} 허용${inp.gpMaxTime}분·가중${inp.gpWeight}%</b>`]:[]),
   ].map(t=>`<div class="ibadge">${t}</div>`).join('');
 
-  document.getElementById('s_a').textContent=inp.c1+'분';
-  document.getElementById('s_b').textContent=inp.c2+'분';
+  document.getElementById('s_a').textContent=inp.c1+'분 허용';
+  document.getElementById('s_b').textContent=inp.c2+'분 허용';
   document.getElementById('gpLegend').style.display=inp.gpOn?'flex':'none';
 
-  // 분석 로딩 화면
-  document.getElementById('regionCards').innerHTML=`
-    <div style="grid-column:1/-1;padding:48px;text-align:center;">
-      <div style="font-family:'DM Mono',monospace;font-size:13px;color:var(--a);margin-bottom:16px">
-        전국 ${NATIONAL_GU.length}개 시군구 · ${inp.sizeType} · ${inp.budget}억 이내 분석 중...
-      </div>
-      <div style="background:var(--border);height:2px;border-radius:1px;overflow:hidden;max-width:400px;margin:0 auto;">
-        <div id="analyzeBar" style="height:100%;background:var(--a);width:0%;transition:width .2s"></div>
-      </div>
-      <div id="analyzeStatus" style="font-size:11px;color:var(--dim);margin-top:10px">0 / ${NATIONAL_GU.length}</div>
-    </div>`;
-
-  // 전국 분석 실행
+  document.getElementById('regionCards').innerHTML=
+    '<div style="grid-column:1/-1;padding:48px;text-align:center">'
+    +'<div style="font-family:\'DM Mono\',monospace;font-size:13px;color:var(--a);margin-bottom:16px">전국 '+NATIONAL_GU.length+'개 지역 분석 중...</div>'
+    +'<div style="background:var(--border);height:2px;max-width:400px;margin:0 auto;overflow:hidden">'
+    +'<div id="analyzeBar" style="height:100%;background:var(--a);width:0%;transition:width .2s"></div></div>'
+    +'<div id="analyzeStatus" style="font-size:11px;color:var(--dim);margin-top:10px">0 / '+NATIONAL_GU.length+'</div></div>';
   try{
-    REGIONS = await analyzeRegions(inp, (done,total)=>{
-      const pct = Math.round(done/total*100);
-      const bar = document.getElementById('analyzeBar');
-      const st  = document.getElementById('analyzeStatus');
-      if(bar) bar.style.width = pct+'%';
-      if(st)  st.textContent  = done+' / '+total+' 완료';
+    REGIONS=await analyzeRegions(inp,(done,total)=>{
+      const b=document.getElementById('analyzeBar'),s=document.getElementById('analyzeStatus');
+      if(b) b.style.width=Math.round(done/total*100)+'%';
+      if(s) s.textContent=done+' / '+total+' 완료';
     });
-  } catch(e){ REGIONS=[]; }
-
-  if(REGIONS.length===0){
-    document.getElementById('regionCards').innerHTML=`
-      <div style="grid-column:1/-1;padding:48px;text-align:center;">
-        <div style="font-size:28px;margin-bottom:12px">😔</div>
-        <div style="color:var(--muted)">전국 ${NATIONAL_GU.length}개 시군구 중 예산(${inp.budget}억)과 출퇴근 조건에 맞는 지역이 없어요.</div>
-        <div style="font-size:12px;color:var(--dim);margin-top:8px">예산을 높이거나 출퇴근 허용 시간을 늘려보세요.</div>
-      </div>`;
+  }catch(e){REGIONS=[];}
+  if(!REGIONS.length){
+    document.getElementById('regionCards').innerHTML=
+      '<div style="grid-column:1/-1;padding:48px;text-align:center">'
+      +'<div style="font-size:28px;margin-bottom:12px">😔</div>'
+      +'<div style="color:var(--muted)">예산('+inp.budget+'억)과 조건에 맞는 지역이 없어요</div>'
+      +'<div style="font-size:12px;color:var(--dim);margin-top:8px">예산을 높이거나 출퇴근 허용시간을 늘려보세요</div></div>';
     return;
   }
-
   renderRegionCards(inp);
   renderApts(inp);
   loadAndRenderMap(inp);
@@ -1364,8 +1374,8 @@ async function renderRegionCards(inp){
     return `<div class="rcard">
       <div class="rrank">${r.rank}</div>
       <div class="rtag">${r.tag}</div>
-      <div class="rarea">${r.city&&r.city!==r.area?r.city+' ':''}${r.area}</div>
-      <div class="rsub">${r.sub||''}</div>
+      <div class="rarea">${r.city&&r.city!==r.area?r.city+" ":""}${r.area}</div>
+      <div class="rsub">${r.sub}</div>
       <div class="crow">
         <div class="ctop">
           <div class="cpill" style="background:rgba(200,169,110,.15);border:1px solid rgba(200,169,110,.3);color:var(--a)">A</div>
@@ -1445,18 +1455,6 @@ async function renderRegionCards(inp){
   REGIONS.forEach(async r=>{
     const el=document.getElementById('rp_'+r.lawdCd);
     if(!el) return;
-    // analyzeRegions에서 계산된 값 바로 사용
-    if(r.avg){
-      el.classList.remove('loading');
-      const avgStr = Math.floor(r.avg/10000)+'억'+(r.avg%10000?' '+Math.round(r.avg%10000/1000)+'천':'');
-      el.textContent = avgStr;
-      el.style.color = 'var(--a2)';
-      const tag = document.createElement('div');
-      tag.style.cssText='font-size:10px;margin-top:3px;font-family:"DM Mono",monospace;color:var(--a2)';
-      tag.textContent = '✓ '+inp.sizeType+' 예산 내';
-      el.parentNode.appendChild(tag);
-      return;
-    }
     // 최근 3개월 데이터 합산
     const amounts=[];
     for(let m=0;m<3;m++){
@@ -1514,95 +1512,50 @@ async function renderRegionCards(inp){
 }
 
 function renderApts(inp){
-  const aptListEl = document.getElementById('aptList');
-  if(!aptListEl) return;
-
-  const budgetOk = parseFloat(inp.budget || '8');
-  const regionAreas = REGIONS.map(r=>r.area);
-  const filteredApts = regionAreas.length>0 ? APTS.filter(a=>regionAreas.includes(a.area)) : APTS;
-
-  // 탭 동적 생성
-  const tabsEl = document.getElementById('aptTabs');
-  if(tabsEl && REGIONS.length>0){
-    tabsEl.innerHTML = '<button class="atab on" onclick="fApt(this,'all')">전체</button>'
-      + REGIONS.map((r,i)=>`<button class="atab" onclick="fApt(this,'${i+1}')">${r.city&&r.city!==r.area?r.city+' ':''}${r.area}</button>`).join('');
+  const el=document.getElementById('aptList');
+  if(!el) return;
+  if(!APTS||!APTS.length){
+    el.innerHTML='<div style="padding:32px;text-align:center;color:var(--dim)">실거래 아파트 데이터 없음</div>';
+    return;
   }
-  const showGp = inp.gpOn && inp.gpLabel && inp.gpLabel !== '(미입력)';
-  const aIcon = inp.tr1.includes('셔틀') ? '🚌' : inp.tr1.includes('자가용') ? '🚗' : '🚇';
-  const bIcon = inp.tr2.includes('셔틀') ? '🚌' : inp.tr2.includes('자가용') ? '🚗' : '🚇';
-
-  const regionColors = {'1': 'var(--a)', '2': 'var(--a2)', '3': 'var(--a3)'};
-
-  const rows = APTS.map(a => {
-    const tags = (a.tags || []).map(t => {
-      if(t === 'new') return '<span class="atag new">신축</span>';
-      if(t === 'gtx') return '<span class="atag gtx">GTX-B</span>';
-      if(t.startsWith('etc:')) return `<span class="atag etc">${t.slice(4)}</span>`;
-      return '';
-    }).join('');
-
-    const gpChip = showGp ? `<span class="achip">👴 ${a.gpT}</span>` : '';
-
-    return `<div class="arow r${a.r}" data-r="${a.r}" id="apt_row_${a.rank}">
-      <div class="arnk">${String(a.rank).padStart(2,'0')}</div>
-      <div>
-        <div class="anr">
-          <span class="aname">${a.name}</span>
-          <span class="atag r${a.r}">${a.area}</span>
-          ${tags}
-          <span class="atag apt-budget-tag" id="apt_btag_${a.rank}"></span>
-        </div>
-        <div class="aaddr">${a.addr}</div>
-        <div class="achips">
-          <span class="achip">A ${aIcon} ${a.aT}</span>
-          <span class="achip">B ${bIcon} ${a.bT}</span>
-          ${gpChip}
-        </div>
-      </div>
-      <div class="apb">
-        <div class="asz">${a.size}</div>
-        <div class="aprice loading" id="ap_${a.rank}">조회 중</div>
-        <div class="apdt">국토부 실거래</div>
-      </div>
-    </div>`;
-  });
-
-  aptListEl.innerHTML = rows.join('');
-
-  // 비동기로 실거래가 조회 + 예산 필터
-  APTS.forEach(async a => {
-    const priceEl = document.getElementById('ap_' + a.rank);
-    const btagEl = document.getElementById('apt_btag_' + a.rank);
-    const rowEl = document.getElementById('apt_row_' + a.rank);
-    if(!priceEl) return;
-
-    const price = await fetchPrice(a.lawdCd, a.name, a.excl);
-    priceEl.classList.remove('loading');
-
-    if(price) {
-      priceEl.textContent = price;
-      // 예산 비교
-      const priceNum = parseFloat(price.replace('억','').trim().split(' ')[0]);
-      if(priceNum > budgetOk * 1.15) {
-        priceEl.style.color = 'var(--a3)';
-        if(btagEl) {
-          btagEl.textContent = '예산초과';
-          btagEl.style.cssText = 'background:rgba(212,117,110,.08);border:1px solid rgba(212,117,110,.25);color:var(--a3)';
-        }
-      } else if(priceNum <= budgetOk) {
-        priceEl.style.color = 'var(--a2)';
-        if(btagEl) {
-          btagEl.textContent = '예산내';
-          btagEl.style.cssText = 'background:rgba(127,181,160,.08);border:1px solid rgba(127,181,160,.25);color:var(--a2)';
-        }
-      }
-    } else {
-      priceEl.textContent = '데이터 없음';
-      priceEl.style.fontSize = '11px';
-    }
-  });
+  const budgetOk=parseFloat(inp.budget||'8');
+  const showGp=inp.gpOn&&inp.gpLabel&&inp.gpLabel!=='(미입력)';
+  const aIcon=inp.tr1.includes('셔틀')?'🚌':inp.tr1.includes('자가용')?'🚗':'🚇';
+  const bIcon=inp.tr2.includes('셔틀')?'🚌':inp.tr2.includes('자가용')?'🚗':'🚇';
+  const tabsEl=document.getElementById('aptTabs');
+  if(tabsEl&&REGIONS.length){
+    let tabHtml='<button class="atab on" onclick=\'fApt(this,\"all\")\'>' + '전체</button>';
+    REGIONS.forEach((r,i)=>{
+      const area=(r.city&&r.city!==r.area?r.city+' ':'')+r.area;
+      tabHtml+='<button class="atab" onclick=\'fApt(this,\"'+(i+1)+'\")\'>' + area+'</button>';
+    });
+    tabsEl.innerHTML=tabHtml;
+  }
+  el.innerHTML=APTS.map((a,i)=>{
+    const tags=(a.tags||[]).map(t=>t==='new'?'<span class="atag new">신축</span>':'').join('');
+    const dr=a.r||'1';
+    const gpChip=showGp?'<span class="achip">👴 '+(a.gpT||'—')+'</span>':'';
+    const pNum=a.priceNum||0;
+    const pc=pNum>budgetOk*10000*1.15?'var(--a3)':pNum<=budgetOk*10000?'var(--a2)':'var(--a)';
+    const btag=pNum>budgetOk*10000*1.15
+      ?'<span class="atag" style="background:rgba(212,117,110,.08);border:1px solid rgba(212,117,110,.25);color:var(--a3)">예산초과</span>'
+      :pNum<=budgetOk*10000
+      ?'<span class="atag" style="background:rgba(127,181,160,.08);border:1px solid rgba(127,181,160,.25);color:var(--a2)">예산내</span>'
+      :'';
+    const yr=a.bldYear?'<span class="atag" style="background:var(--bg3);border:1px solid var(--border);color:var(--dim)">'+a.bldYear+'년</span>':'';
+    return '<div class="arow r'+dr+'" data-r="'+dr+'">'
+      +'<div class="arnk">'+String(i+1).padStart(2,'0')+'</div>'
+      +'<div><div class="anr"><span class="aname">'+a.name+'</span>'
+      +'<span class="atag r'+dr+'">'+(a.city&&a.city!==a.area?a.city+' ':'')+a.area+'</span>'
+      +tags+btag+yr+'</div>'
+      +'<div class="aaddr">'+a.addr+'</div>'
+      +'<div class="achips"><span class="achip">A '+aIcon+' '+a.aT+'</span>'
+      +'<span class="achip">B '+bIcon+' '+a.bT+'</span>'+gpChip+'</div></div>'
+      +'<div class="apb"><div class="asz">'+a.size+'</div>'
+      +'<div class="aprice" style="color:'+pc+'">'+a.price+'</div>'
+      +'<div class="apdt">국토부 실거래</div></div></div>';
+  }).join('');
 }
-
 
 // == 지도 ==
 let naverMap=null;
@@ -1870,453 +1823,6 @@ document.addEventListener('click',e=>{
     if(aw && !aw.contains(e.target)) hideDrop(key);
   });
 });
-const gpMax = inp.gpMaxTime||30;
-    const gpTimeDisp = r.gpTime || gpTime;
-    const gpOver = gpTimeDisp && gpTimeDisp > gpMax;
-    const gpRow = inp.gpOn ? `<div class="gprow"><span style="font-size:15px">👴</span>
-      <div class="gpi">
-        <div class="gplb">조부모(${inp.gpLabel})까지 · 허용 ${gpMax}분</div>
-        <div class="gpvl" style="color:${gpOver?'var(--a3)':'var(--a2)'}">
-          🚇 ${gpTimeDisp||'—'}분 ${gpOver?'초과':'✓'}
-        </div>
-      </div>
-    </div>` : '';YPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8">
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>우리집 찾기</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;700&family=DM+Mono:wght@400;500&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg:#0e0e0e;--bg2:#161616;--bg3:#1e1e1e;
-  --border:#2a2a2a;--borderL:#383838;
-  --text:#f0ece4;--muted:#8a8580;--dim:#4a4642;
-  --a:#c8a96e;--a2:#7fb5a0;--a3:#d4756e;
-}
-*{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-weight:300;}
-button,input{font-family:'Noto Sans KR',sans-serif;}
-input[type=range]{-webkit-appearance:none;height:2px;background:var(--border);outline:none;cursor:pointer;width:100%;}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:var(--a);border-radius:50%;cursor:pointer;}
-::-webkit-scrollbar{width:4px;height:4px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--border);}
-#progress{position:fixed;top:0;left:0;height:2px;background:var(--a);transition:width .4s;z-index:300;}
-
-/* HERO */
-#hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 24px;text-align:center;position:relative;overflow:hidden;}
-.hgrid{position:absolute;inset:0;background-image:linear-gradient(rgba(200,169,110,.04)1px,transparent 1px),linear-gradient(90deg,rgba(200,169,110,.04)1px,transparent 1px);background-size:60px 60px;animation:gs 20s linear infinite;}
-@keyframes gs{100%{transform:translate(60px,60px);}}
-.hbadge{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.3em;color:var(--a);border:1px solid rgba(200,169,110,.3);padding:5px 16px;margin-bottom:32px;display:inline-block;}
-.htitle{font-family:'Noto Serif KR',serif;font-size:clamp(44px,8vw,80px);font-weight:300;line-height:1.1;margin-bottom:20px;}
-.htitle em{font-style:normal;color:var(--a);}
-.hsub{font-size:14px;color:var(--muted);line-height:1.9;margin-bottom:40px;}
-
-/* STEP NAV */
-#snav{display:none;position:sticky;top:0;z-index:100;background:rgba(14,14,14,.95);border-bottom:1px solid var(--border);backdrop-filter:blur(20px);}
-.ni{display:flex;align-items:center;overflow-x:auto;padding:13px 20px;scrollbar-width:none;}
-.ni::-webkit-scrollbar{display:none;}
-.si{display:flex;align-items:center;gap:7px;padding:4px 10px;opacity:.3;cursor:default;}
-.si.active{opacity:1;}.si.done{opacity:.65;cursor:pointer;}
-.sn{width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:11px;border:1px solid var(--border);}
-.si.active .sn{background:var(--a);border-color:var(--a);color:#0e0e0e;}
-.si.done .sn{background:var(--a2);border-color:var(--a2);color:#0e0e0e;}
-.sl{font-size:11px;color:var(--muted);white-space:nowrap;}.si.active .sl{color:var(--text);}
-.ss{width:20px;height:1px;background:var(--border);flex-shrink:0;}
-
-/* FORM */
-.fw{max-width:900px;margin:0 auto;padding:52px 20px 80px;}
-.stag{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.3em;color:var(--a);text-transform:uppercase;margin-bottom:12px;}
-.stitle{font-family:'Noto Serif KR',serif;font-size:clamp(24px,4vw,36px);font-weight:300;margin-bottom:8px;}
-.sdesc{font-size:13px;color:var(--muted);line-height:1.8;margin-bottom:36px;}
-.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-@media(max-width:620px){.pgrid{grid-template-columns:1fr;}}
-.pcard{background:var(--bg2);border:1px solid var(--border);padding:26px;position:relative;}
-.pcard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
-.pcard.a::before{background:var(--a);}.pcard.b::before{background:var(--a2);}
-.plbl{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.25em;color:var(--dim);margin-bottom:20px;display:flex;align-items:center;gap:8px;}
-.pdot{width:6px;height:6px;border-radius:50%;}
-.field{margin-bottom:18px;}.field:last-child{margin-bottom:0;}
-.flbl{font-size:11px;color:var(--muted);margin-bottom:7px;display:block;}
-.fi{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:13px;font-weight:300;padding:10px 13px;outline:none;transition:border-color .2s;}
-.fi:focus{border-color:var(--a);}.fi::placeholder{color:var(--dim);}
-.rll{display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:5px;}
-.chips{display:flex;gap:6px;flex-wrap:wrap;}
-.chip{padding:7px 13px;font-size:12px;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--muted);transition:all .15s;white-space:nowrap;user-select:none;}
-.chip:hover{border-color:var(--borderL);color:var(--text);}
-.chip.on{border-color:var(--a);background:rgba(200,169,110,.12);color:var(--a);}
-
-/* -- 주소 검색 입력 -- */
-.addr-wrap{position:relative;}
-.addr-input-row{display:flex;gap:0;}
-.addr-input{flex:1;background:var(--bg3);border:1px solid var(--border);border-right:none;color:var(--text);font-size:13px;font-weight:300;padding:10px 13px;outline:none;transition:border-color .2s;}
-.addr-input:focus{border-color:var(--a);}
-.addr-input::placeholder{color:var(--dim);}
-.addr-input.confirmed{border-color:var(--a2);background:rgba(127,181,160,.05);}
-.addr-btn{background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:0 14px;cursor:pointer;font-size:16px;transition:all .2s;flex-shrink:0;}
-.addr-btn:hover{background:var(--a);color:#0e0e0e;border-color:var(--a);}
-.addr-confirmed{display:flex;align-items:center;gap:8px;margin-top:6px;padding:6px 10px;background:rgba(127,181,160,.08);border:1px solid rgba(127,181,160,.2);}
-.addr-confirmed-text{font-size:11px;color:var(--a2);flex:1;}
-.addr-confirmed-clear{background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;padding:0;}
-.addr-confirmed-clear:hover{color:var(--a3);}
-/* 드롭다운 */
-.addr-dropdown{position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--borderL);border-top:none;z-index:200;max-height:240px;overflow-y:auto;display:none;}
-.addr-dropdown.show{display:block;}
-.addr-item{padding:10px 13px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s;}
-.addr-item:last-child{border-bottom:none;}
-.addr-item:hover,.addr-item.focused{background:rgba(200,169,110,.08);}
-.addr-item-main{font-size:13px;color:var(--text);margin-bottom:2px;}
-.addr-item-main em{color:var(--a);font-style:normal;font-weight:400;}
-.addr-item-sub{font-size:11px;color:var(--dim);}
-.addr-item-type{font-family:'DM Mono',monospace;font-size:9px;padding:1px 5px;background:rgba(200,169,110,.1);border:1px solid rgba(200,169,110,.2);color:var(--a);margin-right:5px;}
-.addr-loading{padding:12px 13px;font-size:12px;color:var(--dim);text-align:center;}
-.addr-empty{padding:12px 13px;font-size:12px;color:var(--dim);text-align:center;}
-
-/* SHUTTLE */
-.sblock{background:var(--bg3);border:1px solid var(--border);padding:16px;margin-top:10px;display:none;}
-.sblock.show{display:block;}
-.stop-row{display:grid;grid-template-columns:1fr 32px;gap:8px;margin-bottom:8px;}
-.stop-row input{background:var(--bg2);border:1px solid var(--border);color:var(--text);font-size:12px;padding:8px 11px;outline:none;width:100%;}
-.brm{background:none;border:1px solid var(--border);color:var(--dim);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;height:100%;}
-.brm:hover{border-color:var(--a3);color:var(--a3);}
-.badd{width:100%;background:none;border:1px dashed var(--borderL);color:var(--dim);padding:8px;font-size:12px;cursor:pointer;margin-bottom:12px;}
-.badd:hover{border-color:var(--a);color:var(--a);}
-.divr{display:flex;align-items:center;gap:14px;margin:28px 0;}
-.dl{flex:1;height:1px;background:var(--border);}
-.dt{font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:.2em;text-transform:uppercase;}
-.cond{overflow:hidden;max-height:0;opacity:0;transition:max-height .4s,opacity .3s;}
-.cond.show{max-height:2000px;opacity:1;}
-.fnav{display:flex;justify-content:space-between;align-items:center;margin-top:44px;padding-top:24px;border-top:1px solid var(--border);}
-.bprev{display:flex;align-items:center;gap:8px;padding:11px 22px;background:none;border:1px solid var(--border);color:var(--muted);font-size:13px;cursor:pointer;}
-.bprev:hover{border-color:var(--borderL);color:var(--text);}
-.bnext{padding:11px 26px;background:var(--a);border:none;color:#0e0e0e;font-size:13px;font-weight:500;cursor:pointer;}
-.bnext:hover{background:#d4ba80;}.bnext.big{padding:15px 40px;font-size:15px;}
-
-/* RESULT */
-#result{display:none;max-width:1100px;margin:0 auto;padding:52px 20px 80px;}
-.rh{text-align:center;margin-bottom:44px;}
-.sring{width:96px;height:96px;border-radius:50%;border:2px solid var(--a);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 18px;box-shadow:0 0 0 8px rgba(200,169,110,.09);}
-.snum{font-family:'DM Mono',monospace;font-size:26px;color:var(--a);}
-.slbll{font-size:10px;color:var(--dim);}
-.rtitle{font-family:'Noto Serif KR',serif;font-size:clamp(20px,4vw,30px);font-weight:300;margin-bottom:6px;}
-.isum{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:16px;}
-.ibadge{font-size:11px;color:var(--muted);background:var(--bg2);border:1px solid var(--border);padding:5px 11px;}
-.ibadge b{color:var(--text);font-weight:400;}
-.strips{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;margin-bottom:2px;}
-@media(max-width:560px){.strips{grid-template-columns:repeat(2,1fr);}}
-.strip{background:var(--bg2);padding:16px 18px;}
-.slb{font-size:11px;color:var(--dim);margin-bottom:5px;}
-.svl{font-family:'DM Mono',monospace;font-size:17px;color:var(--text);}
-.rcards{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-bottom:2px;}
-@media(max-width:680px){.rcards{grid-template-columns:1fr;}}
-.rcard{background:var(--bg2);border:1px solid var(--border);padding:22px;position:relative;}
-.rrank{position:absolute;top:14px;right:16px;font-family:'DM Mono',monospace;font-size:44px;color:rgba(200,169,110,.08);line-height:1;}
-.rtag{font-family:'DM Mono',monospace;font-size:10px;color:var(--a);letter-spacing:.2em;margin-bottom:8px;}
-.rarea{font-family:'Noto Serif KR',serif;font-size:21px;margin-bottom:3px;}
-.rsub{font-size:12px;color:var(--muted);margin-bottom:18px;}
-.crow{margin-bottom:11px;}
-.ctop{display:flex;gap:10px;align-items:flex-start;margin-bottom:5px;}
-.cpill{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:11px;flex-shrink:0;margin-top:1px;}
-.cinfo{flex:1;}
-.ctime{font-family:'DM Mono',monospace;font-size:19px;line-height:1;margin-bottom:4px;}
-.ctime span{font-size:11px;color:var(--muted);margin-left:2px;}
-.trow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px;}
-.tbadge{font-family:'DM Mono',monospace;font-size:10px;padding:2px 7px;white-space:nowrap;}
-.tbadge.sub{background:rgba(79,130,213,.12);border:1px solid rgba(79,130,213,.3);color:#7da8e0;}
-.tbadge.car{background:rgba(200,169,110,.12);border:1px solid rgba(200,169,110,.3);color:var(--a);}
-.tbadge.sh{background:rgba(200,110,110,.12);border:1px solid rgba(200,110,110,.3);color:#e09090;}
-.tbadge.wk{background:rgba(127,181,160,.12);border:1px solid rgba(127,181,160,.3);color:var(--a2);}
-.tbadge.rec{background:rgba(255,255,255,.05);border:1px dashed rgba(255,255,255,.15);color:var(--dim);}
-.tarrow{font-size:11px;color:var(--dim);}
-.troute{font-size:11px;color:var(--dim);margin-top:2px;}
-.cbar{height:2px;background:var(--border);}
-.cbar-f{height:100%;transition:width 1s ease;}
-.gprow{display:flex;align-items:center;gap:10px;background:rgba(127,181,160,.06);border:1px solid rgba(127,181,160,.15);padding:8px 11px;margin-bottom:11px;}
-.gpi{display:flex;flex-direction:column;gap:2px;}
-.gplb{font-size:11px;color:var(--dim);}.gpvl{font-family:'DM Mono',monospace;font-size:13px;color:var(--a2);}
-.dthin{height:1px;background:var(--border);margin:11px 0;}
-.mrow{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;}
-.mk{color:var(--dim);}.mv{font-family:'DM Mono',monospace;color:var(--muted);}
-.rpx{margin-top:13px;padding-top:13px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-end;}
-.rplb{font-size:10px;color:var(--dim);}
-.rpv{font-family:'DM Mono',monospace;font-size:19px;color:var(--a);}
-
-/* MAP */
-#mapWrap{background:var(--bg2);border:1px solid var(--border);margin-top:2px;position:relative;overflow:hidden;}
-#naverMap{width:100%;height:440px;}
-.mleg{position:absolute;bottom:14px;left:14px;background:rgba(14,14,14,.9);border:1px solid var(--border);padding:10px 13px;backdrop-filter:blur(8px);z-index:10;}
-.mli{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--muted);margin-bottom:4px;}
-.mli:last-child{margin-bottom:0;}
-.mld{width:9px;height:9px;border-radius:50%;}
-#mapMsg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;background:var(--bg2);z-index:5;}
-#mapMsg.hidden{display:none;}
-
-/* APT */
-.apt-section{margin-top:44px;}
-.atabs{display:flex;gap:2px;margin-bottom:2px;}
-.atab{padding:8px 17px;font-size:12px;cursor:pointer;background:var(--bg2);border:1px solid var(--border);color:var(--dim);}
-.atab.on{background:rgba(200,169,110,.12);border-color:var(--a);color:var(--a);}
-.arow{display:grid;grid-template-columns:42px 1fr auto;gap:14px;background:var(--bg2);border:1px solid var(--border);border-left:2px solid transparent;padding:16px 20px;margin-bottom:2px;}
-.arow.r1{border-left-color:var(--a);}.arow.r2{border-left-color:var(--a2);}.arow.r3{border-left-color:var(--a3);}
-.arow.hidden{display:none;}
-.arnk{font-family:'DM Mono',monospace;font-size:19px;color:var(--dim);opacity:.5;padding-top:2px;}
-.anr{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px;}
-.aname{font-size:14px;font-weight:400;color:var(--text);}
-.atag{font-family:'DM Mono',monospace;font-size:10px;padding:2px 7px;}
-.atag.r1{background:rgba(200,169,110,.1);border:1px solid rgba(200,169,110,.25);color:var(--a);}
-.atag.r2{background:rgba(127,181,160,.1);border:1px solid rgba(127,181,160,.25);color:var(--a2);}
-.atag.r3{background:rgba(212,117,110,.1);border:1px solid rgba(212,117,110,.25);color:var(--a3);}
-.atag.new{background:rgba(200,169,110,.08);border:1px solid rgba(200,169,110,.2);color:var(--a);}
-.atag.gtx{background:rgba(127,181,160,.08);border:1px solid rgba(127,181,160,.2);color:var(--a2);}
-.atag.etc{background:rgba(160,160,200,.08);border:1px solid rgba(160,160,200,.2);color:#a0a0c8;}
-.aaddr{font-size:11px;color:var(--dim);margin-bottom:7px;}
-.achips{display:flex;gap:5px;flex-wrap:wrap;}
-.achip{font-size:11px;padding:3px 8px;background:var(--bg3);border:1px solid var(--border);color:var(--muted);}
-.apb{text-align:right;flex-shrink:0;}
-.asz{font-family:'DM Mono',monospace;font-size:11px;color:var(--dim);margin-bottom:3px;}
-.aprice{font-family:'DM Mono',monospace;font-size:17px;color:var(--a);}
-.aprice.loading{font-size:11px;color:var(--dim);animation:blink 1.2s infinite;}
-@keyframes blink{0%,100%{opacity:.4;}50%{opacity:1;}}
-.apdt{font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:2px;}
-@media(max-width:540px){.arow{grid-template-columns:30px 1fr;}.apb{grid-column:2;}}
-.brst{background:none;border:1px solid var(--borderL);color:var(--muted);padding:11px 26px;font-size:13px;cursor:pointer;margin-top:44px;}
-.brst:hover{border-color:var(--a);color:var(--a);}
-
-/* transit steps */
-.transit-summary{display:flex;align-items:center;gap:10px;margin-bottom:8px;padding:8px 0;border-bottom:1px solid var(--border);}
-.ts-total{font-family:'DM Mono',monospace;font-size:18px;color:var(--text);}
-.ts-info{font-size:11px;color:var(--dim);}
-.transit-steps{display:flex;flex-direction:column;gap:5px;}
-.transit-step{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.transit-badge{font-family:'DM Mono',monospace;font-size:10px;padding:2px 8px;white-space:nowrap;flex-shrink:0;}
-.bus-badge{background:rgba(200,169,110,.1);border:1px solid rgba(200,169,110,.3);color:var(--a);}
-.transit-detail{font-size:11px;color:var(--muted);}
-.walk-step{opacity:.6;}
-.transit-loading{font-size:11px;color:var(--dim);animation:blink 1.2s infinite;}
-.transit-block{margin-top:10px;padding:12px;background:var(--bg3);border:1px solid var(--border);}
-</style>
-</head>
-<body>
-<div id="progress" style="width:0"></div>
-
-<!-- HERO -->
-<section id="hero">
-  <div class="hgrid"></div>
-  <div style="position:relative">
-    <div class="hbadge">COUPLE HOME FINDER · 우리집 찾기</div>
-    <h1 class="htitle">두 사람의 삶이<br>만나는 <em>집</em></h1>
-    <p class="hsub">각자의 직장·이동 방식·가족 상황을 입력하면<br>최적의 주거 지역과 국토부 실거래가를 분석해드립니다</p>
-    <button onclick="startForm()" style="background:var(--a);color:#0e0e0e;border:none;padding:15px 42px;font-size:15px;font-weight:500;cursor:pointer;">시작하기 →</button>
-    <div style="display:flex;gap:24px;justify-content:center;flex-wrap:wrap;margin-top:28px;">
-      <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim)">✦ 네이버 지도 장소 검색</span>
-      <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim)">✦ 출퇴근 동선 분석</span>
-      <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim)">✦ 조부모 동선 반영</span>
-      <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim)">✦ 국토부 실거래가 연동</span>
-    </div>
-  </div>
-</section>
-
-<!-- STEP NAV -->
-<nav id="snav">
-  <div class="ni">
-    <div class="si active" id="nav1" onclick="tryGo(1)"><div class="sn">1</div><div class="sl">출근 정보</div></div><div class="ss"></div>
-    <div class="si" id="nav2" onclick="tryGo(2)"><div class="sn">2</div><div class="sl">이동 수단</div></div><div class="ss"></div>
-    <div class="si" id="nav3" onclick="tryGo(3)"><div class="sn">3</div><div class="sl">자녀·조부모</div></div><div class="ss"></div>
-    <div class="si" id="nav4" onclick="tryGo(4)"><div class="sn">4</div><div class="sl">조건·예산</div></div><div class="ss"></div>
-    <div class="si" id="nav5" onclick="tryGo(5)"><div class="sn">5</div><div class="sl">결과</div></div>
-  </div>
-</nav>
-
-<!-- STEP 1 -->
-<div id="step1" class="fw" style="display:none">
-  <div class="stag">Step 01 · Commute</div>
-  <div class="stitle">두 분의 출근지를 알려주세요</div>
-  <div class="sdesc">장소명, 주소, 역명 등으로 검색하면 자동완성 목록이 나타납니다.</div>
-  <div class="pgrid">
-    <div class="pcard a">
-      <div class="plbl"><div class="pdot" style="background:var(--a)"></div>배우자 A</div>
-      <div class="field">
-        <label class="flbl">출근지 검색</label>
-        <div id="search_work1"></div>
-      </div>
-      <div class="field">
-        <label class="flbl" id="c1lbl">출퇴근 허용 시간 (편도) - 45분</label>
-        <input type="range" id="c1" min="10" max="120" value="45" step="5" oninput="document.getElementById('c1lbl').textContent='출퇴근 허용 시간 (편도) - '+this.value+'분'">
-        <div class="rll"><span>10분</span><span>120분</span></div>
-      </div>
-      <div class="field"><label class="flbl">재택근무 빈도</label>
-        <div class="chips" id="r1"><div class="chip on" onclick="pick(this,'r1')">없음</div><div class="chip" onclick="pick(this,'r1')">주 1일</div><div class="chip" onclick="pick(this,'r1')">주 2~3일</div><div class="chip" onclick="pick(this,'r1')">거의 재택</div></div>
-      </div>
-    </div>
-    <div class="pcard b">
-      <div class="plbl"><div class="pdot" style="background:var(--a2)"></div>배우자 B</div>
-      <div class="field">
-        <label class="flbl">출근지 검색</label>
-        <div id="search_work2"></div>
-      </div>
-      <div class="field">
-        <label class="flbl" id="c2lbl">출퇴근 허용 시간 (편도) - 45분</label>
-        <input type="range" id="c2" min="10" max="120" value="45" step="5" oninput="document.getElementById('c2lbl').textContent='출퇴근 허용 시간 (편도) - '+this.value+'분'">
-        <div class="rll"><span>10분</span><span>120분</span></div>
-      </div>
-      <div class="field"><label class="flbl">재택근무 빈도</label>
-        <div class="chips" id="r2"><div class="chip on" onclick="pick(this,'r2')">없음</div><div class="chip" onclick="pick(this,'r2')">주 1일</div><div class="chip" onclick="pick(this,'r2')">주 2~3일</div><div class="chip" onclick="pick(this,'r2')">거의 재택</div></div>
-      </div>
-    </div>
-  </div>
-  <div class="divr"><div class="dl"></div><div class="dt">우선순위 가중치</div><div class="dl"></div></div>
-  <div style="background:var(--bg2);border:1px solid var(--border);padding:22px">
-    <div class="flbl" id="wlbl">A와 B 동등 - 50% / 50%</div>
-    <input type="range" id="wt" min="0" max="100" value="50" step="10" oninput="updW(this.value)">
-    <div class="rll"><span>A 우선</span><span>동등</span><span>B 우선</span></div>
-  </div>
-  <div class="fnav" style="justify-content:flex-end"><button class="bnext" onclick="go(2)">다음: 이동 수단 →</button></div>
-</div>
-
-<!-- STEP 2 -->
-<div id="step2" class="fw" style="display:none">
-  <div class="stag">Step 02 · Transport</div>
-  <div class="stitle">어떻게 출근하시나요?</div>
-  <div class="sdesc">셔틀 이용 시 탑승 정류장이 출근 기점이 됩니다.</div>
-  <div class="pgrid">
-    <div class="pcard a">
-      <div class="plbl"><div class="pdot" style="background:var(--a)"></div>배우자 A</div>
-      <div class="field"><label class="flbl">주 이동 수단</label>
-        <div class="chips" id="tr1"><div class="chip on" onclick="pick(this,'tr1')">🚇 대중교통</div><div class="chip" onclick="pick(this,'tr1')">🚗 자가용</div><div class="chip" onclick="pick(this,'tr1')">🚌 셔틀버스</div><div class="chip" onclick="pick(this,'tr1')">🚶 도보</div></div>
-      </div>
-      <div class="field"><label class="flbl">차량 보유</label>
-        <div class="chips" id="ca1"><div class="chip on" onclick="pick(this,'ca1')">있음</div><div class="chip" onclick="pick(this,'ca1')">없음</div></div>
-      </div>
-      <div class="field"><label class="flbl">셔틀버스 이용</label>
-        <div class="chips" id="sh1"><div class="chip on" onclick="pick(this,'sh1');toggleEl('sb1',false)">없음</div><div class="chip" onclick="pick(this,'sh1');toggleEl('sb1',true)">이용함</div></div>
-        <div class="sblock" id="sb1">
-          <div class="flbl" style="margin-bottom:9px">탑승 정류장 검색</div>
-          <div id="shuttle_stops1"></div>
-          <button class="badd" onclick="addShuttleStop('shuttle_stops1')">+ 정류장 추가</button>
-          <div class="field"><label class="flbl">정류장까지</label><div class="chips" id="st1"><div class="chip on" onclick="pick(this,'st1')">도보</div><div class="chip" onclick="pick(this,'st1')">차량</div><div class="chip" onclick="pick(this,'st1')">대중교통</div></div></div>
-          <div class="field"><label class="flbl">셔틀 첫차</label><input type="time" class="fi" value="07:30" style="width:auto"></div>
-        </div>
-      </div>
-    </div>
-    <div class="pcard b">
-      <div class="plbl"><div class="pdot" style="background:var(--a2)"></div>배우자 B</div>
-      <div class="field"><label class="flbl">주 이동 수단</label>
-        <div class="chips" id="tr2"><div class="chip on" onclick="pick(this,'tr2')">🚇 대중교통</div><div class="chip" onclick="pick(this,'tr2')">🚗 자가용</div><div class="chip" onclick="pick(this,'tr2')">🚌 셔틀버스</div><div class="chip" onclick="pick(this,'tr2')">🚶 도보</div></div>
-      </div>
-      <div class="field"><label class="flbl">차량 보유</label>
-        <div class="chips" id="ca2"><div class="chip on" onclick="pick(this,'ca2')">있음</div><div class="chip" onclick="pick(this,'ca2')">없음</div></div>
-      </div>
-      <div class="field"><label class="flbl">셔틀버스 이용</label>
-        <div class="chips" id="sh2"><div class="chip on" onclick="pick(this,'sh2');toggleEl('sb2',false)">없음</div><div class="chip" onclick="pick(this,'sh2');toggleEl('sb2',true)">이용함</div></div>
-        <div class="sblock" id="sb2">
-          <div class="flbl" style="margin-bottom:9px">탑승 정류장 검색</div>
-          <div id="shuttle_stops2"></div>
-          <button class="badd" onclick="addShuttleStop('shuttle_stops2')">+ 정류장 추가</button>
-          <div class="field"><label class="flbl">정류장까지</label><div class="chips" id="st2"><div class="chip on" onclick="pick(this,'st2')">도보</div><div class="chip" onclick="pick(this,'st2')">차량</div><div class="chip" onclick="pick(this,'st2')">대중교통</div></div></div>
-          <div class="field"><label class="flbl">셔틀 첫차</label><input type="time" class="fi" value="07:30" style="width:auto"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="fnav"><button class="bprev" onclick="go(1)">← 이전</button><button class="bnext" onclick="go(3)">다음: 자녀·조부모 →</button></div>
-</div>
-
-<!-- STEP 3 -->
-<div id="step3" class="fw" style="display:none">
-  <div class="stag">Step 03 · Family</div>
-  <div class="stitle">가족 구성을 알려주세요</div>
-  <div class="sdesc">조부모 거주지와 돌봄 가능 여부는 픽업 동선 계산에 반영됩니다.</div>
-  <div class="field"><label class="flbl">자녀 유무</label>
-    <div class="chips" id="ch"><div class="chip on" onclick="pick(this,'ch');showCond('childBlock',false)">자녀 없음</div><div class="chip" onclick="pick(this,'ch');showCond('childBlock',true)">계획 중</div><div class="chip" onclick="pick(this,'ch');showCond('childBlock',true)">자녀 있음</div></div>
-  </div>
-  <div class="cond" id="childBlock">
-    <div class="pgrid" style="margin-top:22px">
-      <div style="background:var(--bg2);border:1px solid var(--border);padding:22px">
-        <div class="plbl">👶 자녀 정보</div>
-        <div class="field"><label class="flbl">나이대 (복수 선택)</label><div class="chips"><div class="chip" onclick="tog(this)">영유아(0~3세)</div><div class="chip" onclick="tog(this)">유치원(4~7세)</div><div class="chip" onclick="tog(this)">초등 저학년</div><div class="chip" onclick="tog(this)">초등 고학년+</div></div></div>
-        <div class="field"><label class="flbl">교육 환경 우선순위</label><div class="chips"><div class="chip" onclick="tog(this)">학군</div><div class="chip" onclick="tog(this)">어린이집 접근성</div><div class="chip" onclick="tog(this)">학원가</div><div class="chip" onclick="tog(this)">자연·공원</div></div></div>
-      </div>
-      <div style="background:var(--bg2);border:1px solid var(--border);padding:22px">
-        <div class="plbl">👴 조부모 돌봄</div>
-        <div class="field"><label class="flbl">조부모 돌봄 가능 여부</label>
-          <div class="chips" id="gp"><div class="chip on" onclick="pick(this,'gp');showCond('gpBlock',false)">불가/해당없음</div><div class="chip" onclick="pick(this,'gp');showCond('gpBlock',true)">가능</div></div>
-        </div>
-        <div class="cond" id="gpBlock">
-          <div class="field">
-            <label class="flbl">조부모 거주지 검색</label>
-            <div id="search_gpAddr"></div>
-          </div>
-          <div class="field"><label class="flbl">조부모 차량</label><div class="chips" id="gpc"><div class="chip on" onclick="pick(this,'gpc')">있음</div><div class="chip" onclick="pick(this,'gpc')">없음</div></div></div>
-          <div class="field"><label class="flbl">픽업 유형</label><div class="chips" id="pu"><div class="chip on" onclick="pick(this,'pu')">우리집에서 돌봄</div><div class="chip" onclick="pick(this,'pu')">조부모집에서 돌봄</div><div class="chip" onclick="pick(this,'pu')">어린이집 픽업</div></div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="fnav"><button class="bprev" onclick="go(2)">← 이전</button><button class="bnext" onclick="go(4)">다음: 조건·예산 →</button></div>
-</div>
-
-<!-- STEP 4 -->
-<div id="step4" class="fw" style="display:none">
-  <div class="stag">Step 04 · Conditions</div>
-  <div class="stitle">주거 조건과 예산을 설정해주세요</div>
-  <div class="sdesc">예산·평형·선호 환경을 설정하면 더 정확한 결과가 나와요.</div>
-  <div class="pgrid">
-    <div>
-      <div class="field"><label class="flbl">주거 형태 (복수 선택)</label><div class="chips"><div class="chip on" onclick="tog(this)">🏢 아파트</div><div class="chip" onclick="tog(this)">🏠 빌라/다세대</div><div class="chip" onclick="tog(this)">🏙 오피스텔</div><div class="chip" onclick="tog(this)">🏡 단독주택</div></div></div>
-      <div class="field"><label class="flbl">거래 방식</label><div class="chips" id="dt"><div class="chip on" onclick="pick(this,'dt')">매매</div><div class="chip" onclick="pick(this,'dt')">전세</div><div class="chip" onclick="pick(this,'dt')">월세</div></div></div>
-      <div class="field">
-        <label class="flbl" id="budlbl">예산 - 8억</label>
-        <input type="range" id="bud" min="1" max="30" value="8" step="0.5" oninput="document.getElementById('budlbl').textContent='예산 - '+this.value+'억'">
-        <div class="rll"><span>1억</span><span>30억+</span></div>
-      </div>
-      <div class="field"><label class="flbl">희망 평형</label><div class="chips" id="sz"><div class="chip" onclick="pick(this,'sz')">~20평</div><div class="chip on" onclick="pick(this,'sz')">25~32평</div><div class="chip" onclick="pick(this,'sz')">33~42평</div><div class="chip" onclick="pick(this,'sz')">43평+</div></div></div>
-    </div>
-    <div>
-      <div class="field"><label class="flbl">선호 지역 검색 (선택)</label><div id="search_prefer"></div></div>
-      <div class="field"><label class="flbl">기피 지역 검색 (선택)</label><div id="search_avoid"></div></div>
-      <div class="field"><label class="flbl">주거 환경 우선순위</label><div class="chips"><div class="chip" onclick="tog(this)">🌿 공원·자연</div><div class="chip" onclick="tog(this)">🏫 학군</div><div class="chip" onclick="tog(this)">🛒 생활편의</div><div class="chip" onclick="tog(this)">🔇 조용함</div><div class="chip" onclick="tog(this)">📈 개발호재</div><div class="chip" onclick="tog(this)">🚉 역세권</div></div></div>
-      <div class="field"><label class="flbl">미래 교통 호재</label><div class="chips" id="ft"><div class="chip on" onclick="pick(this,'ft')">반영 (GTX·신규노선 포함)</div><div class="chip" onclick="pick(this,'ft')">현재 기준만</div></div></div>
-    </div>
-  </div>
-  <div class="fnav"><button class="bprev" onclick="go(3)">← 이전</button><button class="bnext big" onclick="showResult()">✦ 최적 지역 분석하기</button></div>
-</div>
-
-<!-- RESULT -->
-<div id="result">
-  <div class="rh">
-    <div class="sring"><div class="snum">87</div><div class="slbll">적합도</div></div>
-    <div class="rtitle">분석이 완료되었습니다</div>
-    <p style="font-size:13px;color:var(--muted)">두 분의 조건을 종합한 최적 주거 지역 TOP 3</p>
-    <div class="isum" id="inputSummary"></div>
-  </div>
-  <div class="strips">
-    <div class="strip"><div class="slb">분석 지역</div><div class="svl">47개 구/동</div></div>
-    <div class="strip"><div class="slb">A 허용 출퇴근</div><div class="svl" id="s_a">-</div></div>
-    <div class="strip"><div class="slb">B 허용 출퇴근</div><div class="svl" id="s_b">-</div></div>
-    <div class="strip"><div class="slb">예산 적합 단지</div><div class="svl">12개</div></div>
-  </div>
-  <div class="rcards" id="regionCards"></div>
-  <div id="mapWrap">
-    <div id="naverMap"></div>
-    <div id="mapMsg"><div style="font-size:28px">🗺</div><div style="font-size:13px;color:var(--muted)" id="mapMsgText">지도를 불러오는 중...</div></div>
-    <div class="mleg">
-      <div class="mli"><div class="mld" style="background:var(--a)"></div>추천 주거지</div>
-      <div class="mli"><div class="mld" style="background:#7da8e0"></div>A 출근지</div>
-      <div class="mli"><div class="mld" style="background:var(--a2)"></div>B 출근지</div>
-      <div class="mli" id="gpLegend" style="display:none"><div class="mld" style="background:#a0a0c8"></div>조부모 거주지</div>
-    </div>
-  </div>
-  <div class="apt-section">
-    <div class="stag" style="margin-top:44px">Apartment List · 국토부 실거래가</div>
-    <div class="stitle">추천 아파트 <span style="color:var(--a)">10선</span></div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.7">국토교통부 실거래가 API 기준 - 최근 3개월 거래 데이터</p>
-    <div class="atabs"><button class="atab on" onclick="fApt(this,'all')">전체</button><button class="atab" onclick="fApt(this,'1')">마포구</button><button class="atab" onclick="fApt(this,'2')">성동구</button><button class="atab" onclick="fApt(this,'3')">동작구</button></div>
-    <div id="aptList"></div>
-  </div>
-  <div style="text-align:center"><button class="brst" onclick="restart()">↺ 조건 다시 설정하기</button></div>
-</div>
-
-
 </script>
 </body>
 </html>
