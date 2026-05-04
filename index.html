@@ -441,7 +441,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
       <button class="chip"    id="sortHigh" onclick="sortApts('high',this)">가격 높은순</button>
       <button class="chip"    id="sortPop"  onclick="sortApts('pop', this)">거래 많은순</button>
     </div>
-    <div class="atabs"><button class="atab on" onclick="fApt(this,'all')">전체</button><button class="atab" onclick="fApt(this,'1')">마포구</button><button class="atab" onclick="fApt(this,'2')">성동구</button><button class="atab" onclick="fApt(this,'3')">동작구</button></div>
+    <div class="atabs"><button class="atab on" id="tabAll" onclick="fApt(this,'all')">전체</button></div>
     <div id="aptList"></div>
   </div>
   <div style="text-align:center"><button class="brst" onclick="restart()">↺ 조건 다시 설정하기</button></div>
@@ -1410,9 +1410,7 @@ async function renderRegionCards(inp){
 
     // 조부모 행 - gpOn이고 좌표/주소가 있을 때만
     const hasGp = inp.gpOn && inp.gpLabel && inp.gpLabel !== '(미입력)';
-    const gpTime = hasGp && inp.gpCoord?.lat
-      ? estimateTime(inp.gpCoord, r, '🚇 대중교통')
-      : null;
+    const gpTime = hasGp && inp.gpCoord?.lat ? estimateTime(inp.gpCoord,r,'transit') : null;
     const gpRow = hasGp ? `<div class="gprow"><span style="font-size:15px">👴</span>
       <div class="gpi"><div class="gplb">조부모(${inp.gpLabel})까지</div>
       <div class="gpvl">🚇 대중교통 ${gpTime || '-'}분</div></div></div>` : '';
@@ -1521,7 +1519,44 @@ async function renderRegionCards(inp){
     }
     if(inp.gpOn&&inp.gpCoord?.lat){
       const gpEl=document.getElementById('gp_transit_'+ri);
-      if(gpEl){const gpR=await fetchTransitRoute(inp.gpCoord,dest).catch(()=>null);if(gpR){const xf=gpR.transferCount!=null?gpR.transferCount+'회 환승 · ':'';gpEl.innerHTML='<div style="font-size:11px;color:var(--dim)">'+xf+'도보 '+(gpR.totalWalk||'—')+'m</div>'+renderTransitSteps(gpR);}else{gpEl.textContent='경로 조회 실패';gpEl.style.cssText='font-size:11px;color:var(--dim)';}}
+      if(gpEl){
+        // 조부모도 모든 수단 비교
+        const [gpTransit, gpCar] = await Promise.all([
+          fetchTransitRoute(inp.gpCoord, dest).catch(()=>null),
+          fetchCarRoute(inp.gpCoord, dest).catch(()=>null),
+        ]);
+        const gpWalkMin = Math.round(calcDistKm(inp.gpCoord,dest)*1.3/5*60);
+
+        let gpHtml = '';
+        // 선택 수단 (조부모는 기본 대중교통 기준)
+        if(gpTransit){
+          const xf = gpTransit.transferCount!=null ? gpTransit.transferCount+'회 환승 · ' : '';
+          gpHtml += '<div style="font-size:11px;color:var(--dim);margin-bottom:4px">'
+            +xf+'도보 '+(gpTransit.totalWalk||'—')+'m</div>'
+            + renderTransitSteps(gpTransit);
+        } else {
+          gpHtml += '<div style="font-size:11px;color:var(--dim)">경로 조회 실패</div>';
+        }
+
+        // 다른 수단 비교 팁
+        const gpTimes = {};
+        if(gpTransit) gpTimes.transit = {time:gpTransit.totalTime, label:'대중교통', icon:'🚇'};
+        if(gpCar)     gpTimes.car     = {time:gpCar.duration,      label:'자가용',   icon:'🚗'};
+        if(gpWalkMin<=60) gpTimes.walk = {time:gpWalkMin, label:'도보', icon:'🚶'};
+
+        const gpSelTime = gpTimes.transit?.time || 999;
+        const gpFaster = Object.entries(gpTimes)
+          .filter(([k,v])=>k!=='transit'&&v.time<gpSelTime*0.9)
+          .sort(([,a],[,b])=>a.time-b.time);
+
+        if(gpFaster.length){
+          gpHtml += '<div style="margin-top:6px;padding:6px 8px;background:rgba(127,181,160,.1);border:1px solid rgba(127,181,160,.3);font-size:11px;line-height:1.7">'
+            +'<span style="color:var(--a2);font-weight:500">다른 수단 비교</span><br>'
+            +gpFaster.map(([,v])=>'<span style="color:var(--muted)">'+v.icon+' '+v.label+'이 '+v.time+'분으로 더 빠름</span>').join('<br>')
+            +'</div>';
+        }
+        gpEl.innerHTML = gpHtml;
+      }
     }
   });
   REGIONS.forEach(async r=>{
@@ -1607,8 +1642,8 @@ function renderApts(inp){
   if(tabsEl&&REGIONS.length){
     let tabHtml='<button class="atab on" onclick=\'fApt(this,\"all\")\'>' + '전체</button>';
     REGIONS.forEach((r,i)=>{
-      const area=(r.city&&r.city!==r.area?r.city+' ':'')+r.area;
-      tabHtml+='<button class="atab" onclick=\'fApt(this,\"'+(i+1)+'\")\'>' + area+'</button>';
+      const dongLabel=(r.dong?r.dong+' ('+r.area+')':((r.city&&r.city!==r.area?r.city+' ':'')+r.area));
+      tabHtml+='<button class="atab" onclick=\'fApt(this,\''+String(i+1)+'\')\'>'+dongLabel+'</button>';
     });
     tabsEl.innerHTML=tabHtml;
   }
