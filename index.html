@@ -2,368 +2,277 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>API 테스트</title>
+<title>NEIS API 진단</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#0e0e0e;color:#f0ece4;font-family:'Noto Sans KR',sans-serif;padding:24px;font-size:13px}
-h2{color:#c8a96e;font-size:15px;margin-bottom:12px;font-family:monospace;letter-spacing:.1em}
-.section{background:#161616;border:1px solid #2a2a2a;padding:20px;margin-bottom:16px;border-radius:2px}
+h2{color:#c8a96e;font-size:14px;margin-bottom:12px;font-family:monospace;letter-spacing:.1em}
+.section{background:#161616;border:1px solid #2a2a2a;padding:20px;margin-bottom:14px}
 .row{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
 label{color:#8a8580;font-size:11px;min-width:80px}
-input{background:#1e1e1e;border:1px solid #2a2a2a;color:#f0ece4;padding:7px 10px;font-size:12px;font-family:monospace;width:260px;outline:none}
-input:focus{border-color:#c8a96e}
-button{background:#c8a96e;color:#0e0e0e;border:none;padding:8px 18px;font-size:12px;font-weight:600;cursor:pointer}
-button:hover{background:#d4ba80}
-button.sec{background:#1e1e1e;border:1px solid #2a2a2a;color:#8a8580}
+input,select{background:#1e1e1e;border:1px solid #2a2a2a;color:#f0ece4;padding:7px 10px;font-size:12px;font-family:monospace;outline:none}
+input:focus,select:focus{border-color:#c8a96e}
+button{background:#c8a96e;color:#0e0e0e;border:none;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer;margin-right:6px}
+button.sec{background:#1e1e1e;border:1px solid #383838;color:#8a8580;font-weight:400}
 button.sec:hover{border-color:#c8a96e;color:#c8a96e}
-pre{background:#0e0e0e;border:1px solid #1e1e1e;padding:14px;font-family:monospace;font-size:11px;overflow-x:auto;max-height:340px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;margin-top:10px;color:#7fb5a0}
-.tag{display:inline-block;font-size:10px;padding:2px 7px;font-family:monospace;margin-right:6px;margin-bottom:4px}
-.ok{border:1px solid rgba(127,181,160,.4);background:rgba(127,181,160,.1);color:#7fb5a0}
-.err{border:1px solid rgba(212,117,110,.4);background:rgba(212,117,110,.1);color:#d4756e}
-.warn{border:1px solid rgba(200,169,110,.4);background:rgba(200,169,110,.1);color:#c8a96e}
-.status{font-size:11px;color:#8a8580;margin-bottom:6px}
-.grade{font-size:22px;font-family:monospace;color:#c8a96e;font-weight:700}
-.result-box{background:#0e0e0e;border:1px solid #2a2a2a;padding:14px;margin-top:10px}
-.kv{display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px}
+pre{background:#0a0a0a;border:1px solid #1e1e1e;padding:14px;font-family:monospace;font-size:11px;overflow:auto;max-height:400px;white-space:pre-wrap;word-break:break-all;margin-top:10px;color:#7fb5a0;line-height:1.6}
+.badge{display:inline-block;font-size:10px;padding:2px 8px;font-family:monospace;margin:2px}
+.ok{background:rgba(127,181,160,.15);border:1px solid rgba(127,181,160,.4);color:#7fb5a0}
+.err{background:rgba(212,117,110,.15);border:1px solid rgba(212,117,110,.4);color:#d4756e}
+.warn{background:rgba(200,169,110,.15);border:1px solid rgba(200,169,110,.4);color:#c8a96e}
+.info{background:rgba(125,168,224,.15);border:1px solid rgba(125,168,224,.4);color:#7da8e0}
+.kv{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #1e1e1e;font-size:12px}
+.kv:last-child{border-bottom:none}
 .kv span:first-child{color:#8a8580}
-.kv span:last-child{color:#f0ece4;font-family:monospace}
-hr{border:none;border-top:1px solid #2a2a2a;margin:14px 0}
+.kv span:last-child{font-family:monospace;color:#f0ece4;text-align:right;max-width:70%}
+.box{background:#0e0e0e;border:1px solid #2a2a2a;padding:14px;margin-top:10px}
+.step{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px}
+.stepnum{background:#2a2a2a;color:#8a8580;font-family:monospace;font-size:10px;padding:3px 8px;flex-shrink:0;margin-top:1px;min-width:28px;text-align:center}
+.stepnum.ok{background:rgba(127,181,160,.2);color:#7fb5a0}
+.stepnum.err{background:rgba(212,117,110,.2);color:#d4756e}
+.stepnum.warn{background:rgba(200,169,110,.2);color:#c8a96e}
+.stepnum.running{background:rgba(200,169,110,.15);color:#c8a96e}
+.grade-big{font-family:monospace;font-size:36px;color:#c8a96e;font-weight:700;line-height:1}
 </style>
 </head>
 <body>
 
 <div style="margin-bottom:20px">
-  <div style="font-family:monospace;font-size:10px;color:#c8a96e;letter-spacing:.3em;margin-bottom:6px">API TESTER · 우리집찾기</div>
-  <div style="color:#8a8580;font-size:12px">브라우저에서 직접 실행 · 각 API의 실제 응답을 확인하세요</div>
+  <div style="font-family:monospace;font-size:10px;color:#c8a96e;letter-spacing:.3em">NEIS + ODSAY API 진단 도구</div>
+  <div style="color:#4a4642;font-size:11px;margin-top:4px">각 단계별 실제 API 응답을 확인합니다 — RAW 탭으로 원본 JSON 확인 가능</div>
 </div>
 
-<!-- ① NEIS 학군 테스트 -->
+<!-- ① NEIS -->
 <div class="section">
-  <h2>① NEIS 학교알리미 — 학군 등급 테스트</h2>
+  <h2>① NEIS 학군 — 단계별 진단</h2>
   <div class="row">
     <label>시도코드</label>
-    <input id="neis_atpt" value="B10" style="width:80px" placeholder="B10=서울">
-    <span style="color:#4a4642;font-size:11px">B10=서울 C10=부산 D10=대구 E10=인천 J10=경기</span>
+    <select id="atpt" style="width:180px">
+      <option value="B10">B10 — 서울</option>
+      <option value="C10">C10 — 부산</option>
+      <option value="D10">D10 — 대구</option>
+      <option value="E10">E10 — 인천</option>
+      <option value="J10">J10 — 경기</option>
+      <option value="G10">G10 — 대전</option>
+      <option value="H10">H10 — 울산</option>
+      <option value="F10">F10 — 광주</option>
+    </select>
   </div>
   <div class="row">
-    <label>지역명</label>
-    <input id="neis_area" value="성동구" placeholder="예: 성동구, 수원시">
+    <label>위도 / 경도</label>
+    <input id="lat" value="37.4979" style="width:110px">
+    <input id="lng" value="127.0277" style="width:110px">
   </div>
   <div class="row">
-    <label>위도/경도</label>
-    <input id="neis_lat" value="37.5472" style="width:100px">
-    <input id="neis_lng" value="127.037" style="width:100px">
-    <span style="color:#4a4642;font-size:11px">카카오 중학교 검색에 사용</span>
+    <button onclick="runAll()">▶ 전체 진단 실행</button>
+    <button class="sec" onclick="preset(37.4979,127.0277,'B10')">강남구</button>
+    <button class="sec" onclick="preset(37.6542,127.0568,'B10')">노원구</button>
+    <button class="sec" onclick="preset(37.5145,127.1066,'B10')">송파구</button>
+    <button class="sec" onclick="preset(37.3595,127.1052,'J10')">분당</button>
   </div>
-  <div class="row">
-    <button onclick="testNeis()">▶ 학군 분석 실행</button>
-    <button class="sec" onclick="setPreset('강남구','37.4979','127.0277','B10')">강남구</button>
-    <button class="sec" onclick="setPreset('노원구','37.6542','127.0568','B10')">노원구</button>
-    <button class="sec" onclick="setPreset('분당구','37.3595','127.1052','J10')">성남 분당구</button>
-    <button class="sec" onclick="setPreset('수원시','37.2636','127.0286','J10')">수원시</button>
+
+  <div id="steps" style="margin-top:16px;display:none">
+    <div class="step"><span class="stepnum" id="s1n">1</span><div style="flex:1"><div style="font-size:12px;font-weight:500;margin-bottom:4px">카카오 반경 1km 중학교 검색</div><div id="s1r" style="font-size:11px;color:#4a4642">대기 중</div></div></div>
+    <div class="step"><span class="stepnum" id="s2n">2</span><div style="flex:1"><div style="font-size:12px;font-weight:500;margin-bottom:4px">NEIS schoolInfo — 시도 중학교 목록</div><div id="s2r" style="font-size:11px;color:#4a4642">대기 중</div></div></div>
+    <div class="step"><span class="stepnum" id="s3n">3</span><div style="flex:1"><div style="font-size:12px;font-weight:500;margin-bottom:4px">학교명 매칭</div><div id="s3r" style="font-size:11px;color:#4a4642">대기 중</div></div></div>
+    <div class="step"><span class="stepnum" id="s4n">4</span><div style="flex:1"><div style="font-size:12px;font-weight:500;margin-bottom:4px">진로현황 조회 (최근 3년 탐색)</div><div id="s4r" style="font-size:11px;color:#4a4642">대기 중</div></div></div>
+    <div class="step"><span class="stepnum" id="s5n">5</span><div style="flex:1"><div style="font-size:12px;font-weight:500;margin-bottom:4px">최종 등급 산출</div><div id="s5r" style="font-size:11px;color:#4a4642">대기 중</div></div></div>
   </div>
-  <div id="neis_status" class="status"></div>
-  <div id="neis_result"></div>
-  <pre id="neis_raw" style="display:none"></pre>
-  <button class="sec" style="margin-top:8px;font-size:10px" onclick="toggleRaw('neis_raw')">RAW 응답 보기/숨기기</button>
+
+  <div id="main_result"></div>
+  <div id="raw_tabs" style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap"></div>
+  <pre id="raw_out" style="display:none"></pre>
 </div>
 
-<!-- ② ODsay 대중교통 테스트 -->
+<!-- ② ODsay -->
 <div class="section">
-  <h2>② ODsay 대중교통 경로 테스트</h2>
+  <h2>② ODsay 대중교통 경로 진단</h2>
   <div class="row">
-    <label>출발지</label>
-    <input id="od_sx" value="127.0276" style="width:110px" placeholder="경도 X">
-    <input id="od_sy" value="37.4979" style="width:110px" placeholder="위도 Y">
-    <span style="color:#4a4642;font-size:11px">← 강남구 기본값</span>
+    <label>출발 경도/위도</label>
+    <input id="sx" value="127.0277" style="width:100px">
+    <input id="sy" value="37.4979" style="width:100px">
   </div>
   <div class="row">
-    <label>도착지</label>
-    <input id="od_ex" value="127.037" style="width:110px" placeholder="경도 X">
-    <input id="od_ey" value="37.5472" style="width:110px" placeholder="위도 Y">
-    <span style="color:#4a4642;font-size:11px">← 성동구 기본값</span>
+    <label>도착 경도/위도</label>
+    <input id="ex" value="127.037" style="width:100px">
+    <input id="ey" value="37.5472" style="width:100px">
   </div>
   <div class="row">
     <button onclick="testOdsay()">▶ 경로 조회</button>
-    <button class="sec" onclick="setOdPreset(127.0276,37.4979,126.9521,37.5497)">강남→마포</button>
-    <button class="sec" onclick="setOdPreset(127.1052,37.3595,127.0276,37.4979)">분당→강남</button>
-    <button class="sec" onclick="setOdPreset(126.832,37.6584,127.0276,37.4979)">고양→강남</button>
+    <button class="sec" onclick="setOd(127.0277,37.4979,126.9521,37.5497)">강남→마포</button>
+    <button class="sec" onclick="setOd(127.1052,37.3595,127.0277,37.4979)">분당→강남</button>
+    <button class="sec" onclick="setOd(126.832,37.6584,127.0277,37.4979)">고양→강남</button>
   </div>
-  <div id="od_status" class="status"></div>
   <div id="od_result"></div>
   <pre id="od_raw" style="display:none"></pre>
-  <button class="sec" style="margin-top:8px;font-size:10px" onclick="toggleRaw('od_raw')">RAW 응답 보기/숨기기</button>
-</div>
-
-<!-- ③ 카카오 중학교 검색 테스트 -->
-<div class="section">
-  <h2>③ 카카오 — 반경 1km 중학교 검색 테스트</h2>
-  <div class="row">
-    <label>좌표</label>
-    <input id="kk_lat" value="37.5472" style="width:110px">
-    <input id="kk_lng" value="127.037" style="width:110px">
-    <input id="kk_radius" value="1000" style="width:70px" placeholder="반경(m)">
-  </div>
-  <div class="row">
-    <button onclick="testKakaoSchool()">▶ 중학교 검색</button>
-    <button class="sec" onclick="document.getElementById('kk_lat').value='37.4979';document.getElementById('kk_lng').value='127.0277'">강남구</button>
-    <button class="sec" onclick="document.getElementById('kk_lat').value='37.6542';document.getElementById('kk_lng').value='127.0568'">노원구</button>
-  </div>
-  <div id="kk_status" class="status"></div>
-  <div id="kk_result"></div>
-</div>
-
-<!-- ④ NEIS 진로현황 직접 테스트 -->
-<div class="section">
-  <h2>④ NEIS 졸업생 진로현황 — 학교 코드 직접 테스트</h2>
-  <div class="row">
-    <label>시도코드</label>
-    <input id="grad_atpt" value="B10" style="width:80px">
-    <label>학교코드</label>
-    <input id="grad_code" value="7010155" style="width:120px" placeholder="SD_SCHUL_CODE">
-    <label>연도</label>
-    <input id="grad_yr" value="2024" style="width:70px">
-  </div>
-  <div class="row">
-    <button onclick="testGrad()">▶ 진로현황 조회</button>
-    <span style="color:#4a4642;font-size:11px">← ③에서 찾은 학교코드로 테스트</span>
-  </div>
-  <div id="grad_status" class="status"></div>
-  <div id="grad_result"></div>
-  <pre id="grad_raw" style="display:none"></pre>
-  <button class="sec" style="margin-top:8px;font-size:10px" onclick="toggleRaw('grad_raw')">RAW 응답 보기/숨기기</button>
+  <button class="sec" style="margin-top:8px;font-size:10px" onclick="tog('od_raw')">RAW 토글</button>
 </div>
 
 <script>
 const NEIS_KEY = '5507af1843bf4b13a0db197dd1033cbe';
 const KAKAO_KEY = 'KakaoAK 9642e6e4e92954d552e94eb32af57a8b';
 const ODSAY_KEY = encodeURIComponent('7pHttv0j/xkYqhr6uY/vug');
+const rawStore = {};
 
-function setPreset(area, lat, lng, atpt) {
-  document.getElementById('neis_area').value = area;
-  document.getElementById('neis_lat').value = lat;
-  document.getElementById('neis_lng').value = lng;
-  document.getElementById('neis_atpt').value = atpt;
-}
-function setOdPreset(sx,sy,ex,ey){
-  document.getElementById('od_sx').value=sx;
-  document.getElementById('od_sy').value=sy;
-  document.getElementById('od_ex').value=ex;
-  document.getElementById('od_ey').value=ey;
-}
-function toggleRaw(id){ const el=document.getElementById(id); el.style.display=el.style.display==='none'?'block':'none'; }
-function stat(id, msg, type=''){
-  document.getElementById(id).innerHTML = `<span class="tag ${type}">${msg}</span>`;
+function preset(lat,lng,atpt){ document.getElementById('lat').value=lat; document.getElementById('lng').value=lng; document.getElementById('atpt').value=atpt; }
+function setOd(sx,sy,ex,ey){ ['sx','sy','ex','ey'].forEach((id,i)=>document.getElementById(id).value=[sx,sy,ex,ey][i]); }
+function tog(id){ const el=document.getElementById(id); el.style.display=el.style.display==='none'?'block':'none'; }
+
+function ss(n, state, html=''){
+  const num=document.getElementById('s'+n+'n'), res=document.getElementById('s'+n+'r');
+  num.className='stepnum '+(state||'');
+  num.textContent = state==='ok'?'✓':state==='err'?'✗':state==='warn'?'!':state==='running'?'…':n;
+  if(html) res.innerHTML=html;
 }
 
-// ① NEIS 학군 분석
-async function testNeis() {
-  const atpt = document.getElementById('neis_atpt').value.trim();
-  const area = document.getElementById('neis_area').value.trim();
-  const lat  = parseFloat(document.getElementById('neis_lat').value);
-  const lng  = parseFloat(document.getElementById('neis_lng').value);
-  const resultEl = document.getElementById('neis_result');
-  const rawEl = document.getElementById('neis_raw');
-  stat('neis_status','조회 중...','warn');
-  resultEl.innerHTML = '';
+function showRawTabs(){
+  const tabs=document.getElementById('raw_tabs');
+  const out=document.getElementById('raw_out');
+  tabs.innerHTML=Object.keys(rawStore).map(k=>`<button class="sec" style="font-size:10px" onclick="showRaw('${k}')">${k}</button>`).join('');
+  if(Object.keys(rawStore).length){ out.style.display='block'; showRaw(Object.keys(rawStore)[0]); }
+}
+function showRaw(k){ document.getElementById('raw_out').textContent=rawStore[k]||'없음'; }
 
-  // Step1: 카카오 중학교 검색
-  stat('neis_status','[1/3] 카카오 반경 1km 중학교 검색...','warn');
-  let schoolNames = [], kakaoRows = [];
-  try {
-    const kr = await fetch(
-      `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent('중학교')}&x=${lng}&y=${lat}&radius=1000&size=10&sort=distance`,
-      { headers:{ Authorization: KAKAO_KEY } }
-    );
-    const kd = await kr.json();
-    kakaoRows = (kd.documents||[]).filter(d => d.category_name && d.category_name.includes('학교'));
-    schoolNames = kakaoRows.map(d => d.place_name.replace(/\s/g,''));
-  } catch(e) { stat('neis_status','카카오 검색 실패: '+e.message,'err'); return; }
+async function runAll(){
+  const lat=parseFloat(document.getElementById('lat').value);
+  const lng=parseFloat(document.getElementById('lng').value);
+  const atpt=document.getElementById('atpt').value;
+  document.getElementById('steps').style.display='block';
+  document.getElementById('main_result').innerHTML='';
+  document.getElementById('raw_tabs').innerHTML='';
+  document.getElementById('raw_out').style.display='none';
+  Object.keys(rawStore).forEach(k=>delete rawStore[k]);
+  [1,2,3,4,5].forEach(n=>ss(n,'','대기 중'));
 
-  // Step2: NEIS schoolInfo
-  stat('neis_status','[2/3] NEIS 학교 목록 조회...','warn');
-  let allSchools = [], raw1 = '';
-  try {
-    const sr = await fetch(
-      `https://open.neis.go.kr/hub/schoolInfo?KEY=${NEIS_KEY}&Type=json&pSize=100&pIndex=1` +
-      `&ATPT_OFCDC_SC_CODE=${atpt}&SCHUL_KND_SC_NM=${encodeURIComponent('중학교')}&LCTN_SC_NM=${encodeURIComponent(area)}`
-    );
-    const sd = await sr.json();
-    raw1 = JSON.stringify(sd, null, 2);
-    allSchools = sd?.schoolInfo?.[1]?.row || [];
-  } catch(e) { stat('neis_status','NEIS schoolInfo 실패: '+e.message,'err'); return; }
+  // STEP 1
+  ss(1,'running','검색 중...');
+  let kakaoSchools=[];
+  try{
+    const r=await fetch(`https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent('중학교')}&x=${lng}&y=${lat}&radius=1500&size=15&sort=distance`,{headers:{Authorization:KAKAO_KEY}});
+    const d=await r.json();
+    rawStore['1_카카오중학교']=JSON.stringify(d,null,2);
+    kakaoSchools=(d.documents||[]).filter(s=>s.category_name&&(s.category_name.includes('학교')||s.place_name.includes('중학교')));
+    ss(1,'ok',`<span class="badge ok">${kakaoSchools.length}개 발견</span> `+kakaoSchools.map(s=>`<span class="badge info">${s.place_name} ${s.distance}m</span>`).join(''));
+  }catch(e){ ss(1,'err','카카오 오류: '+e.message); return; }
 
-  // Step3: 이름 매칭
-  const matched = allSchools.filter(s => {
-    const nm = (s.SCHUL_NM||'').replace(/\s/g,'');
-    return schoolNames.some(kn => nm.includes(kn.slice(0,4)) || kn.includes(nm.slice(0,4)));
-  });
+  // STEP 2
+  ss(2,'running','NEIS 조회 중...');
+  let allSchools=[];
+  try{
+    const r=await fetch(`https://open.neis.go.kr/hub/schoolInfo?KEY=${NEIS_KEY}&Type=json&pSize=100&pIndex=1&ATPT_OFCDC_SC_CODE=${atpt}&SCHUL_KND_SC_NM=${encodeURIComponent('중학교')}`);
+    const d=await r.json();
+    rawStore['2_NEIS_schoolInfo']=JSON.stringify(d,null,2);
+    if(d.RESULT){ ss(2,'err',`NEIS 오류: ${d.RESULT.CODE} — ${d.RESULT.MESSAGE}`); showRawTabs(); return; }
+    allSchools=d?.schoolInfo?.[1]?.row||[];
+    ss(2,'ok',`<span class="badge ok">${allSchools.length}개</span> 샘플: ${allSchools.slice(0,4).map(s=>s.SCHUL_NM).join(', ')}`);
+  }catch(e){ ss(2,'err','NEIS 오류: '+e.message); showRawTabs(); return; }
 
-  // Step4: 진로현황
-  stat('neis_status','[3/3] 진로현황 조회...','warn');
-  const yr = document.getElementById('grad_yr')?.value || new Date().getFullYear()-1;
-  let totalGrad=0, specGrad=0, gradDetails=[], raw2='';
-  const targets = matched.length ? matched.slice(0,5) : allSchools.slice(0,5);
-  for(const s of targets){
-    try{
-      const gr = await fetch(
-        `https://open.neis.go.kr/hub/stuCrslCrsTrnsInfo?KEY=${NEIS_KEY}&Type=json&pSize=10&pIndex=1` +
-        `&ATPT_OFCDC_SC_CODE=${atpt}&SD_SCHUL_CODE=${s.SD_SCHUL_CODE}&AY=${yr}`
-      );
-      const gd = await gr.json();
-      if(!raw2) raw2 = JSON.stringify(gd, null, 2);
-      const rows = gd?.stuCrslCrsTrnsInfo?.[1]?.row || [];
-      rows.forEach(r=>{
-        const tot = parseInt(r.TOT_GRSC_PURPHS_DDLN_CNT||0);
-        const spec = parseInt(r.SCIENCE_GRSC_PURPHS_DDLN_CNT||0)
-                   + parseInt(r.FORLANG_GRSC_PURPHS_DDLN_CNT||0)
-                   + parseInt(r.INTL_GRSC_PURPHS_DDLN_CNT||0)
-                   + parseInt(r.AUTONOMY_GRSC_PURPHS_DDLN_CNT||0)
-                   + parseInt(r.ART_GRSC_PURPHS_DDLN_CNT||0);
-        if(tot>0){ totalGrad+=tot; specGrad+=spec; gradDetails.push({name:s.SCHUL_NM,tot,spec,rate:(spec/tot*100).toFixed(1)}); }
-      });
-    }catch(e){}
+  // STEP 3
+  ss(3,'running','매칭 중...');
+  const schoolNames=kakaoSchools.map(s=>s.place_name.replace(/\s/g,''));
+  let matched=allSchools.filter(s=>{
+    const nm=(s.SCHUL_NM||'').replace(/\s/g,'');
+    return schoolNames.some(kn=>nm.includes(kn.slice(0,4))||kn.includes(nm.slice(0,4)));
+  }).slice(0,5);
+  if(!matched.length&&allSchools.length){
+    matched=allSchools.slice(0,5);
+    ss(3,'warn',`<span class="badge warn">이름 매칭 실패 → 폴백 ${matched.length}개</span> ${matched.map(s=>`<span class="badge info">${s.SCHUL_NM} [${s.SD_SCHUL_CODE}]</span>`).join('')}`);
+  } else {
+    ss(3,'ok',`<span class="badge ok">매칭 ${matched.length}개</span> `+matched.map(s=>`<span class="badge info">${s.SCHUL_NM} [${s.SD_SCHUL_CODE}]</span>`).join(''));
   }
 
-  const specRate = totalGrad>0 ? (specGrad/totalGrad*100) : 0;
-  let grade, label;
-  if(specRate>=15)     { grade='S'; label='최상위 학군'; }
-  else if(specRate>=8) { grade='A'; label='상위 학군'; }
-  else if(specRate>=4) { grade='B'; label='양호한 학군'; }
-  else if(specRate>=1) { grade='C'; label='보통 학군'; }
-  else if(totalGrad>0) { grade='D'; label='기초 학군'; }
-  else                 { grade='?'; label='진학 데이터 없음'; }
+  // STEP 4 — 최근 3년 탐색
+  ss(4,'running','진로현황 조회 중 (최근 3년 탐색)...');
+  let totalGrad=0,specGrad=0,gradDetails=[],foundYr=null;
+  const CY=new Date().getFullYear();
+  for(const s of matched){
+    for(const yr of [CY-1,CY-2,CY-3]){
+      try{
+        const r=await fetch(`https://open.neis.go.kr/hub/stuCrslCrsTrnsInfo?KEY=${NEIS_KEY}&Type=json&pSize=10&pIndex=1&ATPT_OFCDC_SC_CODE=${atpt}&SD_SCHUL_CODE=${s.SD_SCHUL_CODE}&AY=${yr}`);
+        const d=await r.json();
+        const rkey=`4_진로_${s.SCHUL_NM}_${yr}`;
+        rawStore[rkey]=JSON.stringify(d,null,2);
+        if(d.RESULT) continue; // 해당 연도 없음
+        const rows=d?.stuCrslCrsTrnsInfo?.[1]?.row||[];
+        if(!rows.length) continue;
+        rows.forEach(row=>{
+          const tot=parseInt(row.TOT_GRSC_PURPHS_DDLN_CNT||0);
+          const spec=parseInt(row.SCIENCE_GRSC_PURPHS_DDLN_CNT||0)
+                    +parseInt(row.FORLANG_GRSC_PURPHS_DDLN_CNT||0)
+                    +parseInt(row.INTL_GRSC_PURPHS_DDLN_CNT||0)
+                    +parseInt(row.AUTONOMY_GRSC_PURPHS_DDLN_CNT||0)
+                    +parseInt(row.ART_GRSC_PURPHS_DDLN_CNT||0);
+          if(tot>0){
+            totalGrad+=tot; specGrad+=spec;
+            if(!foundYr) foundYr=yr;
+            gradDetails.push({
+              name:s.SCHUL_NM, yr, tot, spec, rate:(spec/tot*100).toFixed(1),
+              과학고:row.SCIENCE_GRSC_PURPHS_DDLN_CNT||0,
+              외국어고:row.FORLANG_GRSC_PURPHS_DDLN_CNT||0,
+              국제고:row.INTL_GRSC_PURPHS_DDLN_CNT||0,
+              자사고:row.AUTONOMY_GRSC_PURPHS_DDLN_CNT||0,
+              예술고:row.ART_GRSC_PURPHS_DDLN_CNT||0,
+            });
+          }
+        });
+        if(gradDetails.find(g=>g.name===s.SCHUL_NM)) break;
+      }catch(e){}
+    }
+  }
+  if(!totalGrad) ss(4,'warn',`<span class="badge warn">3개년 모두 데이터 없음</span> RAW 탭의 4_진로_* 확인 필요`);
+  else ss(4,'ok',`<span class="badge ok">${foundYr}년 데이터</span> 졸업생 ${totalGrad}명, 특목고 ${specGrad}명`);
 
-  stat('neis_status', `완료`, 'ok');
-  rawEl.textContent = '=== schoolInfo ===\n'+raw1+'\n\n=== stuCrslCrsTrnsInfo (첫번째 학교) ===\n'+raw2;
+  // STEP 5
+  const specRate=totalGrad>0?(specGrad/totalGrad*100):0;
+  let grade,label,score;
+  if(!totalGrad){grade='?';label='진학 데이터 없음';score=0;}
+  else if(specRate>=15){grade='S';label='최상위 학군';score=95;}
+  else if(specRate>=8){grade='A';label='상위 학군';score=80;}
+  else if(specRate>=4){grade='B';label='양호한 학군';score=65;}
+  else if(specRate>=1){grade='C';label='보통 학군';score=45;}
+  else{grade='D';label='기초 학군';score=25;}
+  ss(5,totalGrad>0?'ok':'warn',`<span class="badge ${totalGrad>0?'ok':'warn'}">${grade}등급 — ${label}</span> 진학률 ${specRate.toFixed(1)}%`);
 
-  resultEl.innerHTML = `
-    <div class="result-box">
-      <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">
-        <div class="grade">${grade}등급</div>
-        <div>
-          <div style="font-size:14px;color:#f0ece4">${label}</div>
-          <div style="font-size:11px;color:#8a8580;margin-top:2px">${area} · ${atpt}</div>
-        </div>
+  document.getElementById('main_result').innerHTML=`
+    <div class="box">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px">
+        <div class="grade-big">${grade}</div>
+        <div><div style="font-size:15px">${label}</div><div style="font-size:11px;color:#8a8580;margin-top:3px">특목고·자사고 진학률 ${specRate.toFixed(1)}% · ${foundYr?foundYr+'년 기준':'연도 없음'}</div></div>
       </div>
-      <hr>
-      <div class="kv"><span>카카오 검색 중학교</span><span>${kakaoRows.map(r=>r.place_name).join(', ')||'없음'}</span></div>
-      <div class="kv"><span>NEIS 매칭 학교</span><span>${matched.length}개 / 전체 ${allSchools.length}개</span></div>
-      <div class="kv"><span>분석 대상</span><span>${targets.map(s=>s.SCHUL_NM).join(', ')}</span></div>
-      <div class="kv"><span>총 졸업생</span><span>${totalGrad}명</span></div>
-      <div class="kv"><span>특목고·자사고 진학</span><span>${specGrad}명 (${specRate.toFixed(1)}%)</span></div>
-      <hr>
-      ${gradDetails.map(d=>`<div class="kv"><span>${d.name}</span><span>${d.spec}/${d.tot}명 · ${d.rate}%</span></div>`).join('')}
-      ${gradDetails.length===0?'<div style="color:#4a4642;font-size:11px">진학 데이터 없음 (연도: '+yr+')</div>':''}
+      ${gradDetails.map(g=>`
+        <div class="kv"><span>${g.name} (${g.yr}년)</span><span>${g.spec}/${g.tot}명 · ${g.rate}%</span></div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;padding:4px 0 8px;border-bottom:1px solid #1e1e1e">
+          ${['과학고','외국어고','국제고','자사고','예술고'].map(k=>`<span class="badge ${parseInt(g[k])>0?'ok':'info'}">${k} ${g[k]}명</span>`).join('')}
+        </div>`).join('')}
+      ${!gradDetails.length?`<div style="color:#d4756e;padding:8px 0">⚠ 진로 데이터 없음 — 아래 RAW 탭의 <b>4_진로_*</b> 클릭해서 실제 응답 확인</div>`:''}
+      <div class="kv" style="margin-top:8px"><span>카카오 검색</span><span>${kakaoSchools.map(s=>s.place_name).join(', ')||'없음'}</span></div>
+      <div class="kv"><span>NEIS 매칭</span><span>${matched.map(s=>s.SCHUL_NM).join(', ')}</span></div>
     </div>`;
+  showRawTabs();
 }
 
-// ② ODsay
-async function testOdsay() {
-  const sx=document.getElementById('od_sx').value, sy=document.getElementById('od_sy').value;
-  const ex=document.getElementById('od_ex').value, ey=document.getElementById('od_ey').value;
-  const resultEl=document.getElementById('od_result'), rawEl=document.getElementById('od_raw');
-  stat('od_status','조회 중...','warn');
-  resultEl.innerHTML='';
+async function testOdsay(){
+  const sx=document.getElementById('sx').value,sy=document.getElementById('sy').value;
+  const ex=document.getElementById('ex').value,ey=document.getElementById('ey').value;
+  const re=document.getElementById('od_result'),ra=document.getElementById('od_raw');
+  re.innerHTML='<span class="badge warn">조회 중...</span>';
   try{
-    const url=`https://api.odsay.com/v1/api/searchPubTransPathT?SX=${sx}&SY=${sy}&EX=${ex}&EY=${ey}&OPT=0&SearchType=0&apiKey=${ODSAY_KEY}`;
-    const res=await fetch(url);
-    const data=await res.json();
-    rawEl.textContent=JSON.stringify(data,null,2);
-    if(data.error||!data.result?.path?.length){
-      stat('od_status','경로 없음 또는 오류: '+(data.error?.message||'결과 없음'),'err');
-      resultEl.innerHTML=`<div class="result-box" style="color:#d4756e">응답: ${JSON.stringify(data.error||data.result)}</div>`;
-      return;
-    }
-    stat('od_status','성공','ok');
-    const paths = data.result.path.slice(0,3);
-    resultEl.innerHTML = paths.map((p,i)=>{
+    const r=await fetch(`https://api.odsay.com/v1/api/searchPubTransPathT?SX=${sx}&SY=${sy}&EX=${ex}&EY=${ey}&OPT=0&SearchType=0&apiKey=${ODSAY_KEY}`);
+    const d=await r.json();
+    ra.textContent=JSON.stringify(d,null,2); ra.style.display='block';
+    if(d.error){ re.innerHTML=`<span class="badge err">오류 ${d.error.code}: ${d.error.message}</span>`; return; }
+    if(!d.result?.path?.length){ re.innerHTML=`<span class="badge warn">경로 없음</span><pre>${JSON.stringify(d.result,null,2)}</pre>`; return; }
+    const paths=d.result.path.slice(0,3);
+    re.innerHTML=`<span class="badge ok">성공 — ${paths.length}개 경로</span>`+paths.map(p=>{
       const info=p.info;
-      const steps=(p.subPath||[]).filter(sp=>sp.trafficType!==3||sp.sectionTime>3).map(sp=>{
-        if(sp.trafficType===1) return `🚇 ${sp.lane?.[0]?.name} ${sp.startName}→${sp.endName} (${sp.stationCount}정거장, ${sp.sectionTime}분)`;
-        if(sp.trafficType===2) return `🚌 ${(sp.lane||[]).map(l=>l.busNo).join('·')} ${sp.startName}→${sp.endName} (${sp.sectionTime}분)`;
-        return `🚶 도보 ${sp.sectionTime}분`;
-      });
-      return `<div class="result-box" style="margin-top:8px">
-        <div style="color:#c8a96e;font-family:monospace;font-size:11px;margin-bottom:8px">경로 ${i+1}</div>
-        <div class="kv"><span>총 소요시간</span><span style="color:#c8a96e;font-size:16px">${info.totalTime}분</span></div>
-        <div class="kv"><span>환승</span><span>${info.transitCount}회</span></div>
-        <div class="kv"><span>도보</span><span>${info.totalWalk}m</span></div>
-        <div class="kv"><span>요금</span><span>${info.payment}원</span></div>
-        <hr>
-        ${steps.map(s=>`<div style="font-size:11px;color:#8a8580;margin-bottom:4px">${s}</div>`).join('')}
-      </div>`;
+      const steps=(p.subPath||[]).map(sp=>{
+        if(sp.trafficType===1) return `<span class="badge info">🚇${sp.lane?.[0]?.name} ${sp.startName}→${sp.endName} ${sp.sectionTime}분</span>`;
+        if(sp.trafficType===2) return `<span class="badge warn">🚌${(sp.lane||[]).map(l=>l.busNo).slice(0,2).join('/')} ${sp.sectionTime}분</span>`;
+        return sp.sectionTime>2?`<span style="font-size:10px;color:#4a4642;margin:2px">🚶${sp.sectionTime}분</span>`:'';
+      }).join('');
+      return `<div class="box" style="margin-top:8px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="font-family:monospace;font-size:20px;color:#c8a96e">${info.totalTime}분</span><span style="font-size:11px;color:#8a8580">환승 ${info.transitCount}회 · 도보 ${info.totalWalk}m · ${info.payment}원</span></div><div>${steps}</div></div>`;
     }).join('');
-  }catch(e){ stat('od_status','실패: '+e.message,'err'); }
-}
-
-// ③ 카카오 중학교
-async function testKakaoSchool(){
-  const lat=document.getElementById('kk_lat').value, lng=document.getElementById('kk_lng').value;
-  const radius=document.getElementById('kk_radius').value;
-  const resultEl=document.getElementById('kk_result');
-  stat('kk_status','검색 중...','warn');
-  try{
-    const res=await fetch(
-      `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent('중학교')}&x=${lng}&y=${lat}&radius=${radius}&size=10&sort=distance`,
-      {headers:{Authorization:KAKAO_KEY}}
-    );
-    const d=await res.json();
-    const schools=(d.documents||[]).filter(s=>s.category_name&&s.category_name.includes('학교'));
-    stat('kk_status',`${schools.length}개 중학교 발견`,'ok');
-    resultEl.innerHTML=`<div class="result-box">
-      ${schools.map(s=>`
-        <div class="kv">
-          <span>${s.place_name}</span>
-          <span style="color:#8a8580">${parseInt(s.distance)}m · <span style="color:#c8a96e;font-family:monospace;font-size:10px">${s.id}</span></span>
-        </div>
-        <div style="font-size:10px;color:#4a4642;margin-bottom:8px;padding-left:4px">${s.road_address_name||s.address_name} · 카테고리: ${s.category_name}</div>
-      `).join('')}
-      ${schools.length===0?'<div style="color:#4a4642">검색 결과 없음</div>':''}
-      <hr>
-      <div style="font-size:10px;color:#4a4642">학교 코드를 ④에 입력해서 진로현황 직접 테스트 가능</div>
-    </div>`;
-  }catch(e){ stat('kk_status','실패: '+e.message,'err'); }
-}
-
-// ④ NEIS 진로현황 직접
-async function testGrad(){
-  const atpt=document.getElementById('grad_atpt').value;
-  const code=document.getElementById('grad_code').value;
-  const yr=document.getElementById('grad_yr').value;
-  const resultEl=document.getElementById('grad_result'), rawEl=document.getElementById('grad_raw');
-  stat('grad_status','조회 중...','warn');
-  try{
-    const res=await fetch(
-      `https://open.neis.go.kr/hub/stuCrslCrsTrnsInfo?KEY=${NEIS_KEY}&Type=json&pSize=10&pIndex=1` +
-      `&ATPT_OFCDC_SC_CODE=${atpt}&SD_SCHUL_CODE=${code}&AY=${yr}`
-    );
-    const d=await res.json();
-    rawEl.textContent=JSON.stringify(d,null,2);
-    const rows=d?.stuCrslCrsTrnsInfo?.[1]?.row||[];
-    if(!rows.length){
-      stat('grad_status','데이터 없음','warn');
-      resultEl.innerHTML=`<div class="result-box" style="color:#8a8580">해당 학교/연도 데이터 없음<br><small>연도를 바꿔서 시도해보세요 (2023, 2022...)</small></div>`;
-      return;
-    }
-    stat('grad_status','성공','ok');
-    resultEl.innerHTML=rows.map(r=>{
-      const tot=parseInt(r.TOT_GRSC_PURPHS_DDLN_CNT||0);
-      const spec=parseInt(r.SCIENCE_GRSC_PURPHS_DDLN_CNT||0)+parseInt(r.FORLANG_GRSC_PURPHS_DDLN_CNT||0)+parseInt(r.INTL_GRSC_PURPHS_DDLN_CNT||0)+parseInt(r.AUTONOMY_GRSC_PURPHS_DDLN_CNT||0)+parseInt(r.ART_GRSC_PURPHS_DDLN_CNT||0);
-      return `<div class="result-box">
-        <div class="kv"><span>학교명</span><span>${r.SCHUL_NM||'—'}</span></div>
-        <div class="kv"><span>졸업생 수</span><span>${tot}명</span></div>
-        <div class="kv"><span>과학고</span><span>${r.SCIENCE_GRSC_PURPHS_DDLN_CNT||0}명</span></div>
-        <div class="kv"><span>외국어고</span><span>${r.FORLANG_GRSC_PURPHS_DDLN_CNT||0}명</span></div>
-        <div class="kv"><span>국제고</span><span>${r.INTL_GRSC_PURPHS_DDLN_CNT||0}명</span></div>
-        <div class="kv"><span>자사고</span><span>${r.AUTONOMY_GRSC_PURPHS_DDLN_CNT||0}명</span></div>
-        <div class="kv"><span>예술고</span><span>${r.ART_GRSC_PURPHS_DDLN_CNT||0}명</span></div>
-        <hr>
-        <div class="kv"><span>특목고 합계</span><span style="color:#c8a96e;font-size:15px;font-family:monospace">${spec}명 / ${tot}명 (${tot>0?(spec/tot*100).toFixed(1):0}%)</span></div>
-        <div style="font-size:10px;color:#4a4642;margin-top:6px">RAW 필드: ${Object.keys(r).join(', ')}</div>
-      </div>`;
-    }).join('');
-  }catch(e){ stat('grad_status','실패: '+e.message,'err'); }
+  }catch(e){ re.innerHTML=`<span class="badge err">fetch 실패: ${e.message}</span>`; }
 }
 </script>
 </body>
