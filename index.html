@@ -409,7 +409,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 <!-- RESULT -->
 <div id="result">
   <div class="rh">
-    <div class="sring"><div class="snum">87</div><div class="slbll">적합도</div></div>
+    <div class="sring"><div class="snum" id="scoreNum">—</div><div class="slbll">적합도</div></div>
     <div class="rtitle">분석이 완료되었습니다</div>
     <p style="font-size:13px;color:var(--muted)">두 분의 조건을 종합한 최적 주거 지역 TOP 3</p>
     <div class="isum" id="inputSummary"></div>
@@ -1184,9 +1184,8 @@ function buildRouteDesc(from, to, transport, fromLabel){
     return fromLabel + ' → (경로 계산 중...) → ' + to.area;
   }
   if(transport.includes('대중교통')) {
-    const lines = getTransitHint(from, to);
-    const distKm = from?.lat ? Math.round(calcDistKm(from,to)*1.3) : '?';
-    return fromLabel + ' → ' + lines + ' (약 ' + distKm + 'km)';
+    const distKm = from?.lat ? Math.round(calcDistKm(from,to)*1.3*10)/10 : '?';
+    return fromLabel + ' → (경로 조회 중...) · 약 ' + distKm + 'km';
   }
   return fromLabel + ' → ' + to.area + ' (' + Math.round(dist)+'km)';
 }
@@ -1368,6 +1367,15 @@ async function showResult(){
       +'<div style="font-size:12px;color:var(--dim);margin-top:8px">예산을 높이거나 허용시간을 늘려보세요</div></div>';
     return;
   }
+  // 적합도 계산 (100 - 가중점수 정규화)
+  if(REGIONS.length){
+    const best = REGIONS[0];
+    const maxPossible = parseFloat(inp.c1||60)*0.5 + parseFloat(inp.c2||60)*0.5;
+    const rawScore = best.score || (best.aTime*0.5 + best.bTime*0.5);
+    const fit = Math.max(10, Math.min(99, Math.round(100 - rawScore/maxPossible*50)));
+    const el = document.getElementById('scoreNum');
+    if(el) el.textContent = fit;
+  }
   renderRegionCards(inp);
   renderApts(inp);
   loadAndRenderMap(inp);
@@ -1509,6 +1517,15 @@ async function renderRegionCards(inp){
       if(sA==='transit'){const el=document.getElementById('rt_a_transit_'+ri),et=document.getElementById('rt_a_time_'+ri),eb=document.getElementById('rt_a_bar_'+ri);if(dA){const rt=dA.data;if(et)et.textContent=rt.totalTime+'분';if(eb)eb.style.width=Math.min(95,rt.totalTime)+'%';if(el)el.innerHTML=renderTransitSteps(rt);}else if(el)el.innerHTML='<div style="font-size:11px;color:var(--dim)">경로 조회 실패</div>';}
       if((sA==='walk'||sA==='shuttle')&&dA){const et=document.getElementById('rt_a_time_'+ri),eb=document.getElementById('rt_a_bar_'+ri);if(et)et.textContent=dA.time+'분';if(eb)eb.style.width=Math.min(95,dA.time)+'%';}
       showTips('rt_a_route_'+ri,buildAllTips(sA,tA),'#c8a96e');
+      // ODsay 실제 경로 설명 업데이트
+      if(sA==='transit'&&tA.transit&&tA.transit.data){
+        const rt=tA.transit.data,er=document.getElementById('rt_a_route_'+ri);
+        if(er&&rt.steps&&rt.steps.length){
+          const ms=rt.steps.filter(s=>s.type==='subway'||s.type==='bus').slice(0,2);
+          const rd=ms.map(s=>s.type==='subway'?s.line+' '+s.from+'→'+s.to:'버스 '+s.busNos.join('·')+' '+s.from+'→'+s.to).join(' · ');
+          if(rd) er.textContent=inp.work1Label+' → '+rd+' → '+(r.dong||r.area);
+        }
+      }
     }
     if(inp.work2Coord?.lat){
       const tB=await getAllTimes(inp.work2Coord),sB=getSelKey(inp.tr2),dB=tB[sB];
@@ -1516,6 +1533,14 @@ async function renderRegionCards(inp){
       if(sB==='transit'){const el=document.getElementById('rt_b_transit_'+ri),et=document.getElementById('rt_b_time_'+ri),eb=document.getElementById('rt_b_bar_'+ri);if(dB){const rt=dB.data;if(et)et.textContent=rt.totalTime+'분';if(eb)eb.style.width=Math.min(95,rt.totalTime)+'%';if(el)el.innerHTML=renderTransitSteps(rt);}else if(el)el.innerHTML='<div style="font-size:11px;color:var(--dim)">경로 조회 실패</div>';}
       if((sB==='walk'||sB==='shuttle')&&dB){const et=document.getElementById('rt_b_time_'+ri),eb=document.getElementById('rt_b_bar_'+ri);if(et)et.textContent=dB.time+'분';if(eb)eb.style.width=Math.min(95,dB.time)+'%';}
       showTips('rt_b_route_'+ri,buildAllTips(sB,tB),'#7fb5a0');
+      if(sB==='transit'&&tB.transit&&tB.transit.data){
+        const rt=tB.transit.data,er=document.getElementById('rt_b_route_'+ri);
+        if(er&&rt.steps&&rt.steps.length){
+          const ms=rt.steps.filter(s=>s.type==='subway'||s.type==='bus').slice(0,2);
+          const rd=ms.map(s=>s.type==='subway'?s.line+' '+s.from+'→'+s.to:'버스 '+s.busNos.join('·')+' '+s.from+'→'+s.to).join(' · ');
+          if(rd) er.textContent=inp.work2Label+' → '+rd+' → '+(r.dong||r.area);
+        }
+      }
     }
     if(inp.gpOn&&inp.gpCoord?.lat){
       const gpEl=document.getElementById('gp_transit_'+ri);
