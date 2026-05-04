@@ -2,2016 +2,369 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>우리집 찾기</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;700&family=DM+Mono:wght@400;500&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+<title>API 테스트</title>
 <style>
-:root{
-  --bg:#0e0e0e;--bg2:#161616;--bg3:#1e1e1e;
-  --border:#2a2a2a;--borderL:#383838;
-  --text:#f0ece4;--muted:#8a8580;--dim:#4a4642;
-  --a:#c8a96e;--a2:#7fb5a0;--a3:#d4756e;
-}
-*{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-weight:300;}
-button,input{font-family:'Noto Sans KR',sans-serif;}
-input[type=range]{-webkit-appearance:none;height:2px;background:var(--border);outline:none;cursor:pointer;width:100%;}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:var(--a);border-radius:50%;cursor:pointer;}
-::-webkit-scrollbar{width:4px;height:4px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--border);}
-#progress{position:fixed;top:0;left:0;height:2px;background:var(--a);transition:width .4s;z-index:300;}
-
-/* HERO */
-#hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 24px;text-align:center;position:relative;overflow:hidden;}
-.hgrid{position:absolute;inset:0;background-image:linear-gradient(rgba(200,169,110,.04)1px,transparent 1px),linear-gradient(90deg,rgba(200,169,110,.04)1px,transparent 1px);background-size:60px 60px;animation:gs 20s linear infinite;pointer-events:none;}
-@keyframes gs{100%{transform:translate(60px,60px);}}
-.hbadge{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.3em;color:var(--a);border:1px solid rgba(200,169,110,.3);padding:5px 16px;margin-bottom:32px;display:inline-block;}
-.htitle{font-family:'Noto Serif KR',serif;font-size:clamp(44px,8vw,80px);font-weight:300;line-height:1.1;margin-bottom:20px;}
-.htitle em{font-style:normal;color:var(--a);}
-.hsub{font-size:14px;color:var(--muted);line-height:1.9;margin-bottom:40px;}
-
-/* STEP NAV */
-#snav{display:none;position:sticky;top:0;z-index:100;background:rgba(14,14,14,.95);border-bottom:1px solid var(--border);backdrop-filter:blur(20px);}
-.ni{display:flex;align-items:center;overflow-x:auto;padding:13px 20px;scrollbar-width:none;}
-.ni::-webkit-scrollbar{display:none;}
-.si{display:flex;align-items:center;gap:7px;padding:4px 10px;opacity:.3;cursor:default;}
-.si.active{opacity:1;}.si.done{opacity:.65;cursor:pointer;}
-.sn{width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:11px;border:1px solid var(--border);}
-.si.active .sn{background:var(--a);border-color:var(--a);color:#0e0e0e;}
-.si.done .sn{background:var(--a2);border-color:var(--a2);color:#0e0e0e;}
-.sl{font-size:11px;color:var(--muted);white-space:nowrap;}.si.active .sl{color:var(--text);}
-.ss{width:20px;height:1px;background:var(--border);flex-shrink:0;}
-
-/* FORM */
-.fw{max-width:900px;margin:0 auto;padding:52px 20px 80px;}
-.stag{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.3em;color:var(--a);text-transform:uppercase;margin-bottom:12px;}
-.stitle{font-family:'Noto Serif KR',serif;font-size:clamp(24px,4vw,36px);font-weight:300;margin-bottom:8px;}
-.sdesc{font-size:13px;color:var(--muted);line-height:1.8;margin-bottom:36px;}
-.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-@media(max-width:620px){.pgrid{grid-template-columns:1fr;}}
-.pcard{background:var(--bg2);border:1px solid var(--border);padding:26px;position:relative;}
-.pcard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
-.pcard.a::before{background:var(--a);}.pcard.b::before{background:var(--a2);}
-.plbl{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.25em;color:var(--dim);margin-bottom:20px;display:flex;align-items:center;gap:8px;}
-.pdot{width:6px;height:6px;border-radius:50%;}
-.field{margin-bottom:18px;}.field:last-child{margin-bottom:0;}
-.flbl{font-size:11px;color:var(--muted);margin-bottom:7px;display:block;}
-.fi{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:13px;font-weight:300;padding:10px 13px;outline:none;transition:border-color .2s;}
-.fi:focus{border-color:var(--a);}.fi::placeholder{color:var(--dim);}
-.rll{display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:5px;}
-.chips{display:flex;gap:6px;flex-wrap:wrap;}
-.chip{padding:7px 13px;font-size:12px;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--muted);transition:all .15s;white-space:nowrap;user-select:none;}
-.chip:hover{border-color:var(--borderL);color:var(--text);}
-.chip.on{border-color:var(--a);background:rgba(200,169,110,.12);color:var(--a);}
-
-/* -- 주소 검색 입력 -- */
-.addr-wrap{position:relative;}
-.addr-input-row{display:flex;gap:0;}
-.addr-input{flex:1;background:var(--bg3);border:1px solid var(--border);border-right:none;color:var(--text);font-size:13px;font-weight:300;padding:10px 13px;outline:none;transition:border-color .2s;}
-.addr-input:focus{border-color:var(--a);}
-.addr-input::placeholder{color:var(--dim);}
-.addr-input.confirmed{border-color:var(--a2);background:rgba(127,181,160,.05);}
-.addr-btn{background:var(--bg3);border:1px solid var(--border);color:var(--muted);padding:0 14px;cursor:pointer;font-size:16px;transition:all .2s;flex-shrink:0;}
-.addr-btn:hover{background:var(--a);color:#0e0e0e;border-color:var(--a);}
-.addr-confirmed{display:flex;align-items:center;gap:8px;margin-top:6px;padding:6px 10px;background:rgba(127,181,160,.08);border:1px solid rgba(127,181,160,.2);}
-.addr-confirmed-text{font-size:11px;color:var(--a2);flex:1;}
-.addr-confirmed-clear{background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;padding:0;}
-.addr-confirmed-clear:hover{color:var(--a3);}
-/* 드롭다운 */
-.addr-dropdown{position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--borderL);border-top:none;z-index:200;max-height:240px;overflow-y:auto;display:none;}
-.addr-dropdown.show{display:block;}
-.addr-item{padding:10px 13px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s;}
-.addr-item:last-child{border-bottom:none;}
-.addr-item:hover,.addr-item.focused{background:rgba(200,169,110,.08);}
-.addr-item-main{font-size:13px;color:var(--text);margin-bottom:2px;}
-.addr-item-main em{color:var(--a);font-style:normal;font-weight:400;}
-.addr-item-sub{font-size:11px;color:var(--dim);}
-.addr-item-type{font-family:'DM Mono',monospace;font-size:9px;padding:1px 5px;background:rgba(200,169,110,.1);border:1px solid rgba(200,169,110,.2);color:var(--a);margin-right:5px;}
-.addr-loading{padding:12px 13px;font-size:12px;color:var(--dim);text-align:center;}
-.addr-empty{padding:12px 13px;font-size:12px;color:var(--dim);text-align:center;}
-
-/* SHUTTLE */
-.sblock{background:var(--bg3);border:1px solid var(--border);padding:16px;margin-top:10px;display:none;}
-.sblock.show{display:block;}
-.stop-row{display:grid;grid-template-columns:1fr 32px;gap:8px;margin-bottom:8px;}
-.stop-row input{background:var(--bg2);border:1px solid var(--border);color:var(--text);font-size:12px;padding:8px 11px;outline:none;width:100%;}
-.brm{background:none;border:1px solid var(--border);color:var(--dim);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;height:100%;}
-.brm:hover{border-color:var(--a3);color:var(--a3);}
-.badd{width:100%;background:none;border:1px dashed var(--borderL);color:var(--dim);padding:8px;font-size:12px;cursor:pointer;margin-bottom:12px;}
-.badd:hover{border-color:var(--a);color:var(--a);}
-.divr{display:flex;align-items:center;gap:14px;margin:28px 0;}
-.dl{flex:1;height:1px;background:var(--border);}
-.dt{font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:.2em;text-transform:uppercase;}
-.cond{overflow:hidden;max-height:0;opacity:0;transition:max-height .4s,opacity .3s;}
-.cond.show{max-height:2000px;opacity:1;}
-.fnav{display:flex;justify-content:space-between;align-items:center;margin-top:44px;padding-top:24px;border-top:1px solid var(--border);}
-.bprev{display:flex;align-items:center;gap:8px;padding:11px 22px;background:none;border:1px solid var(--border);color:var(--muted);font-size:13px;cursor:pointer;}
-.bprev:hover{border-color:var(--borderL);color:var(--text);}
-.bnext{padding:11px 26px;background:var(--a);border:none;color:#0e0e0e;font-size:13px;font-weight:500;cursor:pointer;}
-.bnext:hover{background:#d4ba80;}.bnext.big{padding:15px 40px;font-size:15px;}
-
-/* RESULT */
-#result{display:none;max-width:1100px;margin:0 auto;padding:52px 20px 80px;}
-.rh{text-align:center;margin-bottom:44px;}
-.sring{width:96px;height:96px;border-radius:50%;border:2px solid var(--a);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 18px;box-shadow:0 0 0 8px rgba(200,169,110,.09);}
-.snum{font-family:'DM Mono',monospace;font-size:26px;color:var(--a);}
-.slbll{font-size:10px;color:var(--dim);}
-.rtitle{font-family:'Noto Serif KR',serif;font-size:clamp(20px,4vw,30px);font-weight:300;margin-bottom:6px;}
-.isum{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:16px;}
-.ibadge{font-size:11px;color:var(--muted);background:var(--bg2);border:1px solid var(--border);padding:5px 11px;}
-.ibadge b{color:var(--text);font-weight:400;}
-.strips{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;margin-bottom:2px;}
-@media(max-width:560px){.strips{grid-template-columns:repeat(2,1fr);}}
-.strip{background:var(--bg2);padding:16px 18px;}
-.slb{font-size:11px;color:var(--dim);margin-bottom:5px;}
-.svl{font-family:'DM Mono',monospace;font-size:17px;color:var(--text);}
-.rcards{display:grid;grid-template-columns:repeat(2,1fr);gap:2px;margin-bottom:2px;}
-@media(max-width:680px){.rcards{grid-template-columns:1fr;}}
-.rcard{background:var(--bg2);border:1px solid var(--border);padding:22px;position:relative;}
-.rrank{position:absolute;top:14px;right:16px;font-family:'DM Mono',monospace;font-size:44px;color:rgba(200,169,110,.08);line-height:1;}
-.rtag{font-family:'DM Mono',monospace;font-size:10px;color:var(--a);letter-spacing:.2em;margin-bottom:8px;}
-.rarea{font-family:'Noto Serif KR',serif;font-size:21px;margin-bottom:3px;}
-.rsub{font-size:12px;color:var(--muted);margin-bottom:18px;}
-.crow{margin-bottom:11px;}
-.ctop{display:flex;gap:10px;align-items:flex-start;margin-bottom:5px;}
-.cpill{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:11px;flex-shrink:0;margin-top:1px;}
-.cinfo{flex:1;}
-.ctime{font-family:'DM Mono',monospace;font-size:19px;line-height:1;margin-bottom:4px;}
-.ctime span{font-size:11px;color:var(--muted);margin-left:2px;}
-.trow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px;}
-.tbadge{font-family:'DM Mono',monospace;font-size:10px;padding:2px 7px;white-space:nowrap;}
-.tbadge.sub{background:rgba(79,130,213,.12);border:1px solid rgba(79,130,213,.3);color:#7da8e0;}
-.tbadge.car{background:rgba(200,169,110,.12);border:1px solid rgba(200,169,110,.3);color:var(--a);}
-.tbadge.sh{background:rgba(200,110,110,.12);border:1px solid rgba(200,110,110,.3);color:#e09090;}
-.tbadge.wk{background:rgba(127,181,160,.12);border:1px solid rgba(127,181,160,.3);color:var(--a2);}
-.tbadge.rec{background:rgba(255,255,255,.05);border:1px dashed rgba(255,255,255,.15);color:var(--dim);}
-.tarrow{font-size:11px;color:var(--dim);}
-.troute{font-size:11px;color:var(--dim);margin-top:2px;}
-.cbar{height:2px;background:var(--border);}
-.cbar-f{height:100%;transition:width 1s ease;}
-.gprow{display:flex;align-items:center;gap:10px;background:rgba(127,181,160,.06);border:1px solid rgba(127,181,160,.15);padding:8px 11px;margin-bottom:11px;}
-.gpi{display:flex;flex-direction:column;gap:2px;}
-.gplb{font-size:11px;color:var(--dim);}.gpvl{font-family:'DM Mono',monospace;font-size:13px;color:var(--a2);}
-.dthin{height:1px;background:var(--border);margin:11px 0;}
-.mrow{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;}
-.mk{color:var(--dim);}.mv{font-family:'DM Mono',monospace;color:var(--muted);}
-.rpx{margin-top:13px;padding-top:13px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-end;}
-.rplb{font-size:10px;color:var(--dim);}
-.rpv{font-family:'DM Mono',monospace;font-size:19px;color:var(--a);}
-
-/* MAP */
-#mapWrap{background:var(--bg2);border:1px solid var(--border);margin-top:2px;position:relative;overflow:hidden;}
-#naverMap{width:100%;height:440px;}
-.mleg{position:absolute;bottom:14px;left:14px;background:rgba(14,14,14,.9);border:1px solid var(--border);padding:10px 13px;backdrop-filter:blur(8px);z-index:10;}
-.mli{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--muted);margin-bottom:4px;}
-.mli:last-child{margin-bottom:0;}
-.mld{width:9px;height:9px;border-radius:50%;}
-#mapMsg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;background:var(--bg2);z-index:5;}
-#mapMsg.hidden{display:none;}
-
-/* APT */
-.apt-section{margin-top:44px;}
-.atabs{display:flex;gap:2px;margin-bottom:2px;}
-.atab{padding:8px 17px;font-size:12px;cursor:pointer;background:var(--bg2);border:1px solid var(--border);color:var(--dim);}
-.atab.on{background:rgba(200,169,110,.12);border-color:var(--a);color:var(--a);}
-.arow{display:grid;grid-template-columns:42px 1fr auto;gap:14px;background:var(--bg2);border:1px solid var(--border);border-left:2px solid transparent;padding:16px 20px;margin-bottom:2px;}
-.arow.r1{border-left-color:var(--a);}.arow.r2{border-left-color:var(--a2);}.arow.r3{border-left-color:var(--a3);}
-.arow.hidden{display:none;}
-.arnk{font-family:'DM Mono',monospace;font-size:19px;color:var(--dim);opacity:.5;padding-top:2px;}
-.anr{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px;}
-.aname{font-size:14px;font-weight:400;color:var(--text);}
-.atag{font-family:'DM Mono',monospace;font-size:10px;padding:2px 7px;}
-.atag.r1{background:rgba(200,169,110,.1);border:1px solid rgba(200,169,110,.25);color:var(--a);}
-.atag.r2{background:rgba(127,181,160,.1);border:1px solid rgba(127,181,160,.25);color:var(--a2);}
-.atag.r3{background:rgba(212,117,110,.1);border:1px solid rgba(212,117,110,.25);color:var(--a3);}
-.atag.new{background:rgba(200,169,110,.08);border:1px solid rgba(200,169,110,.2);color:var(--a);}
-.atag.gtx{background:rgba(127,181,160,.08);border:1px solid rgba(127,181,160,.2);color:var(--a2);}
-.atag.etc{background:rgba(160,160,200,.08);border:1px solid rgba(160,160,200,.2);color:#a0a0c8;}
-.aaddr{font-size:11px;color:var(--dim);margin-bottom:7px;}
-.achips{display:flex;gap:5px;flex-wrap:wrap;}
-.achip{font-size:11px;padding:3px 8px;background:var(--bg3);border:1px solid var(--border);color:var(--muted);}
-.apb{text-align:right;flex-shrink:0;}
-.asz{font-family:'DM Mono',monospace;font-size:11px;color:var(--dim);margin-bottom:3px;}
-.aprice{font-family:'DM Mono',monospace;font-size:17px;color:var(--a);}
-.aprice.loading{font-size:11px;color:var(--dim);animation:blink 1.2s infinite;}
-@keyframes blink{0%,100%{opacity:.4;}50%{opacity:1;}}
-.apdt{font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:2px;}
-@media(max-width:540px){.arow{grid-template-columns:30px 1fr;}.apb{grid-column:2;}}
-.brst{background:none;border:1px solid var(--borderL);color:var(--muted);padding:11px 26px;font-size:13px;cursor:pointer;margin-top:44px;}
-.brst:hover{border-color:var(--a);color:var(--a);}
-
-/* transit steps */
-.transit-summary{display:flex;align-items:center;gap:10px;margin-bottom:8px;padding:8px 0;border-bottom:1px solid var(--border);}
-.ts-total{font-family:'DM Mono',monospace;font-size:18px;color:var(--text);}
-.ts-info{font-size:11px;color:var(--dim);}
-.transit-steps{display:flex;flex-direction:column;gap:5px;}
-.transit-step{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.transit-badge{font-family:'DM Mono',monospace;font-size:10px;padding:2px 8px;white-space:nowrap;flex-shrink:0;}
-.bus-badge{background:rgba(200,169,110,.1);border:1px solid rgba(200,169,110,.3);color:var(--a);}
-.transit-detail{font-size:11px;color:var(--muted);}
-.walk-step{opacity:.6;}
-.transit-loading{font-size:11px;color:var(--dim);animation:blink 1.2s infinite;}
-.transit-block{margin-top:10px;padding:12px;background:var(--bg3);border:1px solid var(--border);}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0e0e0e;color:#f0ece4;font-family:'Noto Sans KR',sans-serif;padding:24px;font-size:13px}
+h2{color:#c8a96e;font-size:15px;margin-bottom:12px;font-family:monospace;letter-spacing:.1em}
+.section{background:#161616;border:1px solid #2a2a2a;padding:20px;margin-bottom:16px;border-radius:2px}
+.row{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+label{color:#8a8580;font-size:11px;min-width:80px}
+input{background:#1e1e1e;border:1px solid #2a2a2a;color:#f0ece4;padding:7px 10px;font-size:12px;font-family:monospace;width:260px;outline:none}
+input:focus{border-color:#c8a96e}
+button{background:#c8a96e;color:#0e0e0e;border:none;padding:8px 18px;font-size:12px;font-weight:600;cursor:pointer}
+button:hover{background:#d4ba80}
+button.sec{background:#1e1e1e;border:1px solid #2a2a2a;color:#8a8580}
+button.sec:hover{border-color:#c8a96e;color:#c8a96e}
+pre{background:#0e0e0e;border:1px solid #1e1e1e;padding:14px;font-family:monospace;font-size:11px;overflow-x:auto;max-height:340px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;margin-top:10px;color:#7fb5a0}
+.tag{display:inline-block;font-size:10px;padding:2px 7px;font-family:monospace;margin-right:6px;margin-bottom:4px}
+.ok{border:1px solid rgba(127,181,160,.4);background:rgba(127,181,160,.1);color:#7fb5a0}
+.err{border:1px solid rgba(212,117,110,.4);background:rgba(212,117,110,.1);color:#d4756e}
+.warn{border:1px solid rgba(200,169,110,.4);background:rgba(200,169,110,.1);color:#c8a96e}
+.status{font-size:11px;color:#8a8580;margin-bottom:6px}
+.grade{font-size:22px;font-family:monospace;color:#c8a96e;font-weight:700}
+.result-box{background:#0e0e0e;border:1px solid #2a2a2a;padding:14px;margin-top:10px}
+.kv{display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px}
+.kv span:first-child{color:#8a8580}
+.kv span:last-child{color:#f0ece4;font-family:monospace}
+hr{border:none;border-top:1px solid #2a2a2a;margin:14px 0}
 </style>
 </head>
 <body>
-<div id="progress" style="width:0"></div>
 
-<!-- HERO -->
-<section id="hero">
-  <div class="hgrid"></div>
-  <div style="position:relative">
-    <div class="hbadge">COUPLE HOME FINDER · 우리집 찾기</div>
-    <h1 class="htitle">두 사람의 삶이<br>만나는 <em>집</em></h1>
-    <p class="hsub">각자의 직장·이동 방식·가족 상황을 입력하면<br>최적의 주거 지역과 국토부 실거래가를 분석해드립니다</p>
-    <button onclick="startForm()" style="background:var(--a);color:#0e0e0e;border:none;padding:15px 42px;font-size:15px;font-weight:500;cursor:pointer;">시작하기 →</button>
-    <div style="display:flex;gap:24px;justify-content:center;flex-wrap:wrap;margin-top:28px;">
-      <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim)">✦ 네이버 지도 장소 검색</span>
-      <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim)">✦ 출퇴근 동선 분석</span>
-      <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim)">✦ 조부모 동선 반영</span>
-      <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim)">✦ 국토부 실거래가 연동</span>
-    </div>
-  </div>
-</section>
-
-<!-- STEP NAV -->
-<nav id="snav">
-  <div class="ni">
-    <div class="si active" id="nav1" onclick="tryGo(1)"><div class="sn">1</div><div class="sl">출근 정보</div></div><div class="ss"></div>
-    <div class="si" id="nav2" onclick="tryGo(2)"><div class="sn">2</div><div class="sl">이동 수단</div></div><div class="ss"></div>
-    <div class="si" id="nav3" onclick="tryGo(3)"><div class="sn">3</div><div class="sl">자녀·조부모</div></div><div class="ss"></div>
-    <div class="si" id="nav4" onclick="tryGo(4)"><div class="sn">4</div><div class="sl">조건·예산</div></div><div class="ss"></div>
-    <div class="si" id="nav5" onclick="tryGo(5)"><div class="sn">5</div><div class="sl">결과</div></div>
-  </div>
-</nav>
-
-<!-- STEP 1 -->
-<div id="step1" class="fw" style="display:none">
-  <div class="stag">Step 01 · Commute</div>
-  <div class="stitle">두 분의 출근지를 알려주세요</div>
-  <div class="sdesc">장소명, 주소, 역명 등으로 검색하면 자동완성 목록이 나타납니다.</div>
-  <div class="pgrid">
-    <div class="pcard a">
-      <div class="plbl"><div class="pdot" style="background:var(--a)"></div>배우자 A</div>
-      <div class="field">
-        <label class="flbl">출근지 검색</label>
-        <div id="search_work1"></div>
-      </div>
-      <div class="field">
-        <label class="flbl" id="c1lbl">출퇴근 허용 시간 (편도) - 45분</label>
-        <input type="range" id="c1" min="10" max="120" value="45" step="5" oninput="document.getElementById('c1lbl').textContent='출퇴근 허용 시간 (편도) - '+this.value+'분'">
-        <div class="rll"><span>10분</span><span>120분</span></div>
-      </div>
-      <div class="field"><label class="flbl">재택근무 빈도</label>
-        <div class="chips" id="r1"><div class="chip on" onclick="pick(this,'r1')">없음</div><div class="chip" onclick="pick(this,'r1')">주 1일</div><div class="chip" onclick="pick(this,'r1')">주 2~3일</div><div class="chip" onclick="pick(this,'r1')">거의 재택</div></div>
-      </div>
-    </div>
-    <div class="pcard b">
-      <div class="plbl"><div class="pdot" style="background:var(--a2)"></div>배우자 B</div>
-      <div class="field">
-        <label class="flbl">출근지 검색</label>
-        <div id="search_work2"></div>
-      </div>
-      <div class="field">
-        <label class="flbl" id="c2lbl">출퇴근 허용 시간 (편도) - 45분</label>
-        <input type="range" id="c2" min="10" max="120" value="45" step="5" oninput="document.getElementById('c2lbl').textContent='출퇴근 허용 시간 (편도) - '+this.value+'분'">
-        <div class="rll"><span>10분</span><span>120분</span></div>
-      </div>
-      <div class="field"><label class="flbl">재택근무 빈도</label>
-        <div class="chips" id="r2"><div class="chip on" onclick="pick(this,'r2')">없음</div><div class="chip" onclick="pick(this,'r2')">주 1일</div><div class="chip" onclick="pick(this,'r2')">주 2~3일</div><div class="chip" onclick="pick(this,'r2')">거의 재택</div></div>
-      </div>
-    </div>
-  </div>
-  <div class="divr"><div class="dl"></div><div class="dt">우선순위 가중치</div><div class="dl"></div></div>
-  <div style="background:var(--bg2);border:1px solid var(--border);padding:22px">
-    <div class="flbl" id="wlbl">A와 B 동등 - 50% / 50%</div>
-    <input type="range" id="wt" min="0" max="100" value="50" step="10" oninput="updW(this.value)">
-    <div class="rll"><span>A 우선</span><span>동등</span><span>B 우선</span></div>
-  </div>
-  <div class="fnav" style="justify-content:flex-end"><button class="bnext" onclick="go(2)">다음: 이동 수단 →</button></div>
+<div style="margin-bottom:20px">
+  <div style="font-family:monospace;font-size:10px;color:#c8a96e;letter-spacing:.3em;margin-bottom:6px">API TESTER · 우리집찾기</div>
+  <div style="color:#8a8580;font-size:12px">브라우저에서 직접 실행 · 각 API의 실제 응답을 확인하세요</div>
 </div>
 
-<!-- STEP 2 -->
-<div id="step2" class="fw" style="display:none">
-  <div class="stag">Step 02 · Transport</div>
-  <div class="stitle">어떻게 출근하시나요?</div>
-  <div class="sdesc">셔틀 이용 시 탑승 정류장이 출근 기점이 됩니다.</div>
-  <div class="pgrid">
-    <div class="pcard a">
-      <div class="plbl"><div class="pdot" style="background:var(--a)"></div>배우자 A</div>
-      <div class="field"><label class="flbl">주 이동 수단</label>
-        <div class="chips" id="tr1"><div class="chip on" onclick="pick(this,'tr1')">🚇 대중교통</div><div class="chip" onclick="pick(this,'tr1')">🚗 자가용</div><div class="chip" onclick="pick(this,'tr1')">🚌 셔틀버스</div><div class="chip" onclick="pick(this,'tr1')">🚶 도보</div></div>
-      </div>
-      <div class="field"><label class="flbl">차량 보유</label>
-        <div class="chips" id="ca1"><div class="chip on" onclick="pick(this,'ca1')">있음</div><div class="chip" onclick="pick(this,'ca1')">없음</div></div>
-      </div>
-      <div class="field"><label class="flbl">셔틀버스 이용</label>
-        <div class="chips" id="sh1"><div class="chip on" onclick="pick(this,'sh1');toggleEl('sb1',false)">없음</div><div class="chip" onclick="pick(this,'sh1');toggleEl('sb1',true)">이용함</div></div>
-        <div class="sblock" id="sb1">
-          <div class="flbl" style="margin-bottom:9px">탑승 정류장 검색</div>
-          <div id="shuttle_stops1"></div>
-          <button class="badd" onclick="addShuttleStop('shuttle_stops1')">+ 정류장 추가</button>
-          <div class="field"><label class="flbl">정류장까지</label><div class="chips" id="st1"><div class="chip on" onclick="pick(this,'st1')">도보</div><div class="chip" onclick="pick(this,'st1')">차량</div><div class="chip" onclick="pick(this,'st1')">대중교통</div></div></div>
-          <div class="field"><label class="flbl">셔틀 첫차</label><input type="time" class="fi" value="07:30" style="width:auto"></div>
-        </div>
-      </div>
-    </div>
-    <div class="pcard b">
-      <div class="plbl"><div class="pdot" style="background:var(--a2)"></div>배우자 B</div>
-      <div class="field"><label class="flbl">주 이동 수단</label>
-        <div class="chips" id="tr2"><div class="chip on" onclick="pick(this,'tr2')">🚇 대중교통</div><div class="chip" onclick="pick(this,'tr2')">🚗 자가용</div><div class="chip" onclick="pick(this,'tr2')">🚌 셔틀버스</div><div class="chip" onclick="pick(this,'tr2')">🚶 도보</div></div>
-      </div>
-      <div class="field"><label class="flbl">차량 보유</label>
-        <div class="chips" id="ca2"><div class="chip on" onclick="pick(this,'ca2')">있음</div><div class="chip" onclick="pick(this,'ca2')">없음</div></div>
-      </div>
-      <div class="field"><label class="flbl">셔틀버스 이용</label>
-        <div class="chips" id="sh2"><div class="chip on" onclick="pick(this,'sh2');toggleEl('sb2',false)">없음</div><div class="chip" onclick="pick(this,'sh2');toggleEl('sb2',true)">이용함</div></div>
-        <div class="sblock" id="sb2">
-          <div class="flbl" style="margin-bottom:9px">탑승 정류장 검색</div>
-          <div id="shuttle_stops2"></div>
-          <button class="badd" onclick="addShuttleStop('shuttle_stops2')">+ 정류장 추가</button>
-          <div class="field"><label class="flbl">정류장까지</label><div class="chips" id="st2"><div class="chip on" onclick="pick(this,'st2')">도보</div><div class="chip" onclick="pick(this,'st2')">차량</div><div class="chip" onclick="pick(this,'st2')">대중교통</div></div></div>
-          <div class="field"><label class="flbl">셔틀 첫차</label><input type="time" class="fi" value="07:30" style="width:auto"></div>
-        </div>
-      </div>
-    </div>
+<!-- ① NEIS 학군 테스트 -->
+<div class="section">
+  <h2>① NEIS 학교알리미 — 학군 등급 테스트</h2>
+  <div class="row">
+    <label>시도코드</label>
+    <input id="neis_atpt" value="B10" style="width:80px" placeholder="B10=서울">
+    <span style="color:#4a4642;font-size:11px">B10=서울 C10=부산 D10=대구 E10=인천 J10=경기</span>
   </div>
-  <div class="fnav"><button class="bprev" onclick="go(1)">← 이전</button><button class="bnext" onclick="go(3)">다음: 자녀·조부모 →</button></div>
+  <div class="row">
+    <label>지역명</label>
+    <input id="neis_area" value="성동구" placeholder="예: 성동구, 수원시">
+  </div>
+  <div class="row">
+    <label>위도/경도</label>
+    <input id="neis_lat" value="37.5472" style="width:100px">
+    <input id="neis_lng" value="127.037" style="width:100px">
+    <span style="color:#4a4642;font-size:11px">카카오 중학교 검색에 사용</span>
+  </div>
+  <div class="row">
+    <button onclick="testNeis()">▶ 학군 분석 실행</button>
+    <button class="sec" onclick="setPreset('강남구','37.4979','127.0277','B10')">강남구</button>
+    <button class="sec" onclick="setPreset('노원구','37.6542','127.0568','B10')">노원구</button>
+    <button class="sec" onclick="setPreset('분당구','37.3595','127.1052','J10')">성남 분당구</button>
+    <button class="sec" onclick="setPreset('수원시','37.2636','127.0286','J10')">수원시</button>
+  </div>
+  <div id="neis_status" class="status"></div>
+  <div id="neis_result"></div>
+  <pre id="neis_raw" style="display:none"></pre>
+  <button class="sec" style="margin-top:8px;font-size:10px" onclick="toggleRaw('neis_raw')">RAW 응답 보기/숨기기</button>
 </div>
 
-<!-- STEP 3 -->
-<div id="step3" class="fw" style="display:none">
-  <div class="stag">Step 03 · Family</div>
-  <div class="stitle">가족 구성을 알려주세요</div>
-  <div class="sdesc">조부모 거주지와 돌봄 가능 여부는 픽업 동선 계산에 반영됩니다.</div>
-  <div class="field"><label class="flbl">자녀 유무</label>
-    <div class="chips" id="ch"><div class="chip on" onclick="pick(this,'ch');showCond('childBlock',false)">자녀 없음</div><div class="chip" onclick="pick(this,'ch');showCond('childBlock',true)">계획 중</div><div class="chip" onclick="pick(this,'ch');showCond('childBlock',true)">자녀 있음</div></div>
+<!-- ② ODsay 대중교통 테스트 -->
+<div class="section">
+  <h2>② ODsay 대중교통 경로 테스트</h2>
+  <div class="row">
+    <label>출발지</label>
+    <input id="od_sx" value="127.0276" style="width:110px" placeholder="경도 X">
+    <input id="od_sy" value="37.4979" style="width:110px" placeholder="위도 Y">
+    <span style="color:#4a4642;font-size:11px">← 강남구 기본값</span>
   </div>
-  <div class="cond" id="childBlock">
-    <div class="pgrid" style="margin-top:22px">
-      <div style="background:var(--bg2);border:1px solid var(--border);padding:22px">
-        <div class="plbl">👶 자녀 정보</div>
-        <div class="field"><label class="flbl">나이대 (복수 선택)</label><div class="chips"><div class="chip" onclick="tog(this)">영유아(0~3세)</div><div class="chip" onclick="tog(this)">유치원(4~7세)</div><div class="chip" onclick="tog(this)">초등 저학년</div><div class="chip" onclick="tog(this)">초등 고학년+</div></div></div>
-        <div class="field"><label class="flbl">교육 환경 우선순위 <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--a);border:1px solid rgba(200,169,110,.3);padding:2px 6px;margin-left:6px">NEIS 연동</span></label><div class="chips" id="eduPriority"><div class="chip" onclick="tog(this)" data-env="학군">🏆 학군 (성취도·특목고)</div><div class="chip" onclick="tog(this)" data-env="어린이집">🏠 어린이집 접근성</div><div class="chip" onclick="tog(this)" data-env="학원가">📚 학원가</div></div></div>
-      </div>
-      <div style="background:var(--bg2);border:1px solid var(--border);padding:22px">
-        <div class="plbl">👴 조부모 돌봄</div>
-        <div class="field"><label class="flbl">조부모 돌봄 가능 여부</label>
-          <div class="chips" id="gp"><div class="chip on" onclick="pick(this,'gp');showCond('gpBlock',false)">불가/해당없음</div><div class="chip" onclick="pick(this,'gp');showCond('gpBlock',true)">가능</div></div>
-        </div>
-        <div class="cond" id="gpBlock">
-          <div class="field">
-            <label class="flbl">조부모 거주지 검색</label>
-            <div id="search_gpAddr"></div>
-          </div>
-          <div class="field"><label class="flbl">조부모 차량</label><div class="chips" id="gpc"><div class="chip on" onclick="pick(this,'gpc')">있음</div><div class="chip" onclick="pick(this,'gpc')">없음</div></div></div>
-          <div class="field"><label class="flbl">픽업 유형</label><div class="chips" id="pu"><div class="chip on" onclick="pick(this,'pu')">우리집에서 돌봄</div><div class="chip" onclick="pick(this,'pu')">조부모집에서 돌봄</div><div class="chip" onclick="pick(this,'pu')">어린이집 픽업</div></div></div>
-          <div class="field"><label class="flbl" id="gpTimeLbl">조부모까지 허용 이동시간 — 30분</label><input type="range" id="gpTime" min="10" max="90" value="30" step="5" oninput="document.getElementById('gpTimeLbl').textContent='조부모까지 허용 이동시간 — '+this.value+'분'"><div class="rll"><span>10분</span><span>90분</span></div></div>
-          <div class="field"><label class="flbl" id="gpWtLbl">조부모 동선 가중치 — 30%</label><div style="font-size:11px;color:var(--dim);margin-bottom:6px">높을수록 조부모 근접 지역 우선</div><input type="range" id="gpWt" min="0" max="60" value="30" step="10" oninput="document.getElementById('gpWtLbl').textContent='조부모 동선 가중치 — '+this.value+'%'"><div class="rll"><span>0%</span><span>60%</span></div></div>
-        </div>
-      </div>
-    </div>
+  <div class="row">
+    <label>도착지</label>
+    <input id="od_ex" value="127.037" style="width:110px" placeholder="경도 X">
+    <input id="od_ey" value="37.5472" style="width:110px" placeholder="위도 Y">
+    <span style="color:#4a4642;font-size:11px">← 성동구 기본값</span>
   </div>
-  <div class="fnav"><button class="bprev" onclick="go(2)">← 이전</button><button class="bnext" onclick="go(4)">다음: 조건·예산 →</button></div>
+  <div class="row">
+    <button onclick="testOdsay()">▶ 경로 조회</button>
+    <button class="sec" onclick="setOdPreset(127.0276,37.4979,126.9521,37.5497)">강남→마포</button>
+    <button class="sec" onclick="setOdPreset(127.1052,37.3595,127.0276,37.4979)">분당→강남</button>
+    <button class="sec" onclick="setOdPreset(126.832,37.6584,127.0276,37.4979)">고양→강남</button>
+  </div>
+  <div id="od_status" class="status"></div>
+  <div id="od_result"></div>
+  <pre id="od_raw" style="display:none"></pre>
+  <button class="sec" style="margin-top:8px;font-size:10px" onclick="toggleRaw('od_raw')">RAW 응답 보기/숨기기</button>
 </div>
 
-<!-- STEP 4 -->
-<div id="step4" class="fw" style="display:none">
-  <div class="stag">Step 04 · Conditions</div>
-  <div class="stitle">주거 조건과 예산을 설정해주세요</div>
-  <div class="sdesc">예산·평형·선호 환경을 설정하면 더 정확한 결과가 나와요.</div>
-  <div class="pgrid">
-    <div>
-      <div class="field"><label class="flbl">주거 형태 (복수 선택)</label><div class="chips"><div class="chip on" onclick="tog(this)">🏢 아파트</div><div class="chip" onclick="tog(this)">🏠 빌라/다세대</div><div class="chip" onclick="tog(this)">🏙 오피스텔</div><div class="chip" onclick="tog(this)">🏡 단독주택</div></div></div>
-      <div class="field"><label class="flbl">거래 방식</label><div class="chips" id="dt"><div class="chip on" onclick="pick(this,'dt')">매매</div><div class="chip" onclick="pick(this,'dt')">전세</div><div class="chip" onclick="pick(this,'dt')">월세</div></div></div>
-      <div class="field">
-        <label class="flbl" id="budlbl">예산 - 8억</label>
-        <input type="range" id="bud" min="1" max="30" value="8" step="0.5" oninput="document.getElementById('budlbl').textContent='예산 - '+this.value+'억'">
-        <div class="rll"><span>1억</span><span>30억+</span></div>
-      </div>
-      <div class="field"><label class="flbl">희망 평형</label><div class="chips" id="sz"><div class="chip" onclick="pick(this,'sz')">~20평</div><div class="chip on" onclick="pick(this,'sz')">25~32평</div><div class="chip" onclick="pick(this,'sz')">33~42평</div><div class="chip" onclick="pick(this,'sz')">43평+</div></div></div>
-    </div>
-    <div>
-      <div class="field"><label class="flbl">선호 지역 검색 (선택)</label><div id="search_prefer"></div></div>
-      <div class="field"><label class="flbl">기피 지역 검색 (선택)</label><div id="search_avoid"></div></div>
-      <div class="field"><label class="flbl">주거 환경 우선순위 <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--a2);border:1px solid rgba(127,181,160,.3);padding:2px 6px;margin-left:6px">카카오 연동</span></label><div class="chips" id="envPriority"><div class="chip" onclick="tog(this)" data-env="역세권">🚉 역세권</div><div class="chip" onclick="tog(this)" data-env="생활편의">🛒 생활편의</div><div class="chip" onclick="tog(this)" data-env="학군">🏫 학군</div><div class="chip" onclick="tog(this)" data-env="공원·자연">🌿 공원·자연</div></div></div>
-
-    </div>
+<!-- ③ 카카오 중학교 검색 테스트 -->
+<div class="section">
+  <h2>③ 카카오 — 반경 1km 중학교 검색 테스트</h2>
+  <div class="row">
+    <label>좌표</label>
+    <input id="kk_lat" value="37.5472" style="width:110px">
+    <input id="kk_lng" value="127.037" style="width:110px">
+    <input id="kk_radius" value="1000" style="width:70px" placeholder="반경(m)">
   </div>
-  <div class="fnav"><button class="bprev" onclick="go(3)">← 이전</button><button class="bnext big" onclick="showResult()">✦ 최적 지역 분석하기</button></div>
+  <div class="row">
+    <button onclick="testKakaoSchool()">▶ 중학교 검색</button>
+    <button class="sec" onclick="document.getElementById('kk_lat').value='37.4979';document.getElementById('kk_lng').value='127.0277'">강남구</button>
+    <button class="sec" onclick="document.getElementById('kk_lat').value='37.6542';document.getElementById('kk_lng').value='127.0568'">노원구</button>
+  </div>
+  <div id="kk_status" class="status"></div>
+  <div id="kk_result"></div>
 </div>
 
-<!-- RESULT -->
-<div id="result">
-  <div class="rh">
-    <div class="sring"><div class="snum" id="scoreNum">—</div><div class="slbll">적합도</div></div>
-    <div class="rtitle">분석이 완료되었습니다</div>
-    <p style="font-size:13px;color:var(--muted)">두 분의 조건을 종합한 최적 주거 지역 TOP 3</p>
-    <div class="isum" id="inputSummary"></div>
+<!-- ④ NEIS 진로현황 직접 테스트 -->
+<div class="section">
+  <h2>④ NEIS 졸업생 진로현황 — 학교 코드 직접 테스트</h2>
+  <div class="row">
+    <label>시도코드</label>
+    <input id="grad_atpt" value="B10" style="width:80px">
+    <label>학교코드</label>
+    <input id="grad_code" value="7010155" style="width:120px" placeholder="SD_SCHUL_CODE">
+    <label>연도</label>
+    <input id="grad_yr" value="2024" style="width:70px">
   </div>
-  <div class="strips">
-    <div class="strip"><div class="slb">분석 지역</div><div class="svl" id="s_regions">—</div></div>
-    <div class="strip"><div class="slb">A 허용 출퇴근</div><div class="svl" id="s_a">-</div></div>
-    <div class="strip"><div class="slb">B 허용 출퇴근</div><div class="svl" id="s_b">-</div></div>
-    <div class="strip" style="cursor:pointer" onclick="document.querySelector('.apt-section').scrollIntoView({behavior:'smooth'})"><div class="slb">예산 적합 단지 ↓</div><div class="svl" id="s_budget_apts">—</div></div>
+  <div class="row">
+    <button onclick="testGrad()">▶ 진로현황 조회</button>
+    <span style="color:#4a4642;font-size:11px">← ③에서 찾은 학교코드로 테스트</span>
   </div>
-  <div class="rcards" id="regionCards"></div>
-  <div id="mapWrap">
-    <div id="naverMap"></div>
-    <div id="mapMsg"><div style="font-size:28px">🗺</div><div style="font-size:13px;color:var(--muted)" id="mapMsgText">지도를 불러오는 중...</div></div>
-    <div class="mleg">
-      <div class="mli"><div class="mld" style="background:var(--a)"></div>추천 주거지</div>
-      <div class="mli"><div class="mld" style="background:#7da8e0"></div>A 출근지</div>
-      <div class="mli"><div class="mld" style="background:var(--a2)"></div>B 출근지</div>
-      <div class="mli" id="gpLegend" style="display:none"><div class="mld" style="background:#a0a0c8"></div>조부모 거주지</div>
-    </div>
-  </div>
-  <div class="apt-section">
-    <div class="stag" style="margin-top:44px">Apartment List · 국토부 실거래가</div>
-    <div class="stitle">추천 아파트 <span style="color:var(--a)" id="aptCount">—</span>선</div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.7">국토교통부 실거래가 API · 선택 평형 기준</p>
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap">
-      <span style="font-size:11px;color:var(--dim)">정렬:</span>
-      <button class="chip on" id="sortLow" onclick="sortApts('low',this)">가격 낮은순</button>
-      <button class="chip" id="sortHigh" onclick="sortApts('high',this)">가격 높은순</button>
-      <button class="chip" id="sortPop" onclick="sortApts('pop',this)">거래 많은순</button>
-    </div>
-    <div class="atabs" id="aptTabs"><button class="atab on" onclick="fApt(this,'all')">전체</button></div>
-    <div id="aptList"></div>
-  </div>
-  <div style="text-align:center"><button class="brst" onclick="restart()">↺ 조건 다시 설정하기</button></div>
+  <div id="grad_status" class="status"></div>
+  <div id="grad_result"></div>
+  <pre id="grad_raw" style="display:none"></pre>
+  <button class="sec" style="margin-top:8px;font-size:10px" onclick="toggleRaw('grad_raw')">RAW 응답 보기/숨기기</button>
 </div>
 
 <script>
-const NATIONAL_GU = [
-  {city:"서울",area:"종로구",lawdCd:"11110",lat:37.5729,lng:126.9794,sub:"서울 종로구"},
-  {city:"서울",area:"중구",lawdCd:"11140",lat:37.5638,lng:126.9979,sub:"서울 중구"},
-  {city:"서울",area:"용산구",lawdCd:"11170",lat:37.5326,lng:126.9903,sub:"서울 용산구"},
-  {city:"서울",area:"성동구",lawdCd:"11200",lat:37.5472,lng:127.037,sub:"서울 성동구"},
-  {city:"서울",area:"광진구",lawdCd:"11215",lat:37.5385,lng:127.0823,sub:"서울 광진구"},
-  {city:"서울",area:"동대문구",lawdCd:"11230",lat:37.5743,lng:127.0398,sub:"서울 동대문구"},
-  {city:"서울",area:"중랑구",lawdCd:"11260",lat:37.6063,lng:127.0932,sub:"서울 중랑구"},
-  {city:"서울",area:"성북구",lawdCd:"11290",lat:37.5894,lng:127.0167,sub:"서울 성북구"},
-  {city:"서울",area:"강북구",lawdCd:"11305",lat:37.6398,lng:127.0257,sub:"서울 강북구"},
-  {city:"서울",area:"도봉구",lawdCd:"11320",lat:37.6688,lng:127.0471,sub:"서울 도봉구"},
-  {city:"서울",area:"노원구",lawdCd:"11350",lat:37.6542,lng:127.0568,sub:"서울 노원구"},
-  {city:"서울",area:"은평구",lawdCd:"11380",lat:37.6177,lng:126.9226,sub:"서울 은평구"},
-  {city:"서울",area:"서대문구",lawdCd:"11410",lat:37.5794,lng:126.9368,sub:"서울 서대문구"},
-  {city:"서울",area:"마포구",lawdCd:"11440",lat:37.5497,lng:126.9521,sub:"서울 마포구"},
-  {city:"서울",area:"양천구",lawdCd:"11470",lat:37.517,lng:126.8665,sub:"서울 양천구"},
-  {city:"서울",area:"강서구",lawdCd:"11500",lat:37.5509,lng:126.8495,sub:"서울 강서구"},
-  {city:"서울",area:"구로구",lawdCd:"11530",lat:37.4955,lng:126.8877,sub:"서울 구로구"},
-  {city:"서울",area:"금천구",lawdCd:"11545",lat:37.4569,lng:126.8955,sub:"서울 금천구"},
-  {city:"서울",area:"영등포구",lawdCd:"11560",lat:37.5264,lng:126.8963,sub:"서울 영등포구"},
-  {city:"서울",area:"동작구",lawdCd:"11590",lat:37.5125,lng:126.9393,sub:"서울 동작구"},
-  {city:"서울",area:"관악구",lawdCd:"11620",lat:37.4784,lng:126.9514,sub:"서울 관악구"},
-  {city:"서울",area:"서초구",lawdCd:"11650",lat:37.4836,lng:127.0327,sub:"서울 서초구"},
-  {city:"서울",area:"강남구",lawdCd:"11680",lat:37.4979,lng:127.0277,sub:"서울 강남구"},
-  {city:"서울",area:"송파구",lawdCd:"11710",lat:37.5145,lng:127.1066,sub:"서울 송파구"},
-  {city:"서울",area:"강동구",lawdCd:"11740",lat:37.5301,lng:127.1237,sub:"서울 강동구"},
-  {city:"경기",area:"수원시",lawdCd:"41110",lat:37.2636,lng:127.0286,sub:"경기 수원시"},
-  {city:"경기",area:"성남시",lawdCd:"41130",lat:37.4202,lng:127.1267,sub:"경기 성남시"},
-  {city:"경기",area:"의정부시",lawdCd:"41150",lat:37.7382,lng:127.0337,sub:"경기 의정부시"},
-  {city:"경기",area:"안양시",lawdCd:"41170",lat:37.3943,lng:126.9568,sub:"경기 안양시"},
-  {city:"경기",area:"부천시",lawdCd:"41190",lat:37.5035,lng:126.766,sub:"경기 부천시"},
-  {city:"경기",area:"광명시",lawdCd:"41210",lat:37.4784,lng:126.8664,sub:"경기 광명시"},
-  {city:"경기",area:"평택시",lawdCd:"41220",lat:36.9927,lng:127.1128,sub:"경기 평택시"},
-  {city:"경기",area:"동두천시",lawdCd:"41250",lat:37.9034,lng:127.0605,sub:"경기 동두천시"},
-  {city:"경기",area:"안산시",lawdCd:"41270",lat:37.3219,lng:126.8308,sub:"경기 안산시"},
-  {city:"경기",area:"고양시",lawdCd:"41280",lat:37.6584,lng:126.832,sub:"경기 고양시"},
-  {city:"경기",area:"과천시",lawdCd:"41290",lat:37.4292,lng:126.9878,sub:"경기 과천시"},
-  {city:"경기",area:"구리시",lawdCd:"41310",lat:37.5943,lng:127.1296,sub:"경기 구리시"},
-  {city:"경기",area:"남양주시",lawdCd:"41360",lat:37.636,lng:127.2165,sub:"경기 남양주시"},
-  {city:"경기",area:"오산시",lawdCd:"41370",lat:37.1498,lng:127.0773,sub:"경기 오산시"},
-  {city:"경기",area:"시흥시",lawdCd:"41390",lat:37.3798,lng:126.8031,sub:"경기 시흥시"},
-  {city:"경기",area:"군포시",lawdCd:"41410",lat:37.3616,lng:126.9353,sub:"경기 군포시"},
-  {city:"경기",area:"의왕시",lawdCd:"41430",lat:37.3444,lng:126.9682,sub:"경기 의왕시"},
-  {city:"경기",area:"하남시",lawdCd:"41450",lat:37.5394,lng:127.2149,sub:"경기 하남시"},
-  {city:"경기",area:"용인시",lawdCd:"41460",lat:37.2411,lng:127.1775,sub:"경기 용인시"},
-  {city:"경기",area:"파주시",lawdCd:"41480",lat:37.7599,lng:126.7799,sub:"경기 파주시"},
-  {city:"경기",area:"이천시",lawdCd:"41500",lat:37.2723,lng:127.4349,sub:"경기 이천시"},
-  {city:"경기",area:"안성시",lawdCd:"41550",lat:37.0079,lng:127.2678,sub:"경기 안성시"},
-  {city:"경기",area:"김포시",lawdCd:"41570",lat:37.6151,lng:126.716,sub:"경기 김포시"},
-  {city:"경기",area:"화성시",lawdCd:"41590",lat:37.1997,lng:126.8312,sub:"경기 화성시"},
-  {city:"경기",area:"광주시",lawdCd:"41610",lat:37.4292,lng:127.2545,sub:"경기 광주시"},
-  {city:"경기",area:"양주시",lawdCd:"41630",lat:37.7855,lng:127.0457,sub:"경기 양주시"},
-  {city:"경기",area:"포천시",lawdCd:"41650",lat:37.8943,lng:127.2004,sub:"경기 포천시"},
-  {city:"경기",area:"여주시",lawdCd:"41670",lat:37.2981,lng:127.6378,sub:"경기 여주시"},
-  {city:"경기",area:"연천군",lawdCd:"41800",lat:38.0968,lng:127.0745,sub:"경기 연천군"},
-  {city:"경기",area:"가평군",lawdCd:"41820",lat:37.8314,lng:127.5107,sub:"경기 가평군"},
-  {city:"경기",area:"양평군",lawdCd:"41830",lat:37.4916,lng:127.4875,sub:"경기 양평군"},
-  {city:"인천",area:"중구",lawdCd:"28110",lat:37.4739,lng:126.6213,sub:"인천 중구"},
-  {city:"인천",area:"동구",lawdCd:"28140",lat:37.4742,lng:126.6437,sub:"인천 동구"},
-  {city:"인천",area:"미추홀구",lawdCd:"28177",lat:37.4562,lng:126.6505,sub:"인천 미추홀구"},
-  {city:"인천",area:"연수구",lawdCd:"28185",lat:37.4103,lng:126.678,sub:"인천 연수구"},
-  {city:"인천",area:"남동구",lawdCd:"28200",lat:37.4468,lng:126.7312,sub:"인천 남동구"},
-  {city:"인천",area:"부평구",lawdCd:"28237",lat:37.5072,lng:126.7219,sub:"인천 부평구"},
-  {city:"인천",area:"계양구",lawdCd:"28245",lat:37.5377,lng:126.7376,sub:"인천 계양구"},
-  {city:"인천",area:"서구",lawdCd:"28260",lat:37.5452,lng:126.676,sub:"인천 서구"},
-  {city:"인천",area:"강화군",lawdCd:"28710",lat:37.7474,lng:126.4876,sub:"인천 강화군"},
-  {city:"인천",area:"옹진군",lawdCd:"28720",lat:37.4467,lng:126.3598,sub:"인천 옹진군"},
-  {city:"부산",area:"중구",lawdCd:"26110",lat:35.104,lng:129.0325,sub:"부산 중구"},
-  {city:"부산",area:"서구",lawdCd:"26140",lat:35.0975,lng:129.0244,sub:"부산 서구"},
-  {city:"부산",area:"동구",lawdCd:"26170",lat:35.1292,lng:129.044,sub:"부산 동구"},
-  {city:"부산",area:"영도구",lawdCd:"26200",lat:35.0912,lng:129.0681,sub:"부산 영도구"},
-  {city:"부산",area:"부산진구",lawdCd:"26230",lat:35.1598,lng:129.053,sub:"부산 부산진구"},
-  {city:"부산",area:"동래구",lawdCd:"26260",lat:35.2035,lng:129.0845,sub:"부산 동래구"},
-  {city:"부산",area:"남구",lawdCd:"26290",lat:35.1365,lng:129.084,sub:"부산 남구"},
-  {city:"부산",area:"북구",lawdCd:"26320",lat:35.1974,lng:128.9898,sub:"부산 북구"},
-  {city:"부산",area:"해운대구",lawdCd:"26350",lat:35.1625,lng:129.1639,sub:"부산 해운대구"},
-  {city:"부산",area:"사하구",lawdCd:"26380",lat:35.1027,lng:128.9743,sub:"부산 사하구"},
-  {city:"부산",area:"금정구",lawdCd:"26410",lat:35.2428,lng:129.0919,sub:"부산 금정구"},
-  {city:"부산",area:"강서구",lawdCd:"26440",lat:35.2116,lng:128.98,sub:"부산 강서구"},
-  {city:"부산",area:"연제구",lawdCd:"26470",lat:35.1762,lng:129.0796,sub:"부산 연제구"},
-  {city:"부산",area:"수영구",lawdCd:"26500",lat:35.1454,lng:129.1132,sub:"부산 수영구"},
-  {city:"부산",area:"사상구",lawdCd:"26530",lat:35.1484,lng:128.9918,sub:"부산 사상구"},
-  {city:"부산",area:"기장군",lawdCd:"26710",lat:35.2446,lng:129.2224,sub:"부산 기장군"},
-  {city:"대구",area:"중구",lawdCd:"27110",lat:35.8698,lng:128.5955,sub:"대구 중구"},
-  {city:"대구",area:"동구",lawdCd:"27140",lat:35.8869,lng:128.6354,sub:"대구 동구"},
-  {city:"대구",area:"서구",lawdCd:"27170",lat:35.8718,lng:128.5591,sub:"대구 서구"},
-  {city:"대구",area:"남구",lawdCd:"27200",lat:35.8455,lng:128.5966,sub:"대구 남구"},
-  {city:"대구",area:"북구",lawdCd:"27230",lat:35.885,lng:128.5826,sub:"대구 북구"},
-  {city:"대구",area:"수성구",lawdCd:"27260",lat:35.8585,lng:128.6308,sub:"대구 수성구"},
-  {city:"대구",area:"달서구",lawdCd:"27290",lat:35.8298,lng:128.5325,sub:"대구 달서구"},
-  {city:"대구",area:"달성군",lawdCd:"27710",lat:35.7745,lng:128.4316,sub:"대구 달성군"},
-  {city:"광주",area:"동구",lawdCd:"29110",lat:35.146,lng:126.9234,sub:"광주 동구"},
-  {city:"광주",area:"서구",lawdCd:"29140",lat:35.1516,lng:126.89,sub:"광주 서구"},
-  {city:"광주",area:"남구",lawdCd:"29155",lat:35.1342,lng:126.9027,sub:"광주 남구"},
-  {city:"광주",area:"북구",lawdCd:"29170",lat:35.1737,lng:126.912,sub:"광주 북구"},
-  {city:"광주",area:"광산구",lawdCd:"29200",lat:35.1395,lng:126.7938,sub:"광주 광산구"},
-  {city:"대전",area:"동구",lawdCd:"30110",lat:36.3121,lng:127.4544,sub:"대전 동구"},
-  {city:"대전",area:"중구",lawdCd:"30140",lat:36.3251,lng:127.4213,sub:"대전 중구"},
-  {city:"대전",area:"서구",lawdCd:"30170",lat:36.3553,lng:127.3831,sub:"대전 서구"},
-  {city:"대전",area:"유성구",lawdCd:"30200",lat:36.3624,lng:127.3565,sub:"대전 유성구"},
-  {city:"대전",area:"대덕구",lawdCd:"30230",lat:36.3465,lng:127.415,sub:"대전 대덕구"},
-  {city:"울산",area:"중구",lawdCd:"31110",lat:35.57,lng:129.332,sub:"울산 중구"},
-  {city:"울산",area:"남구",lawdCd:"31140",lat:35.5378,lng:129.3269,sub:"울산 남구"},
-  {city:"울산",area:"동구",lawdCd:"31170",lat:35.5044,lng:129.4162,sub:"울산 동구"},
-  {city:"울산",area:"북구",lawdCd:"31200",lat:35.5951,lng:129.3598,sub:"울산 북구"},
-  {city:"울산",area:"울주군",lawdCd:"31710",lat:35.5228,lng:129.2044,sub:"울산 울주군"},
-  {city:"세종",area:"세종시",lawdCd:"36110",lat:36.48,lng:127.289,sub:"세종 세종시"},
-  {city:"충북",area:"청주시",lawdCd:"43110",lat:36.6424,lng:127.489,sub:"충북 청주시"},
-  {city:"충북",area:"충주시",lawdCd:"43130",lat:36.991,lng:127.9251,sub:"충북 충주시"},
-  {city:"충북",area:"제천시",lawdCd:"43150",lat:37.1325,lng:128.1916,sub:"충북 제천시"},
-  {city:"충남",area:"천안시",lawdCd:"44130",lat:36.8151,lng:127.1139,sub:"충남 천안시"},
-  {city:"충남",area:"공주시",lawdCd:"44150",lat:36.4465,lng:127.119,sub:"충남 공주시"},
-  {city:"충남",area:"보령시",lawdCd:"44180",lat:36.333,lng:126.6129,sub:"충남 보령시"},
-  {city:"충남",area:"아산시",lawdCd:"44200",lat:36.7898,lng:127.002,sub:"충남 아산시"},
-  {city:"충남",area:"서산시",lawdCd:"44210",lat:36.7849,lng:126.4503,sub:"충남 서산시"},
-  {city:"전북",area:"전주시",lawdCd:"45110",lat:35.8242,lng:127.148,sub:"전북 전주시"},
-  {city:"전북",area:"군산시",lawdCd:"45130",lat:35.9674,lng:126.7368,sub:"전북 군산시"},
-  {city:"전북",area:"익산시",lawdCd:"45140",lat:35.9483,lng:126.9576,sub:"전북 익산시"},
-  {city:"전남",area:"목포시",lawdCd:"46110",lat:34.8118,lng:126.3922,sub:"전남 목포시"},
-  {city:"전남",area:"여수시",lawdCd:"46130",lat:34.7604,lng:127.6622,sub:"전남 여수시"},
-  {city:"전남",area:"순천시",lawdCd:"46150",lat:34.9506,lng:127.4872,sub:"전남 순천시"},
-  {city:"경북",area:"포항시",lawdCd:"47110",lat:36.019,lng:129.3435,sub:"경북 포항시"},
-  {city:"경북",area:"경주시",lawdCd:"47130",lat:35.8562,lng:129.2247,sub:"경북 경주시"},
-  {city:"경북",area:"김천시",lawdCd:"47150",lat:36.1397,lng:128.1138,sub:"경북 김천시"},
-  {city:"경북",area:"안동시",lawdCd:"47170",lat:36.5684,lng:128.7294,sub:"경북 안동시"},
-  {city:"경북",area:"구미시",lawdCd:"47190",lat:36.1196,lng:128.3441,sub:"경북 구미시"},
-  {city:"경남",area:"창원시",lawdCd:"48120",lat:35.2284,lng:128.6811,sub:"경남 창원시"},
-  {city:"경남",area:"진주시",lawdCd:"48170",lat:35.1798,lng:128.1076,sub:"경남 진주시"},
-  {city:"경남",area:"통영시",lawdCd:"48220",lat:34.8544,lng:128.4335,sub:"경남 통영시"},
-  {city:"경남",area:"사천시",lawdCd:"48240",lat:35.0037,lng:128.0644,sub:"경남 사천시"},
-  {city:"경남",area:"김해시",lawdCd:"48250",lat:35.2285,lng:128.8893,sub:"경남 김해시"},
-  {city:"경남",area:"밀양시",lawdCd:"48270",lat:35.4956,lng:128.746,sub:"경남 밀양시"},
-  {city:"경남",area:"거제시",lawdCd:"48310",lat:34.8804,lng:128.6211,sub:"경남 거제시"},
-  {city:"경남",area:"양산시",lawdCd:"48330",lat:35.335,lng:129.0378,sub:"경남 양산시"},
-  {city:"제주",area:"제주시",lawdCd:"50110",lat:33.4996,lng:126.5312,sub:"제주 제주시"},
-  {city:"제주",area:"서귀포시",lawdCd:"50130",lat:33.2541,lng:126.56,sub:"제주 서귀포시"},
-];
-
-// 평형 -> 전용면적(m2) 범위
-function sizeToExclRange(s){
-  if(!s||s.includes('25~32')) return {min:59, max:85};
-  if(s.includes('~20'))       return {min:0,  max:49};
-  if(s.includes('33~42'))     return {min:85, max:115};
-  if(s.includes('43'))        return {min:115,max:999};
-  return {min:59, max:85};
-}
-
-let REGIONS = [];
-let APTS    = [];
-
-// 배열을 n개씩 묶기
-function chunk(arr, n){ const out=[]; for(let i=0;i<arr.length;i+=n) out.push(arr.slice(i,i+n)); return out; }
-
-async function analyzeRegions(inp, onProgress){
-  const budgetWan = parseFloat(inp.budget||'8') * 10000;
-  const exclRange = sizeToExclRange(inp.sizeType);
-  const ym0 = getYM(0), ym1 = getYM(1);
-  const guResults = [];
-  let done = 0;
-
-  // 10개씩 배치로 순차 처리 - rate limit 방지
-  const batches = chunk(NATIONAL_GU, 10);
-  for(const batch of batches){
-    await Promise.all(batch.map(async (gu) => {
-      const dongMap = {};
-      for(const ym of [ym0, ym1]){
-        try{
-          const res = await fetch(
-            'https://apis.data.go.kr/1613000/RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade' +
-            '?serviceKey='+MOLIT_KEY+'&LAWD_CD='+gu.lawdCd+'&DEAL_YMD='+ym+'&numOfRows=200&pageNo=1'
-          );
-          const xml = new DOMParser().parseFromString(await res.text(), 'text/xml');
-          xml.querySelectorAll('item').forEach(item => {
-            const excl      = parseFloat(item.querySelector('excluUseAr')?.textContent||0);
-            const amt       = parseInt((item.querySelector('dealAmount')?.textContent||'0').replace(/,/g,''));
-            const dong      = (item.querySelector('umdNm')?.textContent||'').trim();
-            const aptName   = (item.querySelector('aptNm')?.textContent||'').trim();
-            const floor     = (item.querySelector('floor')?.textContent||'').trim();
-            const bldYear   = (item.querySelector('buildYear')?.textContent||'').trim();
-            const dealYear  = (item.querySelector('dealYear')?.textContent||'').trim();
-            const dealMonth = (item.querySelector('dealMonth')?.textContent||'').trim();
-            const dealDay   = (item.querySelector('dealDay')?.textContent||'').trim();
-            const canceled  = (item.querySelector('cdealType')?.textContent||'').trim();
-            if(canceled||!amt||!dong||excl<exclRange.min||excl>exclRange.max) return;
-
-            if(!dongMap[dong]) dongMap[dong] = {dong, amounts:[], apts:{}, dealCount:0};
-            const entry = dongMap[dong];
-            entry.amounts.push(amt);
-            entry.dealCount++;
-            const dealDate = dealYear&&dealMonth
-              ? dealYear+'.'+dealMonth.padStart(2,'0')+(dealDay?'.'+dealDay.padStart(2,'0'):'') : '';
-            if(!entry.apts[aptName]||entry.apts[aptName].amt>amt){
-              entry.apts[aptName] = {name:aptName, dong, excl, amt, floor, bldYear, dealDate,
-                area:gu.area, city:gu.city, lawdCd:gu.lawdCd};
-            }
-          });
-          if(Object.keys(dongMap).length > 0) break;
-        } catch(e){}
-      }
-      done++;
-      onProgress && onProgress(done, NATIONAL_GU.length);
-      if(!Object.keys(dongMap).length) return;
-
-      for(const [dong, entry] of Object.entries(dongMap)){
-        if(!entry.amounts.length) continue;
-        const avg = Math.round(entry.amounts.reduce((a,b)=>a+b,0)/entry.amounts.length);
-        if(avg > budgetWan * 1.05) continue;
-
-        const coord = {lat: gu.lat, lng: gu.lng};
-        const aTime = inp.work1Coord?.lat ? (estimateTime(inp.work1Coord, coord, inp.tr1)||60) : 60;
-        const bTime = inp.work2Coord?.lat ? (estimateTime(inp.work2Coord, coord, inp.tr2)||60) : 60;
-
-        let gpTime = 0;
-        const hasGp = inp.gpOn && inp.gpCoord?.lat;
-        if(hasGp){
-          gpTime = estimateTime(inp.gpCoord, coord, 'transit') || 999;
-          if(gpTime > (inp.gpMaxTime||30)*1.5) continue;
-        }
-        if(aTime > parseFloat(inp.c1||60)*1.5) continue;
-        if(bTime > parseFloat(inp.c2||60)*1.5) continue;
-
-        const gpW  = hasGp ? (inp.gpWeight||30)/100 : 0;
-        const comW = 1 - gpW;
-        const wA   = (parseFloat(inp.weight||50)/100) * comW;
-        const wB   = (1 - parseFloat(inp.weight||50)/100) * comW;
-        // 환경 선택 없으면 기본 점수 0
-        const envBonus = 0; // 비동기 환경 점수는 top3 확정 후 후처리
-        const score = aTime*wA + bTime*wB + gpTime*gpW;
-
-        guResults.push({
-          city:gu.city, area:gu.area, dong, lawdCd:gu.lawdCd,
-          lat:gu.lat, lng:gu.lng,
-          avg, aTime, bTime, gpTime, score,
-          apts: entry.apts, dealCount: entry.dealCount,
-          envScores: {}, neisResult: null // 후처리로 채움
-        });
-      }
-    }));
-    // 배치 간 50ms 대기 - 서버 부하 분산
-    await new Promise(r=>setTimeout(r,50));
-  }
-
-  guResults.sort((a,b)=>a.score-b.score);
-
-  // TOP3 확정 후 환경 점수 병렬 조회 (비동기)
-  const top3raw = guResults.slice(0,10);
-  const envSel = inp.envSel || { edu:[], env:[], all:[] };
-  const allEnvTypes = [...new Set([
-    ...envSel.env,
-    ...(envSel.edu.includes('어린이집') ? ['어린이집'] : []),
-    ...(envSel.edu.includes('학원가')   ? ['학원가']   : []),
-  ])].filter(t => ['역세권','생활편의','학원가','어린이집'].includes(t));
-
-  await Promise.all(top3raw.map(async r => {
-    // 카카오 환경 점수
-    if(allEnvTypes.length) {
-      r.envScores = await fetchEnvScore(r.lat, r.lng, allEnvTypes).catch(()=>({}));
-    }
-    // NEIS 학군 점수 (학군 선택시)
-    if(envSel.edu.includes('학군') || envSel.env.includes('학군')) {
-      r.neisResult = await fetchNeisScore(r.city, r.area, r.lat, r.lng).catch(()=>null);
-    }
-  }));
-
-  const top3 = top3raw.map((r,i)=>{
-    // 환경 보정 점수 계산 (선택한 항목 평균)
-    const envTags = [];
-    if(r.envScores) {
-      Object.entries(r.envScores).forEach(([k,v])=>{
-        if(v.score >= 60) envTags.push({k, score:v.score, count:v.count});
-      });
-    }
-    const neisTag = r.neisResult ? {grade:r.neisResult.grade, label:r.neisResult.label, detail:r.neisResult.detail} : null;
-    return {
-      ...r,
-      sub: r.city+' '+r.area,
-      rank: String(i+1).padStart(2,'0'),
-      tag:  i===0?'✦ 1순위 추천':`${i+1}순위`, tagColor: i===0?'var(--a)':i<3?'var(--a2)':'var(--muted)',
-      envTags, neisTag,
-      metrics:[
-        ['실거래 평균', Math.floor(r.avg/10000)+'억'+(r.avg%10000?' '+Math.round(r.avg%10000/1000)+'천':'')],
-        ['A 출퇴근', r.aTime+'분 (추정)'],
-        ['B 출퇴근', r.bTime+'분 (추정)'],
-      ]
-    };
-  });
-
-  // TOP3 아파트 (예산 초과 제외)
-  APTS = [];
-  const budgetFilter = budgetWan * 1.05;
-  top3.forEach((r, ri) => {
-    Object.values(r.apts)
-      .filter(apt => apt.amt <= budgetFilter)
-      .sort((a,b)=>a.amt-b.amt)
-      .slice(0,3)
-      .forEach(apt => {
-        const priceStr = Math.floor(apt.amt/10000)+'억'+(apt.amt%10000?' '+Math.round(apt.amt%10000/1000)+'천':'');
-        APTS.push({
-          r:String(ri+1), rank:APTS.length+1,
-          name:apt.name, lawdCd:apt.lawdCd, area:apt.area, city:apt.city,
-          addr:apt.dong+(apt.floor?' · '+apt.floor+'층':''),
-          size:Math.round(apt.excl/3.3)+'평형', excl:apt.excl,
-          price:priceStr, priceNum:apt.amt, bldYear:apt.bldYear,
-          dealDate:apt.dealDate||'', dealCount:r.dealCount||1,
-          tags:apt.bldYear&&parseInt(apt.bldYear)>=2020?['new']:[],
-          aT:r.aTime+'분', bT:r.bTime+'분', gpT:r.gpTime?r.gpTime+'분':'—'
-        });
-      });
-  });
-  APTS.sort((a,b)=>a.priceNum-b.priceNum);
-  APTS.forEach((a,i)=>a.rank=i+1);
-  return top3;
-}
-
-
-// == 저장소 ==
-const LOCS = {
-  work1:  { label:'', lat:null, lng:null },
-  work2:  { label:'', lat:null, lng:null },
-  gpAddr: { label:'', lat:null, lng:null },
-  prefer: { label:'', lat:null, lng:null },
-  avoid:  { label:'', lat:null, lng:null },
-};
-
-// == 카카오 로컬 API - 역명.건물명.POI.주소 통합 검색 ==
-const KAKAO_KEY = 'KakaoAK 9642e6e4e92954d552e94eb32af57a8b';
-
-async function searchPlace(q){
-  const results = [];
-
-  // 1. 카카오 키워드 검색 - 역명.건물명.장소명 (메인)
-  try{
-    const kwRes = await fetch(
-      `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(q)}&size=8`,
-      {headers:{Authorization: KAKAO_KEY}}
-    );
-    if(kwRes.ok){
-      const d = await kwRes.json();
-      (d.documents||[]).forEach(doc=>{
-        results.push({
-          label: doc.place_name,
-          sub:   doc.road_address_name || doc.address_name,
-          lat:   parseFloat(doc.y),
-          lng:   parseFloat(doc.x),
-          type:  doc.category_group_name || '장소'
-        });
-      });
-    }
-  } catch(e){}
-
-  // 2. 카카오 주소 검색 - 도로명.지번 (보완)
-  if(results.length < 3){
-    try{
-      const adRes = await fetch(
-        `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(q)}&size=5`,
-        {headers:{Authorization: KAKAO_KEY}}
-      );
-      if(adRes.ok){
-        const d = await adRes.json();
-        (d.documents||[]).forEach(doc=>{
-          const addr = doc.road_address?.address_name || doc.address?.address_name;
-          if(!addr) return;
-          const dup = results.some(r=>
-            Math.abs(r.lat-parseFloat(doc.y))<0.0001 &&
-            Math.abs(r.lng-parseFloat(doc.x))<0.0001
-          );
-          if(!dup) results.push({
-            label: addr,
-            sub:   doc.address?.address_name||'',
-            lat:   parseFloat(doc.y),
-            lng:   parseFloat(doc.x),
-            type:  '주소'
-          });
-        });
-      }
-    } catch(e){}
-  }
-
-  return results;
-}
-
-// == 주소 검색 컴포넌트 ==
-function createAddrSearch(key, containerId, placeholder, accentColor='#c8a96e'){
-  const wrap = document.getElementById(containerId);
-  if(!wrap) return;
-  wrap.innerHTML = `
-    <div class="addr-wrap" id="aw_${key}">
-      <div class="addr-input-row">
-        <input class="addr-input" id="ai_${key}" placeholder="${placeholder}" autocomplete="off"
-          oninput="onAddrInput('${key}')" onkeydown="onAddrKey(event,'${key}')" onfocus="showDrop('${key}')">
-        <button class="addr-btn" onclick="clearAddr('${key}')" title="초기화">✕</button>
-      </div>
-      <div class="addr-dropdown" id="ad_${key}"></div>
-      <div id="ac_${key}" style="display:none" class="addr-confirmed">
-        <span style="font-size:13px">📍</span>
-        <span class="addr-confirmed-text" id="act_${key}"></span>
-        <button class="addr-confirmed-clear" onclick="clearAddr('${key}')">✕</button>
-      </div>
-    </div>`;
-  const inp = document.getElementById('ai_'+key);
-  inp.addEventListener('focus',()=>{ inp.style.borderColor=accentColor; });
-  inp.addEventListener('blur',()=>{ setTimeout(()=>hideDrop(key),200); if(!LOCS[key].label) inp.style.borderColor=''; });
-}
-
-const searchTimers={}, dropFocusIdx={};
-
-function onAddrInput(key){
-  clearTimeout(searchTimers[key]);
-  const q = document.getElementById('ai_'+key).value.trim();
-  // 선택 확정된 상태에서 다시 타이핑하면 초기화
-  if(LOCS[key].label && q !== LOCS[key].label){
-    LOCS[key]={label:'',lat:null,lng:null};
-    document.getElementById('ac_'+key).style.display='none';
-    document.getElementById('ai_'+key).classList.remove('confirmed');
-  }
-  if(q.length < 1){ hideDrop(key); return; }
-  showDropLoading(key);
-  searchTimers[key] = setTimeout(async()=>{
-    const items = await searchPlace(q);
-    renderDropdown(key, items, q);
-  }, 400);
-}
-
-function renderDropdown(key, items, q){
-  const dd = document.getElementById('ad_'+key);
-  dropFocusIdx[key] = -1;
-  if(!items.length){
-    // 입력값 그대로 저장 (좌표 없이) - 지도엔 geocoding으로 나중에 처리
-    LOCS[key] = { label: document.getElementById('ai_'+key).value.trim(), lat:null, lng:null };
-    dd.innerHTML=`<div class="addr-empty">
-      <div style="margin-bottom:6px">검색 결과가 없어요</div>
-      <div style="font-size:10px;color:var(--dim);line-height:1.6">
-        · 역명: "강남역", "판교역" 처럼 역 포함<br>
-        · 건물: "삼성전자 수원", "카카오 판교"<br>
-        · 주소: "성남시 분당구 판교역로"
-      </div>
-      <button onmousedown="confirmAsText('${key}')" style="margin-top:8px;width:100%;background:rgba(200,169,110,.1);border:1px solid rgba(200,169,110,.3);color:var(--a);padding:6px;font-size:11px;cursor:pointer;">입력한 텍스트로 그대로 사용</button>
-    </div>`;
-    dd.classList.add('show'); return;
-  }
-  const esc = s => s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const hiQ = q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-  dd.innerHTML = items.map((item,i)=>{
-    const hi = esc(item.label).replace(new RegExp(`(${hiQ})`, 'gi'), '<em>$1</em>');
-    const safeLabel = item.label.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    return `<div class="addr-item" data-idx="${i}"
-      onmousedown="selectAddr('${key}',${item.lng},${item.lat},'${safeLabel}')">
-      <div class="addr-item-main">
-        <span class="addr-item-type">${item.type||'장소'}</span>${hi}
-      </div>
-      ${item.sub&&item.sub!==item.label?`<div class="addr-item-sub">${esc(item.sub)}</div>`:''}
-    </div>`;
-  }).join('');
-  dd.classList.add('show');
-}
-
-function showDropLoading(key){
-  const dd=document.getElementById('ad_'+key);
-  dd.innerHTML=`<div class="addr-loading">검색 중...</div>`;
-  dd.classList.add('show');
-}
-function showDrop(key){
-  const q=document.getElementById('ai_'+key).value.trim();
-  const dd=document.getElementById('ad_'+key);
-  if(q.length>0 && dd.children.length>0) dd.classList.add('show');
-}
-function hideDrop(key){ document.getElementById('ad_'+key)?.classList.remove('show'); }
-
-function selectAddr(key, x, y, label){
-  LOCS[key]={label, lat:parseFloat(y), lng:parseFloat(x)};
-  const inp=document.getElementById('ai_'+key);
-  inp.value=label; inp.classList.add('confirmed');
-  hideDrop(key);
-  document.getElementById('act_'+key).textContent=label;
-  document.getElementById('ac_'+key).style.display='flex';
-}
-function clearAddr(key){
-  LOCS[key]={label:'',lat:null,lng:null};
-  const inp=document.getElementById('ai_'+key);
-  inp.value=''; inp.classList.remove('confirmed'); inp.style.borderColor='';
-  hideDrop(key);
-  document.getElementById('ac_'+key).style.display='none';
-  inp.focus();
-}
-function onAddrKey(e,key){
-  const items=document.getElementById('ad_'+key).querySelectorAll('.addr-item');
-  if(!items.length) return;
-  if(e.key==='ArrowDown'){e.preventDefault();setFocusItem(key,(dropFocusIdx[key]??-1)+1,items);}
-  else if(e.key==='ArrowUp'){e.preventDefault();setFocusItem(key,(dropFocusIdx[key]??0)-1,items);}
-  else if(e.key==='Enter'&&dropFocusIdx[key]>=0){e.preventDefault();items[dropFocusIdx[key]].dispatchEvent(new MouseEvent('mousedown'));}
-  else if(e.key==='Escape') hideDrop(key);
-}
-function confirmAsText(key){
-  const label = document.getElementById('ai_'+key).value.trim();
-  if(!label) return;
-  LOCS[key] = { label, lat:null, lng:null };
-  const inp = document.getElementById('ai_'+key);
-  inp.classList.add('confirmed');
-  hideDrop(key);
-  document.getElementById('act_'+key).textContent = label + ' (좌표 미확인)';
-  document.getElementById('ac_'+key).style.display='flex';
-}
-
-function setFocusItem(key,idx,items){
-  items.forEach(el=>el.classList.remove('focused'));
-  const n=Math.max(0,Math.min(items.length-1,idx));
-  dropFocusIdx[key]=n; items[n].classList.add('focused');
-  items[n].scrollIntoView({block:'nearest'});
-}
-
-// 셔틀 정류장
-let shuttleStopCount={shuttle_stops1:0,shuttle_stops2:0};
-function addShuttleStop(containerId){
-  const cnt=++shuttleStopCount[containerId];
-  const key=containerId+'_'+cnt;
-  LOCS[key]={label:'',lat:null,lng:null};
-  const div=document.createElement('div');
-  div.style.marginBottom='10px'; div.id='ss_wrap_'+key;
-  document.getElementById(containerId).appendChild(div);
-  createAddrSearch(key,'ss_wrap_'+key,'정류장명 또는 주소 검색','#e09090');
-}
-
-// == 결과 데이터 ==========================================
-
-// -- 네이버 Directions5 API 경로 조회 ------------------------------
-// 자가용: map-direction/v1/driving, 대중교통: map-direction/v1/transit
-// 주의: Directions API는 서버에서만 호출 가능 (CORS) -> 여기선 추정값 사용 + 지도 경로 표시
-
-// 출근지 -> 추천지역 소요시간 추정 (카카오 좌표 기반 직선거리 -> 도심 평균속도 적용)
-function estimateTime(fromCoord, toCoord, transport){
-  if(!fromCoord || !fromCoord.lat || !fromCoord.lng) return null;
-  // 직선 거리 (km)
-  const R=6371;
-  const dLat=(toCoord.lat-fromCoord.lat)*Math.PI/180;
-  const dLng=(toCoord.lng-fromCoord.lng)*Math.PI/180;
-  const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(fromCoord.lat*Math.PI/180)*Math.cos(toCoord.lat*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
-  const distKm=R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-  // 수도권 실거리 계수 (직선 * 1.35)
-  const realKm=distKm*1.35;
-  // 이동수단별 평균속도 (km/h)
-  let speed=25; // 대중교통 기본
-  if(transport.includes('자가용')) speed=22; // 도심 자가용 (정체 반영)
-  else if(transport.includes('셔틀')) speed=30; // 셔틀 (전용도로)
-  else if(transport.includes('도보')) speed=5;
-  // 환승.대기 보정
-  let base=Math.round(realKm/speed*60);
-  if(transport.includes('대중교통')) base+=10; // 환승 대기
-  if(transport.includes('자가용')) base+=5;  // 출발지 도달
-  return Math.max(10, Math.min(90, base));
-}
-
-// -- 카카오모빌리티 자동차 길찾기 API ------------------------------
-// CORS 허용됨 (카카오 로컬 API와 동일한 REST API 키 사용)
-const directionsCache = {};
-
-async function fetchCarRoute(fromCoord, toCoord){
-  if(!fromCoord?.lat || !toCoord?.lat) return null;
-  const ck = `${fromCoord.lat.toFixed(4)},${fromCoord.lng.toFixed(4)}-${toCoord.lat.toFixed(4)},${toCoord.lng.toFixed(4)}`;
-  if(directionsCache[ck]) return directionsCache[ck];
-
-  try{
-    const url = `https://apis-navi.kakaomobility.com/v1/directions`
-      + `?origin=${fromCoord.lng},${fromCoord.lat}`
-      + `&destination=${toCoord.lng},${toCoord.lat}`
-      + `&priority=RECOMMEND&summary=false&road_details=false`;
-
-    const res = await fetch(url, {
-      headers:{ Authorization: KAKAO_KEY, 'Content-Type':'application/json' }
-    });
-    if(!res.ok) return null;
-    const data = await res.json();
-    const route = data.routes?.[0];
-    if(!route || route.result_code !== 0) return null;
-
-    // 주요 도로명 추출 (거리 상위 3개)
-    const roads = [];
-    route.sections?.forEach(sec=>{
-      sec.roads?.forEach(r=>{ if(r.name && r.distance>200) roads.push({name:r.name, dist:r.distance}); });
-    });
-    roads.sort((a,b)=>b.dist-a.dist);
-    const topRoads = [...new Set(roads.map(r=>r.name))].slice(0,3);
-
-    // vertexes -> 지도 경로 좌표 배열
-    const pathCoords = [];
-    route.sections?.forEach(sec=>{
-      sec.roads?.forEach(r=>{
-        const vs = r.vertexes;
-        for(let i=0;i<vs.length;i+=2){
-          pathCoords.push({lng:vs[i], lat:vs[i+1]});
-        }
-      });
-    });
-
-    const result = {
-      duration: Math.round(route.summary.duration / 60), // 초 → 분
-      distance: Math.round(route.summary.distance / 1000 * 10) / 10, // m → km
-      topRoads,
-      pathCoords,
-      toll: route.summary.fare?.toll || 0
-    };
-    directionsCache[ck] = result;
-    return result;
-  } catch(e){ return null; }
-}
-
-// == ODsay 대중교통 길찾기 API ==
-const ODSAY_KEY = encodeURIComponent('7pHttv0j/xkYqhr6uY/vug');
-const transitCache = {};
-
-async function fetchTransitRoute(fromCoord, toCoord){
-  if(!fromCoord?.lat || !toCoord?.lat) return null;
-  const ck = `${fromCoord.lat.toFixed(4)},${fromCoord.lng.toFixed(4)}-${toCoord.lat.toFixed(4)},${toCoord.lng.toFixed(4)}`;
-  if(transitCache[ck]) return transitCache[ck];
-
-  try{
-    const url = `https://api.odsay.com/v1/api/searchPubTransPathT`
-      + `?SX=${fromCoord.lng}&SY=${fromCoord.lat}`
-      + `&EX=${toCoord.lng}&EY=${toCoord.lat}`
-      + `&OPT=0&SearchType=0&apiKey=${ODSAY_KEY}`;
-
-    const res = await fetch(url);
-    if(!res.ok) return null;
-    const data = await res.json();
-
-    // 오류 코드 확인
-    if(data.error || !data.result?.path?.length) return null;
-
-    // 최적 경로 (0번 = 추천)
-    const path = data.result.path[0];
-    const info = path.info;
-    const subPaths = path.subPath || [];
-
-    // 구간별 교통수단 파싱
-    const steps = [];
-    subPaths.forEach(sp => {
-      if(sp.trafficType === 1){ // 지하철
-        steps.push({
-          type: 'subway',
-          line: sp.lane?.[0]?.name || '',
-          lineColor: sp.lane?.[0]?.subwayCode ? subwayColor(sp.lane[0].subwayCode) : '#666',
-          from: sp.startName,
-          to: sp.endName,
-          stationCount: sp.stationCount,
-          time: sp.sectionTime
-        });
-      } else if(sp.trafficType === 2){ // 버스
-        const busNos = (sp.lane||[]).map(l=>l.busNo).filter(Boolean).slice(0,3);
-        steps.push({
-          type: 'bus',
-          busNos,
-          busType: sp.lane?.[0]?.type,
-          from: sp.startName,
-          to: sp.endName,
-          stationCount: sp.stationCount,
-          time: sp.sectionTime
-        });
-      } else if(sp.trafficType === 3){ // 도보
-        if(sp.sectionTime > 3){
-          steps.push({ type:'walk', time: sp.sectionTime, distance: sp.distance });
-        }
-      }
-    });
-
-    const result = {
-      totalTime: info.totalTime,
-      totalWalk: info.totalWalk,
-      transferCount: info.transitCount,
-      payment: info.payment,
-      steps
-    };
-    transitCache[ck] = result;
-    return result;
-  } catch(e){ return null; }
-}
-
-// 지하철 호선별 색상
-function subwayColor(code){
-  const colors = {
-    1:'#263c96', 2:'#3a993a', 3:'#ef7c1c', 4:'#00a2d1',
-    5:'#8b50a4', 6:'#c55c1d', 7:'#596547', 8:'#e61e2b',
-    9:'#bdb092', 21:'#77c4a3', 22:'#81a914', 100:'#e60012',
-    101:'#0054a6', 104:'#f5a200'
-  };
-  return colors[code] || '#666';
-}
-
-// ODsay 경로를 HTML 스텝으로 렌더
-function renderTransitSteps(result){
-  if(!result?.steps?.length) return '';
-  const stepHtml = result.steps.map(s => {
-    if(s.type === 'subway'){
-      return `<div class="transit-step">
-        <span class="transit-badge" style="background:${s.lineColor}22;border:1px solid ${s.lineColor}66;color:${s.lineColor}">
-          🚇 ${s.line}
-        </span>
-        <span class="transit-detail">${s.from} → ${s.to} (${s.stationCount}정거장, ${s.time}분)</span>
-      </div>`;
-    } else if(s.type === 'bus'){
-      const nos = s.busNos.join(', ');
-      return `<div class="transit-step">
-        <span class="transit-badge bus-badge">🚌 ${nos}</span>
-        <span class="transit-detail">${s.from} → ${s.to} (${s.stationCount}정거장, ${s.time}분)</span>
-      </div>`;
-    } else if(s.type === 'walk'){
-      return `<div class="transit-step walk-step">
-        <span style="font-size:11px;color:var(--dim)">🚶 도보 ${s.time}분</span>
-      </div>`;
-    }
-    return '';
-  }).join('');
-
-  return `<div class="transit-summary">
-    <span class="ts-total">${result.totalTime}분</span>
-    <span class="ts-info">${result.transferCount!=null?result.transferCount+"회 환승 · ":""}${result.totalWalk?"도보 "+result.totalWalk+"m · ":""}${result.payment?result.payment+"원":""}</span>
-  </div>
-  <div class="transit-steps">${stepHtml}</div>`;
-}
-
-// 지도에 실제 경로 폴리라인 그리기
-function drawRouteOnMap(map, pathCoords, color, weight=4){
-  if(!pathCoords?.length) return;
-  const path = pathCoords.map(c=> new naver.maps.LatLng(c.lat, c.lng));
-  return new naver.maps.Polyline({
-    path, map,
-    strokeColor: color,
-    strokeOpacity: 0.75,
-    strokeWeight: weight,
-    strokeStyle: 'solid'
-  });
-}
-
-// 이동 수단에 따른 경로 설명 생성
-function buildRouteDesc(from, to, transport, fromLabel){
-  if(!from || !from.lat) return fromLabel + ' → ' + to.area;
-  const dist = calcDistKm(from, to);
-  
-  if(transport.includes('셔틀')) {
-    // 셔틀 정류장 - 입력한 값 우선
-    const stops = [];
-    document.querySelectorAll('.addr-input.confirmed').forEach(el=>{
-      const v=el.value.trim();
-      if(v && !stops.includes(v)) stops.push(v);
-    });
-    const stopStr = stops.length>0 ? stops[0] : '셔틀 탑승지';
-    return fromLabel + ' → ' + stopStr + ' 탑승 → (셔틀) → ' + to.area;
-  }
-  if(transport.includes('자가용')) {
-    // 기본값 (API 결과 받기 전)
-    return fromLabel + ' → (경로 계산 중...) → ' + to.area;
-  }
-  if(transport.includes('대중교통')) {
-    const lines = getTransitHint(from, to);
-    const distKm = from?.lat ? Math.round(calcDistKm(from,to)*1.3) : '?';
-    return fromLabel + ' → ' + lines + ' (약 ' + distKm + 'km)';
-  }
-  return fromLabel + ' → ' + to.area + ' (' + Math.round(dist)+'km)';
-}
-
-function calcDistKm(a, b){
-  const R=6371, dLat=(b.lat-a.lat)*Math.PI/180, dLng=(b.lng-a.lng)*Math.PI/180;
-  const aa=Math.sin(dLat/2)**2+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLng/2)**2;
-  return R*2*Math.atan2(Math.sqrt(aa),Math.sqrt(1-aa));
-}
-
-// 자가용 주요 도로 힌트 (출발지 경도/위도 기반)
-function getRoadHint(from, to){
-  const fLng=from.lng, fLat=from.lat, tLng=to.lng, tLat=to.lat;
-  // 서울 주요 도로망 기반 추정
-  if(fLng>127.1) return '올림픽대로·강변북로'; // 동쪽
-  if(fLng<126.9) return '서부간선도로·올림픽대로'; // 서쪽
-  if(fLat<37.45) return '경부고속도로·강남대로'; // 남쪽
-  if(fLat>37.6) return '내부순환로·북부간선도로'; // 북쪽
-  return '도심 간선도로';
-}
-
-// 대중교통 힌트 (좌표 기반 주요 노선 추정)
-// 서울 주요 지하철 노선 좌표 범위 기반
-function getTransitHint(from, to){
-  if(!from?.lng) return '지하철·버스';
-  const fLng=from.lng, fLat=from.lat;
-  const tLng=to.lng, tLat=to.lat;
-  const hints = [];
-  // 출발지 인근 노선
-  if(fLng>127.1 && fLat<37.52) hints.push('2호선');
-  else if(fLng>127.05 && fLat<37.48) hints.push('수인분당선');
-  else if(fLng<126.88) hints.push('9호선');
-  else if(fLng<126.92 && fLat<37.52) hints.push('5호선');
-  else if(fLat>37.62) hints.push('1호선·4호선');
-  else if(fLng>126.95 && fLng<127.05 && fLat>37.52) hints.push('5호선·6호선');
-  else hints.push('지하철');
-  // 목적지 인근 환승 노선
-  return hints.length ? hints.join(' → ') + ' 이용' : '지하철·버스 이용';
-}
-
-
-const MOLIT_KEY = encodeURIComponent('66ee7240d70d045a4d3808209ee995f60fa7195ea6e79ac65cc9124379828e3a');
-const priceCache = {};
-
-// =============================================
-// == NEIS 학교알리미 API ==
-// =============================================
 const NEIS_KEY = '5507af1843bf4b13a0db197dd1033cbe';
-const neisCache = {};
+const KAKAO_KEY = 'KakaoAK 9642e6e4e92954d552e94eb32af57a8b';
+const ODSAY_KEY = encodeURIComponent('7pHttv0j/xkYqhr6uY/vug');
 
-// 시도 코드 매핑 (NEIS API)
-const NEIS_ATPT = {
-  '서울':'B10','부산':'C10','대구':'D10','인천':'E10',
-  '광주':'F10','대전':'G10','울산':'H10','세종':'I10',
-  '경기':'J10','충북':'M10','충남':'N10','전북':'P10',
-  '전남':'Q10','경북':'R10','경남':'S10','제주':'T10'
-};
+function setPreset(area, lat, lng, atpt) {
+  document.getElementById('neis_area').value = area;
+  document.getElementById('neis_lat').value = lat;
+  document.getElementById('neis_lng').value = lng;
+  document.getElementById('neis_atpt').value = atpt;
+}
+function setOdPreset(sx,sy,ex,ey){
+  document.getElementById('od_sx').value=sx;
+  document.getElementById('od_sy').value=sy;
+  document.getElementById('od_ex').value=ex;
+  document.getElementById('od_ey').value=ey;
+}
+function toggleRaw(id){ const el=document.getElementById(id); el.style.display=el.style.display==='none'?'block':'none'; }
+function stat(id, msg, type=''){
+  document.getElementById(id).innerHTML = `<span class="tag ${type}">${msg}</span>`;
+}
 
-// 좌표 기준 반경 1km 중학교 검색 → 진학률 평균 → 등급화
-async function fetchNeisScore(city, area, lat, lng) {
-  const ck = lat.toFixed(3) + '_' + lng.toFixed(3);
-  if(neisCache[ck] !== undefined) return neisCache[ck];
+// ① NEIS 학군 분석
+async function testNeis() {
+  const atpt = document.getElementById('neis_atpt').value.trim();
+  const area = document.getElementById('neis_area').value.trim();
+  const lat  = parseFloat(document.getElementById('neis_lat').value);
+  const lng  = parseFloat(document.getElementById('neis_lng').value);
+  const resultEl = document.getElementById('neis_result');
+  const rawEl = document.getElementById('neis_raw');
+  stat('neis_status','조회 중...','warn');
+  resultEl.innerHTML = '';
 
-  const atpt = NEIS_ATPT[city];
-  if(!atpt) { neisCache[ck] = null; return null; }
-
+  // Step1: 카카오 중학교 검색
+  stat('neis_status','[1/3] 카카오 반경 1km 중학교 검색...','warn');
+  let schoolNames = [], kakaoRows = [];
   try {
-    // 1) 카카오로 반경 1km 중학교 검색
-    const kakaoRes = await fetch(
-      `https://dapi.kakao.com/v2/local/search/keyword.json` +
-      `?query=${encodeURIComponent('중학교')}&x=${lng}&y=${lat}&radius=1000&size=10&sort=distance`,
-      { headers: { Authorization: KAKAO_KEY } }
+    const kr = await fetch(
+      `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent('중학교')}&x=${lng}&y=${lat}&radius=1000&size=10&sort=distance`,
+      { headers:{ Authorization: KAKAO_KEY } }
     );
-    let schoolNames = [];
-    if(kakaoRes.ok) {
-      const kd = await kakaoRes.json();
-      schoolNames = (kd.documents||[])
-        .filter(d => d.category_name && d.category_name.includes('학교'))
-        .map(d => d.place_name.replace(/\s/g,''));
-    }
-    if(!schoolNames.length) {
-      neisCache[ck] = { score:40, grade:'C', label:'인근 중학교 없음', detail:'반경 1km 내 중학교 없음' };
-      return neisCache[ck];
-    }
+    const kd = await kr.json();
+    kakaoRows = (kd.documents||[]).filter(d => d.category_name && d.category_name.includes('학교'));
+    schoolNames = kakaoRows.map(d => d.place_name.replace(/\s/g,''));
+  } catch(e) { stat('neis_status','카카오 검색 실패: '+e.message,'err'); return; }
 
-    // 2) NEIS schoolInfo로 해당 시도 중학교 목록 조회
-    const schoolRes = await fetch(
-      `https://open.neis.go.kr/hub/schoolInfo` +
-      `?KEY=${NEIS_KEY}&Type=json&pSize=100&pIndex=1` +
-      `&ATPT_OFCDC_SC_CODE=${atpt}&SCHUL_KND_SC_NM=${encodeURIComponent('중학교')}`,
+  // Step2: NEIS schoolInfo
+  stat('neis_status','[2/3] NEIS 학교 목록 조회...','warn');
+  let allSchools = [], raw1 = '';
+  try {
+    const sr = await fetch(
+      `https://open.neis.go.kr/hub/schoolInfo?KEY=${NEIS_KEY}&Type=json&pSize=100&pIndex=1` +
+      `&ATPT_OFCDC_SC_CODE=${atpt}&SCHUL_KND_SC_NM=${encodeURIComponent('중학교')}&LCTN_SC_NM=${encodeURIComponent(area)}`
     );
-    if(!schoolRes.ok) { neisCache[ck] = null; return null; }
-    const schoolData = await schoolRes.json();
-    const allSchools = schoolData?.schoolInfo?.[1]?.row || [];
+    const sd = await sr.json();
+    raw1 = JSON.stringify(sd, null, 2);
+    allSchools = sd?.schoolInfo?.[1]?.row || [];
+  } catch(e) { stat('neis_status','NEIS schoolInfo 실패: '+e.message,'err'); return; }
 
-    // 카카오 검색 결과와 이름 매칭
-    const matched = allSchools.filter(s => {
-      const nm = (s.SCHUL_NM||'').replace(/\s/g,'');
-      return schoolNames.some(kn => nm.includes(kn.slice(0,4)) || kn.includes(nm.slice(0,4)));
-    }).slice(0, 5);
+  // Step3: 이름 매칭
+  const matched = allSchools.filter(s => {
+    const nm = (s.SCHUL_NM||'').replace(/\s/g,'');
+    return schoolNames.some(kn => nm.includes(kn.slice(0,4)) || kn.includes(nm.slice(0,4)));
+  });
 
-    if(!matched.length) {
-      neisCache[ck] = { score:40, grade:'C', label:'매칭 학교 없음', detail:`근처 중학교: ${schoolNames.slice(0,3).join(', ')}` };
-      return neisCache[ck];
-    }
-
-    // 3) 매칭된 학교들 진로현황 조회
-    const yr = new Date().getFullYear() - 1;
-    let totalGrad = 0, specGrad = 0;
-    const schoolDetails = [];
-    for(const s of matched) {
-      try {
-        const gradRes = await fetch(
-          `https://open.neis.go.kr/hub/stuCrslCrsTrnsInfo` +
-          `?KEY=${NEIS_KEY}&Type=json&pSize=10&pIndex=1` +
-          `&ATPT_OFCDC_SC_CODE=${atpt}&SD_SCHUL_CODE=${s.SD_SCHUL_CODE}&AY=${yr}`
-        );
-        if(!gradRes.ok) continue;
-        const gd = await gradRes.json();
-        const rows = gd?.stuCrslCrsTrnsInfo?.[1]?.row || [];
-        rows.forEach(r => {
-          const tot = parseInt(r.TOT_GRSC_PURPHS_DDLN_CNT || 0);
-          const spec = parseInt(r.SCIENCE_GRSC_PURPHS_DDLN_CNT || 0)
-                     + parseInt(r.FORLANG_GRSC_PURPHS_DDLN_CNT || 0)
-                     + parseInt(r.INTL_GRSC_PURPHS_DDLN_CNT || 0)
-                     + parseInt(r.AUTONOMY_GRSC_PURPHS_DDLN_CNT || 0)
-                     + parseInt(r.ART_GRSC_PURPHS_DDLN_CNT || 0);
-          totalGrad += tot;
-          specGrad += spec;
-          if(tot > 0) schoolDetails.push(s.SCHUL_NM);
-        });
-      } catch(e) {}
-    }
-
-    const specRate = totalGrad > 0 ? (specGrad / totalGrad * 100) : 0;
-    const schoolList = [...new Set(schoolDetails)].slice(0,3).join(', ') || matched.map(s=>s.SCHUL_NM).slice(0,3).join(', ');
-
-    let grade, score, label;
-    if(specRate >= 15)      { grade='S'; score=95; label='최상위 학군'; }
-    else if(specRate >= 8)  { grade='A'; score=80; label='상위 학군'; }
-    else if(specRate >= 4)  { grade='B'; score=65; label='양호한 학군'; }
-    else if(specRate >= 1)  { grade='C'; score=45; label='보통 학군'; }
-    else if(totalGrad > 0)  { grade='D'; score=25; label='기초 학군'; }
-    else                    { grade='C'; score=40; label='진학 데이터 없음'; }
-
-    const detail = totalGrad > 0
-      ? `특목고·자사고 진학률 ${specRate.toFixed(1)}% · ${schoolList}`
-      : `인근 중학교: ${schoolList}`;
-
-    const result = { score, grade, label, detail, schoolCount: matched.length };
-    neisCache[ck] = result;
-    return result;
-  } catch(e) {
-    neisCache[ck] = null;
-    return null;
-  }
-}
-
-// =============================================
-// == 카카오 환경 점수 (역세권·생활편의·학원가·어린이집) ==
-// =============================================
-const envCache = {};
-
-async function fetchEnvScore(lat, lng, types) {
-  // types: 배열 ['역세권','생활편의','학원가','어린이집']
-  const ck = lat.toFixed(3)+'_'+lng.toFixed(3)+'_'+types.join(',');
-  if(envCache[ck]) return envCache[ck];
-
-  const categoryMap = {
-    '역세권':   [{code:'SW8', radius:1000, label:'지하철역'}],
-    '생활편의': [{code:'MT1', radius:1500, label:'🏬 쇼핑몰·마트'}, {code:'CS2', radius:500, label:'🏪 편의점'}, {code:'HP8', radius:1500, label:'🏥 병원'}, {code:'CE7', radius:800, label:'☕ 카페'}, {code:'FD6', radius:800, label:'🍽 음식점'}, {code:'AC5', radius:1000, label:'📚 학원'}],
-    '학원가':   [{code:'AC5', radius:1000, label:'학원'}],
-    '어린이집': [{code:'PS3', radius:1000, label:'어린이집'}],
-  };
-
-  const scores = {};
-  for(const type of types) {
-    // 공원: 카카오 키워드 검색 (카테고리코드 없음) - 별도 처리
-    if(type === '공원·자연') {
-      try {
-        // 반경 2km 내 공원 키워드 검색 (size=15 최대)
-        const res = await fetch(
-          `https://dapi.kakao.com/v2/local/search/keyword.json` +
-          `?query=${encodeURIComponent('공원')}&x=${lng}&y=${lat}&radius=2000&size=15&sort=distance`,
-          { headers: { Authorization: KAKAO_KEY } }
-        );
-        if(res.ok) {
-          const d = await res.json();
-          const parks = (d.documents||[]).filter(p =>
-            p.category_name && (
-              p.category_name.includes('공원') ||
-              p.place_name.includes('공원') ||
-              p.place_name.includes('근린') ||
-              p.place_name.includes('체육')
-            )
-          );
-          const count = parks.length;
-          // 가장 가까운 공원 거리 (m)
-          const nearest = parks[0] ? parseInt(parks[0].distance||999) : 2000;
-          // 등급: 수 × 거리 반영
-          // 5개 이상 + 500m 이내 → S, 3~4개 → A, 2개 → B, 1개 → C, 0 → D
-          let grade, score, label, detail;
-          if(count >= 5 && nearest <= 500)      { grade='S'; score=95; label='공원 풍부'; }
-          else if(count >= 4 && nearest <= 800) { grade='A'; score=80; label='공원 양호'; }
-          else if(count >= 3 && nearest <= 1200){ grade='B'; score=65; label='공원 보통'; }
-          else if(count >= 1 && nearest <= 2000){ grade='C'; score=40; label='공원 부족'; }
-          else                                   { grade='D'; score=15; label='공원 거의 없음'; }
-          // 이름이 가장 긴 공원 = 대형공원일 가능성 높음
-          const bigPark = parks.slice().sort((a,b)=>b.place_name.length - a.place_name.length)[0];
-          const bigParkName = bigPark ? bigPark.place_name : '';
-          const bigParkDist = bigPark ? parseInt(bigPark.distance||0) : 0;
-          detail = `반경 2km 내 ${count}개` +
-            (bigParkName ? ` · 대표: ${bigParkName} (${bigParkDist>=1000?(bigParkDist/1000).toFixed(1)+'km':bigParkDist+'m'})` : '') +
-            ` · 최근접 ${nearest >= 1000 ? (nearest/1000).toFixed(1)+'km' : nearest+'m'}`;
-          scores[type] = { count, score, grade, label, detail, nearest, bigParkName };
-        }
-      } catch(e) {
-        scores[type] = { count:0, score:0, grade:'D', label:'조회 실패', detail:'' };
-      }
-      continue;
-    }
-
-    // 나머지: 카테고리 코드 검색
-    const cats = (categoryMap[type]||[]).filter(c => c.code);
-    let total = 0;
-    const breakdown = {}; // 카테고리별 상세 (생활편의용)
-    for(const cat of cats) {
-      try {
-        const res = await fetch(
-          `https://dapi.kakao.com/v2/local/search/category.json` +
-          `?category_group_code=${cat.code}&x=${lng}&y=${lat}&radius=${cat.radius}&size=15`,
-          { headers: { Authorization: KAKAO_KEY } }
-        );
-        if(!res.ok) continue;
-        const d = await res.json();
-        const cnt = (d.documents||[]).length;
-        total += cnt;
-        breakdown[cat.label] = cnt;
-      } catch(e) {}
-    }
-    let score = Math.min(100, total * (type==='역세권' ? 20 : type==='학원가' ? 8 : type==='생활편의' ? 3 : 10));
-    // 생활편의: breakdown 상세 저장
-    if(type === '생활편의') {
-      const detailStr = Object.entries(breakdown).map(([k,v])=>`${k} ${v}개`).join(' · ');
-      scores[type] = { count: total, score, breakdown, detail: detailStr };
-    } else {
-      scores[type] = { count: total, score };
-    }
-  }
-
-  envCache[ck] = scores;
-  return scores;
-}
-
-// 환경 선택값 읽기
-function getEnvSelections() {
-  const edu = [...document.querySelectorAll('#eduPriority .chip.on')].map(el=>el.dataset.env||el.textContent.trim());
-  const env = [...document.querySelectorAll('#envPriority .chip.on')].map(el=>el.dataset.env||el.textContent.trim());
-  return { edu, env, all: [...new Set([...edu, ...env])] };
-}
-
-
-
-function getYM(offset=0){
-  // 국토부 API는 신고~등록까지 시간이 걸려 최신달 데이터가 없는 경우가 많음
-  // 기본 offset 1 (1개월 전)부터 시작
-  const d=new Date(); d.setMonth(d.getMonth()-(offset+1));
-  return d.getFullYear()*100+(d.getMonth()+1);
-}
-
-async function fetchPrice(lawdCd, aptName, excl){
-  const ck=lawdCd+'_'+aptName;
-  if(priceCache[ck]) return priceCache[ck];
-  for(let m=0;m<5;m++){
-    const ym=getYM(m);
+  // Step4: 진로현황
+  stat('neis_status','[3/3] 진로현황 조회...','warn');
+  const yr = document.getElementById('grad_yr')?.value || new Date().getFullYear()-1;
+  let totalGrad=0, specGrad=0, gradDetails=[], raw2='';
+  const targets = matched.length ? matched.slice(0,5) : allSchools.slice(0,5);
+  for(const s of targets){
     try{
-      const res=await fetch(`https://apis.data.go.kr/1613000/RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade?serviceKey=${MOLIT_KEY}&LAWD_CD=${lawdCd}&DEAL_YMD=${ym}&numOfRows=100&pageNo=1`);
-      const text=await res.text();
-      const xml=new DOMParser().parseFromString(text,'text/xml');
-      let best=null, bestDiff=Infinity;
-      xml.querySelectorAll('item').forEach(item=>{
-        const name=(item.querySelector('aptNm')?.textContent||'').trim();
-        const area=parseFloat(item.querySelector('excluUseAr')?.textContent||0);
-        const amt=(item.querySelector('dealAmount')?.textContent||'').replace(/,/g,'').trim();
-        const canceled=(item.querySelector('cdealType')?.textContent||'').trim();
-        if(canceled||!amt) return;
-        // 단지명 4자 이상 매칭 or 포함 관계
-        const q=aptName.replace(/[\s\(\)]/g,'').slice(0,3);
-        const nm=name.replace(/[\s\(\)]/g,'');
-        const nmatch=nm.includes(q)||q.includes(nm.slice(0,4))||aptName.slice(0,4)===name.slice(0,4);
-        if(!nmatch) return;
-        const diff=Math.abs(area-excl);
-        if(diff<bestDiff){bestDiff=diff;best=amt;}
+      const gr = await fetch(
+        `https://open.neis.go.kr/hub/stuCrslCrsTrnsInfo?KEY=${NEIS_KEY}&Type=json&pSize=10&pIndex=1` +
+        `&ATPT_OFCDC_SC_CODE=${atpt}&SD_SCHUL_CODE=${s.SD_SCHUL_CODE}&AY=${yr}`
+      );
+      const gd = await gr.json();
+      if(!raw2) raw2 = JSON.stringify(gd, null, 2);
+      const rows = gd?.stuCrslCrsTrnsInfo?.[1]?.row || [];
+      rows.forEach(r=>{
+        const tot = parseInt(r.TOT_GRSC_PURPHS_DDLN_CNT||0);
+        const spec = parseInt(r.SCIENCE_GRSC_PURPHS_DDLN_CNT||0)
+                   + parseInt(r.FORLANG_GRSC_PURPHS_DDLN_CNT||0)
+                   + parseInt(r.INTL_GRSC_PURPHS_DDLN_CNT||0)
+                   + parseInt(r.AUTONOMY_GRSC_PURPHS_DDLN_CNT||0)
+                   + parseInt(r.ART_GRSC_PURPHS_DDLN_CNT||0);
+        if(tot>0){ totalGrad+=tot; specGrad+=spec; gradDetails.push({name:s.SCHUL_NM,tot,spec,rate:(spec/tot*100).toFixed(1)}); }
       });
-      // 단지명 매칭 실패시 해당 구 전체에서 면적 근사값 사용
-      if(!best){
-        xml.querySelectorAll('item').forEach(item=>{
-          const area=parseFloat(item.querySelector('excluUseAr')?.textContent||0);
-          const amt=(item.querySelector('dealAmount')?.textContent||'').replace(/,/g,'').trim();
-          const canceled=(item.querySelector('cdealType')?.textContent||'').trim();
-          if(canceled||!amt) return;
-          const diff=Math.abs(area-excl);
-          if(diff<10 && diff<bestDiff){bestDiff=diff;best=amt;}
-        });
-      }
-      if(best){
-        const v=parseInt(best);
-        const str=Math.floor(v/10000)+'억'+(v%10000>0?' '+Math.round(v%10000/1000)+'천':'');
-        priceCache[ck]=str; return str;
-      }
     }catch(e){}
   }
-  return null;
-}
 
-// == 결과 진입 ==
-function getInputs(){
-  return {
-    work1:  LOCS.work1.label  || '(미입력)',
-    work2:  LOCS.work2.label  || '(미입력)',
-    work1Label: LOCS.work1.label || 'A 출근지',
-    work2Label: LOCS.work2.label || 'B 출근지',
-    work1Coord: LOCS.work1,
-    work2Coord: LOCS.work2,
-    gpCoord:    LOCS.gpAddr,
-    c1: document.getElementById('c1').value,
-    c2: document.getElementById('c2').value,
-    tr1: document.querySelector('#tr1 .on')?.textContent.trim()||'🚇 대중교통',
-    tr2: document.querySelector('#tr2 .on')?.textContent.trim()||'🚇 대중교통',
-    gpOn: document.querySelector('#gp .on')?.textContent.trim()==='가능',
-    gpLabel: LOCS.gpAddr.label||'(미입력)',
-    budget:    document.getElementById('bud').value,
-    dealType:  document.querySelector('#dt .on')?.textContent.trim()||'매매',
-    sizeType:  document.querySelector('#sz .on')?.textContent.trim()||'25~32평',
-    weight:    document.getElementById('wt')?.value||'50',
-    gpMaxTime: parseInt(document.getElementById('gpTime')?.value||'30'),
-    gpWeight:  parseInt(document.getElementById('gpWt')?.value||'30'),
-    envSel:    getEnvSelections(),
-  };
-}
+  const specRate = totalGrad>0 ? (specGrad/totalGrad*100) : 0;
+  let grade, label;
+  if(specRate>=15)     { grade='S'; label='최상위 학군'; }
+  else if(specRate>=8) { grade='A'; label='상위 학군'; }
+  else if(specRate>=4) { grade='B'; label='양호한 학군'; }
+  else if(specRate>=1) { grade='C'; label='보통 학군'; }
+  else if(totalGrad>0) { grade='D'; label='기초 학군'; }
+  else                 { grade='?'; label='진학 데이터 없음'; }
 
-async function showResult(){
-  [1,2,3,4].forEach(i=>document.getElementById('step'+i).style.display='none');
-  document.getElementById('result').style.display='block';
-  [1,2,3,4,5].forEach(i=>{
-    const el=document.getElementById('nav'+i);
-    el.classList.remove('active','done');
-    if(i===5) el.classList.add('active'); else el.classList.add('done');
-  });
-  document.getElementById('progress').style.width='100%';
-  window.scrollTo({top:0,behavior:'smooth'});
+  stat('neis_status', `완료`, 'ok');
+  rawEl.textContent = '=== schoolInfo ===\n'+raw1+'\n\n=== stuCrslCrsTrnsInfo (첫번째 학교) ===\n'+raw2;
 
-  const inp=getInputs();
-  document.getElementById('inputSummary').innerHTML=[
-    `A 출근지: <b>${inp.work1}</b>`,
-    `B 출근지: <b>${inp.work2}</b>`,
-    `A 이동: <b>${inp.tr1}</b>`,
-    `B 이동: <b>${inp.tr2}</b>`,
-    `예산: <b>${inp.budget}억</b>`,
-    `거래: <b>${inp.dealType}</b>`,
-    ...(inp.envSel.edu.length ? [`교육환경: <b>${inp.envSel.edu.join('·')}</b>`] : []),
-    ...(inp.envSel.env.length ? [`주거환경: <b>${inp.envSel.env.join('·')}</b>`] : []),
-  ].map(t=>`<div class="ibadge">${t}</div>`).join('');
-
-  document.getElementById('s_a').textContent=inp.c1+'분 허용';
-  document.getElementById('s_b').textContent=inp.c2+'분 허용';
-  document.getElementById('gpLegend').style.display=inp.gpOn?'flex':'none';
-
-  document.getElementById('s_a').textContent=inp.c1+'분';document.getElementById('s_b').textContent=inp.c2+'분';const srEl=document.getElementById('s_regions');if(srEl)srEl.textContent=NATIONAL_GU.length+'개 분석';
-  document.getElementById('regionCards').innerHTML='<div style="grid-column:1/-1;padding:48px;text-align:center">'+'<div style="font-family:\'DM Mono\',monospace;font-size:13px;color:var(--a);margin-bottom:16px">전국 '+NATIONAL_GU.length+'개 지역 · 10개씩 배치 분석 중...</div>'+'<div style="background:var(--border);height:2px;max-width:400px;margin:0 auto;overflow:hidden">'+'<div id="analyzeBar" style="height:100%;background:var(--a);width:0%;transition:width .2s"></div></div>'+'<div id="analyzeStatus" style="font-size:11px;color:var(--dim);margin-top:10px">0 / '+NATIONAL_GU.length+'</div></div>';
-  try{REGIONS=await analyzeRegions(inp,(done,total)=>{const b=document.getElementById('analyzeBar'),s=document.getElementById('analyzeStatus');if(b)b.style.width=Math.round(done/total*100)+'%';if(s)s.textContent=done+' / '+total+' 완료';});}catch(e){console.error(e);REGIONS=[];}
-  if(!REGIONS.length){document.getElementById('regionCards').innerHTML='<div style="grid-column:1/-1;padding:48px;text-align:center">'+'<div style="font-size:28px;margin-bottom:12px">😔</div>'+'<div style="color:var(--muted)">예산('+inp.budget+'억)과 조건에 맞는 지역이 없어요</div>'+'<div style="font-size:12px;color:var(--dim);margin-top:8px">예산을 높이거나 허용시간을 늘려보세요</div></div>';return;}
-  if(REGIONS.length){const best=REGIONS[0],maxT=parseFloat(inp.c1||60)*0.5+parseFloat(inp.c2||60)*0.5,rawS=best.score||(best.aTime*0.5+best.bTime*0.5),fit=Math.max(10,Math.min(99,Math.round(100-rawS/maxT*50)));const sc=document.getElementById('scoreNum');if(sc)sc.textContent=fit;}
-  renderRegionCards(inp);renderApts(inp);loadAndRenderMap(inp);
-  setTimeout(()=>{const b2=document.getElementById('s_budget_apts');if(b2)b2.textContent=APTS.length+'개';},500);
-}
-
-function tClass(t){
-  if(!t) return 'rec';
-  if(t.includes('지하철')||t.includes('대중교통')) return 'sub';
-  if(t.includes('자가용')) return 'car';
-  if(t.includes('셔틀')) return 'sh';
-  return 'wk';
-}
-
-async function renderRegionCards(inp){
-  const rc=document.getElementById('regionCards');
-  const budgetWan = parseFloat(inp.budget) * 10000; // 억 -> 만원
-
-  // 예산 초과 지역은 렌더 전에 제외 (실거래가 데이터 먼저 조회)
-  // 초기 렌더는 전체 보여주되, API 응답 후 초과 지역 숨김
-  // -> 사용자 경험: 처음엔 "로딩중" 표시, 실거래가 확인 후 필터
-  rc.innerHTML=REGIONS.map((r,ri)=>{
-    // 입력한 교통수단 기반 소요시간 추정
-    // 초기 추정값 (API 결과 받기 전 표시용)
-    let aTime = inp.work1Coord?.lat
-      ? (estimateTime(inp.work1Coord, r, inp.tr1) || 30)
-      : 30;
-    let bTime = inp.work2Coord?.lat
-      ? (estimateTime(inp.work2Coord, r, inp.tr2) || 35)
-      : 35;
-
-    // 경로 설명 - 입력 교통수단 기반
-    const aFrom = inp.work1!=='(미입력)' ? inp.work1 : '출근지 A';
-    const bFrom = inp.work2!=='(미입력)' ? inp.work2 : '출근지 B';
-    const aRouteText = buildRouteDesc(inp.work1Coord, r, inp.tr1, aFrom);
-    const bRouteText = buildRouteDesc(inp.work2Coord, r, inp.tr2, bFrom);
-
-    // 조부모 행 - gpOn이고 좌표/주소가 있을 때만
-    const hasGp = inp.gpOn && inp.gpLabel && inp.gpLabel !== '(미입력)';
-    const gpTime = hasGp && inp.gpCoord?.lat
-      ? estimateTime(inp.gpCoord, r, '🚇 대중교통')
-      : null;
-    const gpMax=inp.gpMaxTime||30;
-    const gpTimeDisp=r.gpTime||(hasGp&&inp.gpCoord?.lat?estimateTime(inp.gpCoord,r,'transit'):null);
-    const gpOver=gpTimeDisp&&gpTimeDisp>gpMax;
-    const gpRow=hasGp?`<div class="gprow"><span style="font-size:15px">👴</span><div class="gpi"><div class="gplb">조부모(${inp.gpLabel})까지 · 허용 ${gpMax}분</div><div class="gpvl" style="color:${gpOver?'var(--a3)':'var(--a2)'}">🚇 ${gpTimeDisp||'—'}분 ${gpOver?'⚠':'✓'}</div><div id="gp_transit_${ri}" style="margin-top:6px;font-size:11px"></div></div></div>`:'';
-    const aBarW = Math.min(95, aTime);
-    const bBarW = Math.min(95, bTime);
-    return `<div class="rcard">
-      <div class="rrank">${r.rank}</div>
-      <div class="rtag" style="color:${r.tagColor||'var(--a)'}">${r.tag}</div>
-      <div class="rarea">${r.area}${r.dong?' · '+r.dong:''}</div>
-      <div class="rsub">${r.sub}</div>
-      <div class="crow">
-        <div class="ctop">
-          <div class="cpill" style="background:rgba(200,169,110,.15);border:1px solid rgba(200,169,110,.3);color:var(--a)">A</div>
-          <div class="cinfo">
-            <div class="ctime" id="rt_a_time_${ri}">${aTime}<span>분 (추정)</span></div>
-            <div class="trow">
-              <span class="tbadge ${tClass(inp.tr1)}">${inp.tr1}</span>
-            </div>
-            <div class="troute" id="rt_a_route_${ri}">${aRouteText}</div>
-            ${inp.tr1.includes('대중교통') ? `<div class="transit-block" id="rt_a_transit_${ri}"><div class="transit-loading">경로 조회 중...</div></div>` : ''}
-          </div>
-        </div>
-        <div class="cbar"><div class="cbar-f" id="rt_a_bar_${ri}" style="width:${aBarW}%;background:var(--a)"></div></div>
-      </div>
-      <div class="crow">
-        <div class="ctop">
-          <div class="cpill" style="background:rgba(127,181,160,.15);border:1px solid rgba(127,181,160,.3);color:var(--a2)">B</div>
-          <div class="cinfo">
-            <div class="ctime" id="rt_b_time_${ri}">${bTime}<span>분 (추정)</span></div>
-            <div class="trow">
-              <span class="tbadge ${tClass(inp.tr2)}">${inp.tr2}</span>
-            </div>
-            <div class="troute" id="rt_b_route_${ri}">${bRouteText}</div>
-            ${inp.tr2.includes('대중교통') ? `<div class="transit-block" id="rt_b_transit_${ri}"><div class="transit-loading">경로 조회 중...</div></div>` : ''}
-          </div>
-        </div>
-        <div class="cbar"><div class="cbar-f" id="rt_b_bar_${ri}" style="width:${bBarW}%;background:var(--a2)"></div></div>
-      </div>
-      ${gpRow}
-      ${(()=>{
-        const parts = [];
-        // NEIS 학군 등급
-        if(r.neisTag) {
-          const gc = {'S':'#c8a96e','A':'#7fb5a0','B':'#7da8e0','C':'#8a8580','D':'#d4756e'}[r.neisTag.grade]||'#8a8580';
-          parts.push(`<div style="margin-top:10px;padding:8px 11px;background:rgba(200,169,110,.06);border:1px solid rgba(200,169,110,.2)">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
-              <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;color:${gc};border:1px solid ${gc}55;padding:1px 7px">${r.neisTag.grade}등급</span>
-              <span style="font-size:12px;color:var(--text)">${r.neisTag.label}</span>
-            </div>
-            <div style="font-size:10px;color:var(--dim)">${r.neisTag.detail}</div>
-          </div>`);
-        }
-        // 카카오 환경 점수
-        if(r.envTags && r.envTags.length) {
-          const envColors = {'역세권':'#7da8e0','생활편의':'#7fb5a0','학원가':'#c8a96e','어린이집':'#e09090','공원·자연':'#6abf8a'};
-          const bars = r.envTags.map(t=>{
-            const col = envColors[t.k]||'#888';
-            const w = Math.round(t.score);
-            // 공원은 grade 방식
-            if(t.grade) {
-              return `<div style="margin-bottom:5px">
-                <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">
-                  <span style="font-family:'DM Mono',monospace;font-size:10px;color:${col};border:1px solid ${col}55;padding:1px 6px">${t.grade}등급</span>
-                  <span style="font-size:11px;color:var(--text)">${t.label}</span>
-                  <span style="font-size:10px;color:var(--dim);margin-left:auto">${t.detail||''}</span>
-                </div>
-                <div style="height:2px;background:var(--border)"><div style="height:100%;width:${w}%;background:${col};transition:width 1s"></div></div>
-              </div>`;
-            }
-            const subDetail = t.detail ? t.detail : `${t.count}개`;
-            return `<div style="margin-bottom:5px">
-              <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--dim);margin-bottom:3px">
-                <span>${t.k}</span><span style="color:${col}">${subDetail}</span>
-              </div>
-              <div style="height:2px;background:var(--border)"><div style="height:100%;width:${w}%;background:${col};transition:width 1s"></div></div>
-            </div>`;
-          }).join('');
-          parts.push(`<div style="margin-top:8px;padding:8px 11px;background:rgba(127,181,160,.05);border:1px solid rgba(127,181,160,.15)">${bars}</div>`);
-        }
-        return parts.join('');
-      })()}
-      <div class="dthin"></div>
-      ${r.metrics.map(([k,v])=>`<div class="mrow"><span class="mk">${k}</span><span class="mv">${v}</span></div>`).join('')}
-      <div class="rpx">
+  resultEl.innerHTML = `
+    <div class="result-box">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">
+        <div class="grade">${grade}등급</div>
         <div>
-          <div class="rplb">30평대 실거래 평균 (3개월)</div>
-          <div class="rplb" style="color:var(--dim);margin-top:2px">예산 ${inp.budget}억 기준</div>
+          <div style="font-size:14px;color:#f0ece4">${label}</div>
+          <div style="font-size:11px;color:#8a8580;margin-top:2px">${area} · ${atpt}</div>
         </div>
-        <div class="rpv aprice loading" id="rp_${ri}">조회 중</div>
       </div>
+      <hr>
+      <div class="kv"><span>카카오 검색 중학교</span><span>${kakaoRows.map(r=>r.place_name).join(', ')||'없음'}</span></div>
+      <div class="kv"><span>NEIS 매칭 학교</span><span>${matched.length}개 / 전체 ${allSchools.length}개</span></div>
+      <div class="kv"><span>분석 대상</span><span>${targets.map(s=>s.SCHUL_NM).join(', ')}</span></div>
+      <div class="kv"><span>총 졸업생</span><span>${totalGrad}명</span></div>
+      <div class="kv"><span>특목고·자사고 진학</span><span>${specGrad}명 (${specRate.toFixed(1)}%)</span></div>
+      <hr>
+      ${gradDetails.map(d=>`<div class="kv"><span>${d.name}</span><span>${d.spec}/${d.tot}명 · ${d.rate}%</span></div>`).join('')}
+      ${gradDetails.length===0?'<div style="color:#4a4642;font-size:11px">진학 데이터 없음 (연도: '+yr+')</div>':''}
     </div>`;
-  }).join('');
-
-  // -- 자가용/셔틀 경로 API로 실제 소요시간+경로명 업데이트 --
-  REGIONS.forEach(async(r,ri)=>{
-    const dest={lat:r.lat,lng:r.lng};if(!dest.lat||!dest.lng)return;
-    async function getAllTimes(coord){if(!coord?.lat)return{};const[t,c]=await Promise.all([fetchTransitRoute(coord,dest).catch(()=>null),fetchCarRoute(coord,dest).catch(()=>null)]);const res={};if(t)res.transit={time:t.totalTime,label:'대중교통',icon:'🚇',data:t};if(c)res.car={time:c.duration,label:'자가용',icon:'🚗',data:c};const wm=Math.round(calcDistKm(coord,dest)*1.3/5*60);if(wm<=60)res.walk={time:wm,label:'도보',icon:'🚶',data:null};return res;}
-    function getSelKey(tr){return tr.includes('자가용')?'car':tr.includes('도보')?'walk':tr.includes('셔틀')?'shuttle':'transit';}
-    function buildAllTips(sk,times){const st=times[sk]?.time;if(!st)return[];return Object.entries(times).filter(([k,v])=>v&&k!==sk).sort(([,a],[,b])=>a.time-b.time).map(([k,v])=>{const d=st-v.time,p=Math.round(d/st*100);return v.time<st*0.9?v.icon+' '+v.label+'이 '+v.time+'분 ('+p+'% 빠름)':null;}).filter(Boolean);}
-    function showTips(id,tips,col){if(!tips.length)return;const a=document.getElementById(id);if(!a)return;const d=document.createElement('div');d.style.cssText='margin-top:8px;padding:8px 10px;background:'+col+'18;border:1px solid '+col+'55;font-size:11px;line-height:1.8';d.innerHTML='<span style="color:'+col+';font-weight:500">다른 수단 비교</span><br>'+tips.map(t=>'<span style="color:var(--muted)">'+t+'</span>').join('<br>');a.parentNode&&a.parentNode.insertBefore(d,a.nextSibling);}
-    function updateRoute(er,fl,rt,area){if(!er||!rt.steps?.length)return;const ms=rt.steps.filter(s=>s.type==='subway'||s.type==='bus').slice(0,2);const rd=ms.map(s=>s.type==='subway'?s.line+' '+s.from+'→'+s.to:'버스 '+s.busNos.join('·')+' '+s.from+'→'+s.to).join(' · ');if(rd)er.textContent=fl+' → '+rd+' → '+area;}
-    if(inp.work1Coord?.lat){const tA=await getAllTimes(inp.work1Coord),sA=getSelKey(inp.tr1),dA=tA[sA];const et1=document.getElementById('rt_a_time_'+ri),er1=document.getElementById('rt_a_route_'+ri),eb1=document.getElementById('rt_a_bar_'+ri);if(sA==='car'&&dA){const rt=dA.data;if(et1)et1.textContent=rt.duration+'분';if(er1)er1.textContent=inp.work1Label+' → '+rt.topRoads.join(' → ')+' → '+(r.dong||r.area)+' ('+rt.distance+'km'+(rt.toll?', 통행료':'')+')';;if(eb1)eb1.style.width=Math.min(95,rt.duration)+'%';}if(sA==='transit'){const el=document.getElementById('rt_a_transit_'+ri);if(dA){const rt=dA.data;if(et1)et1.textContent=rt.totalTime+'분';if(eb1)eb1.style.width=Math.min(95,rt.totalTime)+'%';if(el)el.innerHTML=renderTransitSteps(rt);updateRoute(er1,inp.work1Label,rt,r.dong||r.area);}else if(el)el.innerHTML='<div style="font-size:11px;color:var(--dim)">경로 조회 실패</div>';}if((sA==='walk'||sA==='shuttle')&&dA){if(et1)et1.textContent=dA.time+'분';if(eb1)eb1.style.width=Math.min(95,dA.time)+'%';}showTips('rt_a_route_'+ri,buildAllTips(sA,tA),'#c8a96e');}
-    if(inp.work2Coord?.lat){const tB=await getAllTimes(inp.work2Coord),sB=getSelKey(inp.tr2),dB=tB[sB];const et2=document.getElementById('rt_b_time_'+ri),er2=document.getElementById('rt_b_route_'+ri),eb2=document.getElementById('rt_b_bar_'+ri);if(sB==='car'&&dB){const rt=dB.data;if(et2)et2.textContent=rt.duration+'분';if(er2)er2.textContent=inp.work2Label+' → '+rt.topRoads.join(' → ')+' → '+(r.dong||r.area)+' ('+rt.distance+'km'+(rt.toll?', 통행료':'')+')';;if(eb2)eb2.style.width=Math.min(95,rt.duration)+'%';}if(sB==='transit'){const el=document.getElementById('rt_b_transit_'+ri);if(dB){const rt=dB.data;if(et2)et2.textContent=rt.totalTime+'분';if(eb2)eb2.style.width=Math.min(95,rt.totalTime)+'%';if(el)el.innerHTML=renderTransitSteps(rt);updateRoute(er2,inp.work2Label,rt,r.dong||r.area);}else if(el)el.innerHTML='<div style="font-size:11px;color:var(--dim)">경로 조회 실패</div>';}if((sB==='walk'||sB==='shuttle')&&dB){if(et2)et2.textContent=dB.time+'분';if(eb2)eb2.style.width=Math.min(95,dB.time)+'%';}showTips('rt_b_route_'+ri,buildAllTips(sB,tB),'#7fb5a0');}
-    if(inp.gpOn&&inp.gpCoord?.lat){const gpEl=document.getElementById('gp_transit_'+ri);if(gpEl){const[gpT,gpC]=await Promise.all([fetchTransitRoute(inp.gpCoord,dest).catch(()=>null),fetchCarRoute(inp.gpCoord,dest).catch(()=>null)]);const gpW=Math.round(calcDistKm(inp.gpCoord,dest)*1.3/5*60);let gpH='';if(gpT){const xf=gpT.transferCount!=null?gpT.transferCount+'회 환승 · ':'';gpH+='<div style="color:var(--dim);margin-bottom:4px">'+xf+'도보 '+(gpT.totalWalk||'—')+'m</div>'+renderTransitSteps(gpT);}else gpH='<div style="color:var(--dim)">경로 조회 실패</div>';const gpTimes={};if(gpT)gpTimes.transit={time:gpT.totalTime,label:'대중교통',icon:'🚇'};if(gpC)gpTimes.car={time:gpC.duration,label:'자가용',icon:'🚗'};if(gpW<=60)gpTimes.walk={time:gpW,label:'도보',icon:'🚶'};const gpST=gpTimes.transit?.time||999;const gpF=Object.entries(gpTimes).filter(([k,v])=>k!=='transit'&&v.time<gpST*0.9).sort(([,a],[,b])=>a.time-b.time);if(gpF.length)gpH+='<div style="margin-top:6px;padding:6px 8px;background:rgba(127,181,160,.1);border:1px solid rgba(127,181,160,.3);font-size:11px;line-height:1.7"><span style="color:var(--a2);font-weight:500">다른 수단 비교</span><br>'+gpF.map(([,v])=>'<span style="color:var(--muted)">'+v.icon+' '+v.label+'이 '+v.time+'분으로 더 빠름</span>').join('<br>')+'</div>';gpEl.innerHTML=gpH;}}
-  });
-} // end renderRegionCards
-
-function renderApts(inp){
-  const el=document.getElementById('aptList');if(!el)return;
-  if(!APTS||!APTS.length){el.innerHTML='<div style="padding:32px;text-align:center;color:var(--dim)">실거래 아파트 데이터 없음</div>';const t0=document.getElementById('aptTabs');if(t0)t0.innerHTML='<button class="atab on" onclick=\'fApt(this,"all")\'>전체</button>';return;}
-  const budgetOk=parseFloat(inp.budget||'8'),budgetW=budgetOk*10000;
-  const showGp=inp.gpOn&&inp.gpLabel&&inp.gpLabel!=='(미입력)';
-  const aIcon=inp.tr1.includes('셔틀')?'🚌':inp.tr1.includes('자가용')?'🚗':'🚇';
-  const bIcon=inp.tr2.includes('셔틀')?'🚌':inp.tr2.includes('자가용')?'🚗':'🚇';
-  const cntEl=document.getElementById('aptCount');if(cntEl)cntEl.textContent=APTS.length;
-  const tabsEl=document.getElementById('aptTabs');
-  if(tabsEl&&REGIONS.length){let th='<button class="atab on" onclick=\'fApt(this,"all")\'>전체</button>';REGIONS.forEach((r,i)=>{const lb=r.dong?(r.dong+' ('+r.area+')'):(r.city&&r.city!==r.area?r.city+' ':'')+r.area;th+='<button class="atab" onclick=\'fApt(this,"'+(i+1)+'")\'>' +lb+'</button>';});tabsEl.innerHTML=th;}
-  el.innerHTML=APTS.map((a,i)=>{
-    const tags=(a.tags||[]).map(t=>t==='new'?'<span class="atag new">신축</span>':'').join('');
-    const dr=a.r||'1',pNum=a.priceNum||0;
-    const btag=pNum<=budgetW*0.9?'<span class="atag" style="background:rgba(127,181,160,.08);border:1px solid rgba(127,181,160,.25);color:var(--a2)">예산 여유</span>':pNum<=budgetW?'<span class="atag" style="background:rgba(200,169,110,.08);border:1px solid rgba(200,169,110,.25);color:var(--a)">예산 근접</span>':'';
-    const pc=pNum<=budgetW*0.9?'var(--a2)':'var(--a)';
-    const yr=a.bldYear?'<span class="atag" style="background:var(--bg3);border:1px solid var(--border);color:var(--dim)">'+a.bldYear+'년</span>':'';
-    const dc=a.dealCount>1?'<span style="font-size:10px;color:var(--dim);margin-left:5px;font-family:\'DM Mono\',monospace">'+a.dealCount+'건</span>':'';
-    const gpChip=showGp?'<span class="achip">👴 '+(a.gpT||'—')+'</span>':'';
-    const ds=a.dealDate?'<span style="color:var(--dim);font-size:10px;margin-left:4px">신고 '+a.dealDate+'</span>':'';
-    const si='<span style="font-size:10px;color:var(--dim)">전용 '+Math.round(a.excl)+'㎡</span>';
-    return '<div class="arow r'+dr+'" data-r="'+dr+'">'+'<div class="arnk">'+String(i+1).padStart(2,'0')+'</div>'+'<div><div class="anr"><span class="aname">'+a.name+'</span>'+dc+'<span class="atag r'+dr+'">'+(a.city&&a.city!==a.area?a.city+' ':'')+a.area+'</span>'+tags+btag+yr+'</div>'+'<div class="aaddr">'+a.addr+ds+'</div>'+'<div class="achips"><span class="achip">A '+aIcon+' '+a.aT+'</span><span class="achip">B '+bIcon+' '+a.bT+'</span>'+gpChip+'<span class="achip" id="st_'+i+'">🚇 조회중</span></div></div>'+'<div class="apb"><div class="asz">'+a.size+' '+si+'</div><div class="aprice" style="color:'+pc+'">'+a.price+'</div><div class="apdt">국토부 실거래</div></div></div>';
-  }).join('');
-  APTS.forEach(async(a,i)=>{const el2=document.getElementById('st_'+i);if(!el2)return;try{const q=encodeURIComponent((a.area||'')+' '+(a.city||'')+' 지하철역');const res=await fetch('https://dapi.kakao.com/v2/local/search/keyword.json?query='+q+'&size=1&category_group_code=SW8',{headers:{Authorization:KAKAO_KEY}});if(!res.ok){el2.textContent='🚇 —';return;}const d=await res.json();if(d.documents&&d.documents.length){const st=d.documents[0];const dist=parseFloat(st.distance);el2.textContent='🚇 '+st.place_name+(dist?' '+(dist>=1000?(dist/1000).toFixed(1)+'km':Math.round(dist)+'m'):'');}else el2.textContent='🚇 —';}catch(e){el2.textContent='🚇 —';}});
 }
-let aptSortMode='low';
-function sortApts(mode,btn){document.querySelectorAll('#sortLow,#sortHigh,#sortPop').forEach(b=>b.classList.remove('on'));if(btn)btn.classList.add('on');aptSortMode=mode;if(mode==='low')APTS.sort((a,b)=>a.priceNum-b.priceNum);if(mode==='high')APTS.sort((a,b)=>b.priceNum-a.priceNum);if(mode==='pop')APTS.sort((a,b)=>(b.dealCount||0)-(a.dealCount||0));APTS.forEach((a,i)=>a.rank=i+1);renderApts(getInputs());}
 
-// == 지도 ==
-let naverMap=null;
-function loadAndRenderMap(inp){
-  // DOM 렌더 완료 후 지도 초기화
-  setTimeout(() => {
-    const mapEl = document.getElementById('naverMap');
-    if(!mapEl || mapEl.offsetWidth === 0) {
-      // 아직 DOM 미준비 - 한번 더 대기
-      setTimeout(() => {
-        document.getElementById('mapMsg').classList.remove('hidden');
-        loadNaverSDK(() => renderMap(inp));
-      }, 500);
+// ② ODsay
+async function testOdsay() {
+  const sx=document.getElementById('od_sx').value, sy=document.getElementById('od_sy').value;
+  const ex=document.getElementById('od_ex').value, ey=document.getElementById('od_ey').value;
+  const resultEl=document.getElementById('od_result'), rawEl=document.getElementById('od_raw');
+  stat('od_status','조회 중...','warn');
+  resultEl.innerHTML='';
+  try{
+    const url=`https://api.odsay.com/v1/api/searchPubTransPathT?SX=${sx}&SY=${sy}&EX=${ex}&EY=${ey}&OPT=0&SearchType=0&apiKey=${ODSAY_KEY}`;
+    const res=await fetch(url);
+    const data=await res.json();
+    rawEl.textContent=JSON.stringify(data,null,2);
+    if(data.error||!data.result?.path?.length){
+      stat('od_status','경로 없음 또는 오류: '+(data.error?.message||'결과 없음'),'err');
+      resultEl.innerHTML=`<div class="result-box" style="color:#d4756e">응답: ${JSON.stringify(data.error||data.result)}</div>`;
       return;
     }
-    document.getElementById('mapMsg').classList.remove('hidden');
-    loadNaverSDK(() => renderMap(inp));
-  }, 200);
+    stat('od_status','성공','ok');
+    const paths = data.result.path.slice(0,3);
+    resultEl.innerHTML = paths.map((p,i)=>{
+      const info=p.info;
+      const steps=(p.subPath||[]).filter(sp=>sp.trafficType!==3||sp.sectionTime>3).map(sp=>{
+        if(sp.trafficType===1) return `🚇 ${sp.lane?.[0]?.name} ${sp.startName}→${sp.endName} (${sp.stationCount}정거장, ${sp.sectionTime}분)`;
+        if(sp.trafficType===2) return `🚌 ${(sp.lane||[]).map(l=>l.busNo).join('·')} ${sp.startName}→${sp.endName} (${sp.sectionTime}분)`;
+        return `🚶 도보 ${sp.sectionTime}분`;
+      });
+      return `<div class="result-box" style="margin-top:8px">
+        <div style="color:#c8a96e;font-family:monospace;font-size:11px;margin-bottom:8px">경로 ${i+1}</div>
+        <div class="kv"><span>총 소요시간</span><span style="color:#c8a96e;font-size:16px">${info.totalTime}분</span></div>
+        <div class="kv"><span>환승</span><span>${info.transitCount}회</span></div>
+        <div class="kv"><span>도보</span><span>${info.totalWalk}m</span></div>
+        <div class="kv"><span>요금</span><span>${info.payment}원</span></div>
+        <hr>
+        ${steps.map(s=>`<div style="font-size:11px;color:#8a8580;margin-bottom:4px">${s}</div>`).join('')}
+      </div>`;
+    }).join('');
+  }catch(e){ stat('od_status','실패: '+e.message,'err'); }
 }
 
-function renderMap(inp){
-  const mapMsgEl = document.getElementById('mapMsg');
-  if(mapMsgEl) mapMsgEl.classList.add('hidden');
-  if(naverMap) {
-    // 이미 생성된 지도 - 마커만 다시 그리기
-    return;
-  }
-  const mapContainer = document.getElementById('naverMap');
-  if(!mapContainer) return;
-  naverMap = new naver.maps.Map('naverMap',{
-    center:new naver.maps.LatLng(37.535,126.985), zoom:12,
-    scaleControl:false,logoControl:true,mapDataControl:false,
-    zoomControl:true,zoomControlOptions:{position:naver.maps.Position.TOP_RIGHT}
-  });
+// ③ 카카오 중학교
+async function testKakaoSchool(){
+  const lat=document.getElementById('kk_lat').value, lng=document.getElementById('kk_lng').value;
+  const radius=document.getElementById('kk_radius').value;
+  const resultEl=document.getElementById('kk_result');
+  stat('kk_status','검색 중...','warn');
+  try{
+    const res=await fetch(
+      `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent('중학교')}&x=${lng}&y=${lat}&radius=${radius}&size=10&sort=distance`,
+      {headers:{Authorization:KAKAO_KEY}}
+    );
+    const d=await res.json();
+    const schools=(d.documents||[]).filter(s=>s.category_name&&s.category_name.includes('학교'));
+    stat('kk_status',`${schools.length}개 중학교 발견`,'ok');
+    resultEl.innerHTML=`<div class="result-box">
+      ${schools.map(s=>`
+        <div class="kv">
+          <span>${s.place_name}</span>
+          <span style="color:#8a8580">${parseInt(s.distance)}m · <span style="color:#c8a96e;font-family:monospace;font-size:10px">${s.id}</span></span>
+        </div>
+        <div style="font-size:10px;color:#4a4642;margin-bottom:8px;padding-left:4px">${s.road_address_name||s.address_name} · 카테고리: ${s.category_name}</div>
+      `).join('')}
+      ${schools.length===0?'<div style="color:#4a4642">검색 결과 없음</div>':''}
+      <hr>
+      <div style="font-size:10px;color:#4a4642">학교 코드를 ④에 입력해서 진로현황 직접 테스트 가능</div>
+    </div>`;
+  }catch(e){ stat('kk_status','실패: '+e.message,'err'); }
+}
 
-  // 추천 지역 마커
-  const rc=['#c8a96e','#7fb5a0','#d4756e','#7da8e0','#e0a87d','#a0a0c8','#a8c87f','#c87fa8','#7fc8c0','#c8c87f'];
-  REGIONS.forEach((r,i)=>{
-    new naver.maps.Marker({
-      position:new naver.maps.LatLng(r.lat,r.lng),map:naverMap,
-      icon:{content:`<div style="position:relative;white-space:nowrap">
-        <div style="background:${rc[i]};color:#0e0e0e;font-family:'DM Mono',monospace;font-size:11px;font-weight:500;padding:5px 10px;box-shadow:0 2px 8px rgba(0,0,0,.5)">${i+1}위 ${r.area}${r.dong?' '+r.dong:''}</div>
-        <div style="position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid ${rc[i]}"></div>
-      </div>`,anchor:new naver.maps.Point(40,34)}
-    });
-  });
-
-  // 출근지 마커 - 좌표 있으면 바로, 없으면 geocoding
-  function placeWorkMarker(coord, label, color){
-    if(coord.lat && coord.lng){
-      addPinMarker(coord.lat, coord.lng, label, coord.label||label, color);
-    } else if(coord.label && coord.label!=='(미입력)'){
-      naver.maps.Service.geocode({query:coord.label},(st,res)=>{
-        const items=res.v2?.addresses;
-        if(!items||!items.length) return;
-        addPinMarker(parseFloat(items[0].y),parseFloat(items[0].x),label,coord.label,color);
-      });
+// ④ NEIS 진로현황 직접
+async function testGrad(){
+  const atpt=document.getElementById('grad_atpt').value;
+  const code=document.getElementById('grad_code').value;
+  const yr=document.getElementById('grad_yr').value;
+  const resultEl=document.getElementById('grad_result'), rawEl=document.getElementById('grad_raw');
+  stat('grad_status','조회 중...','warn');
+  try{
+    const res=await fetch(
+      `https://open.neis.go.kr/hub/stuCrslCrsTrnsInfo?KEY=${NEIS_KEY}&Type=json&pSize=10&pIndex=1` +
+      `&ATPT_OFCDC_SC_CODE=${atpt}&SD_SCHUL_CODE=${code}&AY=${yr}`
+    );
+    const d=await res.json();
+    rawEl.textContent=JSON.stringify(d,null,2);
+    const rows=d?.stuCrslCrsTrnsInfo?.[1]?.row||[];
+    if(!rows.length){
+      stat('grad_status','데이터 없음','warn');
+      resultEl.innerHTML=`<div class="result-box" style="color:#8a8580">해당 학교/연도 데이터 없음<br><small>연도를 바꿔서 시도해보세요 (2023, 2022...)</small></div>`;
+      return;
     }
-  }
-
-  function addPinMarker(lat,lng,label,subLabel,color){
-    const pos=new naver.maps.LatLng(lat,lng);
-    new naver.maps.Marker({
-      position:pos,map:naverMap,
-      icon:{content:`<div style="background:#141414;border:1.5px solid ${color};color:${color};font-family:'DM Mono',monospace;font-size:10px;padding:5px 10px;box-shadow:0 2px 6px rgba(0,0,0,.6);white-space:nowrap">
-        ${label}<br><span style="font-size:9px;opacity:.7">${subLabel}</span>
-      </div>`,anchor:new naver.maps.Point(50,32)}
-    });
-    // 추천 지역들과 연결선
-    if(transport.includes('자가용')){
-      // 자가용 - 카카오 실제 경로 (이미 placeAndRoute에서 처리)
-      REGIONS.slice(1).forEach((rg)=>{
-        new naver.maps.Polyline({
-          path:[pos, new naver.maps.LatLng(rg.lat, rg.lng)],
-          map:naverMap, strokeColor:color,
-          strokeOpacity:0.15, strokeWeight:1, strokeStyle:'dashed'
-        });
-      });
-    } else {
-      // 대중교통 - ODsay 경로 폴리라인 시도
-      const destCoord = {lat:REGIONS[0].lat, lng:REGIONS[0].lng};
-      const fromC = {lat:coord.lat, lng:coord.lng};
-      fetchTransitRoute(fromC, destCoord).then(route => {
-        if(route?.steps?.length){
-          // 경로가 있으면 색상 구분 선
-          REGIONS.forEach((rg, ri)=>{
-            new naver.maps.Polyline({
-              path:[pos, new naver.maps.LatLng(rg.lat, rg.lng)],
-              map:naverMap, strokeColor:color,
-              strokeOpacity: ri===0 ? 0.45 : 0.15,
-              strokeWeight: ri===0 ? 2 : 1,
-              strokeStyle:'dashed'
-            });
-          });
-        } else {
-          REGIONS.forEach((rg, ri)=>{
-            new naver.maps.Polyline({
-              path:[pos, new naver.maps.LatLng(rg.lat, rg.lng)],
-              map:naverMap, strokeColor:color,
-              strokeOpacity: ri===0 ? 0.35 : 0.12,
-              strokeWeight: ri===0 ? 1.5 : 1,
-              strokeStyle:'dashed'
-            });
-          });
-        }
-      });
-    }
-  }
-
-  const rColors=['#c8a96e','#7fb5a0','#d4756e','#7da8e0','#e0a87d','#a0a0c8','#a8c87f','#c87fa8','#7fc8c0','#c8c87f'];
-
-  // 출근지 마커 + 자가용이면 실제 경로 폴리라인
-  async function placeAndRoute(coord, label, color, transport, personKey){
-    if(!coord?.lat) return;
-    // 마커 먼저
-    addPinMarker(coord.lat, coord.lng, label, coord.label||label, color);
-    // 자가용이면 실제 경로
-    if(transport.includes('자가용')){
-      const route = await fetchCarRoute(coord, {lat:REGIONS[0].lat, lng:REGIONS[0].lng});
-      if(route?.pathCoords?.length){
-        drawRouteOnMap(map, route.pathCoords, color, 3);
-        return;
-      }
-    }
-    // 자가용 아니거나 API 실패시 점선
-    REGIONS.forEach((rg,ri)=>{
-      new naver.maps.Polyline({
-        path:[new naver.maps.LatLng(coord.lat,coord.lng), new naver.maps.LatLng(rg.lat,rg.lng)],
-        map, strokeColor:color,
-        strokeOpacity: ri===0 ? 0.5 : 0.2,
-        strokeWeight: ri===0 ? 2 : 1,
-        strokeStyle: ri===0 ? 'solid' : 'dashed'
-      });
-    });
-  }
-
-  placeAndRoute(inp.work1Coord, 'A 출근지', '#7da8e0', inp.tr1, 'A');
-  placeAndRoute(inp.work2Coord, 'B 출근지', '#7fb5a0', inp.tr2, 'B');
-
-  if(inp.gpOn && inp.gpCoord){
-    document.getElementById('gpLegend').style.display='flex';
-    if(inp.gpCoord.lat && inp.gpCoord.lng){
-      new naver.maps.Marker({
-        position:new naver.maps.LatLng(inp.gpCoord.lat,inp.gpCoord.lng),map:naverMap,
-        icon:{content:`<div style="background:#141414;border:1.5px solid #a0a0c8;color:#a0a0c8;font-family:'DM Mono',monospace;font-size:10px;padding:5px 10px;box-shadow:0 2px 6px rgba(0,0,0,.6);white-space:nowrap">
-          👴 조부모 거주지<br><span style="font-size:9px;opacity:.7">${inp.gpLabel}</span>
-        </div>`,anchor:new naver.maps.Point(60,32)}
-      });
-    } else if(inp.gpLabel && inp.gpLabel!=='(미입력)'){
-      naver.maps.Service.geocode({query:inp.gpLabel},(st,res)=>{
-        const items=res.v2?.addresses;
-        if(!items||!items.length) return;
-        new naver.maps.Marker({
-          position:new naver.maps.LatLng(parseFloat(items[0].y),parseFloat(items[0].x)),map:naverMap,
-          icon:{content:`<div style="background:#141414;border:1.5px solid #a0a0c8;color:#a0a0c8;font-family:'DM Mono',monospace;font-size:10px;padding:5px 10px;box-shadow:0 2px 6px rgba(0,0,0,.6);white-space:nowrap">
-            👴 조부모 거주지<br><span style="font-size:9px;opacity:.7">${inp.gpLabel}</span>
-          </div>`,anchor:new naver.maps.Point(60,32)}
-        });
-      });
-    }
-    // 조부모 -> 1순위 추천지역 연결선
-    if(inp.gpCoord?.lat){
-      naver.maps.Service.geocode({query:inp.gpLabel},(st,res)=>{
-        const items=res?.v2?.addresses;
-        const gpLat = inp.gpCoord.lat, gpLng = inp.gpCoord.lng;
-        if(gpLat && REGIONS[0]){
-          new naver.maps.Polyline({
-            path:[new naver.maps.LatLng(gpLat,gpLng), new naver.maps.LatLng(REGIONS[0].lat,REGIONS[0].lng)],
-            map:naverMap,
-            strokeColor:'#a0a0c8',
-            strokeOpacity:.35,
-            strokeWeight:1.5,
-            strokeStyle:'dashed'
-          });
-        }
-      });
-    }
-  }
+    stat('grad_status','성공','ok');
+    resultEl.innerHTML=rows.map(r=>{
+      const tot=parseInt(r.TOT_GRSC_PURPHS_DDLN_CNT||0);
+      const spec=parseInt(r.SCIENCE_GRSC_PURPHS_DDLN_CNT||0)+parseInt(r.FORLANG_GRSC_PURPHS_DDLN_CNT||0)+parseInt(r.INTL_GRSC_PURPHS_DDLN_CNT||0)+parseInt(r.AUTONOMY_GRSC_PURPHS_DDLN_CNT||0)+parseInt(r.ART_GRSC_PURPHS_DDLN_CNT||0);
+      return `<div class="result-box">
+        <div class="kv"><span>학교명</span><span>${r.SCHUL_NM||'—'}</span></div>
+        <div class="kv"><span>졸업생 수</span><span>${tot}명</span></div>
+        <div class="kv"><span>과학고</span><span>${r.SCIENCE_GRSC_PURPHS_DDLN_CNT||0}명</span></div>
+        <div class="kv"><span>외국어고</span><span>${r.FORLANG_GRSC_PURPHS_DDLN_CNT||0}명</span></div>
+        <div class="kv"><span>국제고</span><span>${r.INTL_GRSC_PURPHS_DDLN_CNT||0}명</span></div>
+        <div class="kv"><span>자사고</span><span>${r.AUTONOMY_GRSC_PURPHS_DDLN_CNT||0}명</span></div>
+        <div class="kv"><span>예술고</span><span>${r.ART_GRSC_PURPHS_DDLN_CNT||0}명</span></div>
+        <hr>
+        <div class="kv"><span>특목고 합계</span><span style="color:#c8a96e;font-size:15px;font-family:monospace">${spec}명 / ${tot}명 (${tot>0?(spec/tot*100).toFixed(1):0}%)</span></div>
+        <div style="font-size:10px;color:#4a4642;margin-top:6px">RAW 필드: ${Object.keys(r).join(', ')}</div>
+      </div>`;
+    }).join('');
+  }catch(e){ stat('grad_status','실패: '+e.message,'err'); }
 }
-
-// == 네비게이션 ==
-let cur=0;
-// 네이버 SDK 로드 상태
-let naverSDKReady = false;
-let naverSDKLoading = false;
-const naverSDKCallbacks = [];
-
-function loadNaverSDK(callback){
-  if(naverSDKReady){
-    // 이미 로드 완료
-    callback && callback(); return;
-  }
-  if(callback) naverSDKCallbacks.push(callback);
-  if(naverSDKLoading) return; // 로딩 중 - callback은 큐에 추가됨
-  naverSDKLoading = true;
-  window._onNaverSDKInit = function(){
-    naverSDKReady = true;
-    naverSDKLoading = false;
-    const cbs = naverSDKCallbacks.splice(0);
-    cbs.forEach(cb=>{ try{ cb(); } catch(e){} });
-  };
-  const s = document.createElement('script');
-  s.src = 'https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=3wwumsfkd2&submodules=geocoder&callback=_onNaverSDKInit';
-  s.onerror = () => {
-    naverSDKLoading = false;
-    document.getElementById('mapMsgText').textContent = '네이버 지도 로드 실패 - 네트워크를 확인해주세요';
-  };
-  document.head.appendChild(s);
-}
-
-function startForm(){
-  document.getElementById('hero').style.display='none';
-  document.getElementById('snav').style.display='block';
-  // SDK 미리 로드 (주소 검색용)
-  loadNaverSDK();
-  go(1);
-  // 검색 컴포넌트 초기화
-  setTimeout(()=>{
-    createAddrSearch('work1','search_work1','예: 강남역, 판교역, 테헤란로');
-    createAddrSearch('work2','search_work2','예: 여의도, 마곡나루역, 상암DMC');
-    createAddrSearch('gpAddr','search_gpAddr','예: 노원구청역, 분당, 인천');
-    createAddrSearch('prefer','search_prefer','예: 마포구, 성동구');
-    createAddrSearch('avoid','search_avoid','예: 강남구');
-    // 셔틀 첫 정류장도 초기화
-    addShuttleStop('shuttle_stops1');
-    addShuttleStop('shuttle_stops2');
-  }, 100);
-}
-
-function go(n){
-  [1,2,3,4].forEach(i=>document.getElementById('step'+i).style.display='none');
-  document.getElementById('result').style.display='none';
-  if(n<=4) document.getElementById('step'+n).style.display='block';
-  [1,2,3,4,5].forEach(i=>{
-    const el=document.getElementById('nav'+i);
-    el.classList.remove('active','done');
-    if(i===n) el.classList.add('active'); else if(i<n) el.classList.add('done');
-  });
-  cur=n;
-  document.getElementById('progress').style.width=((n-1)/4*100)+'%';
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-function tryGo(n){if(n<cur) go(n);}
-function restart(){
-  naverMap=null;
-  Object.keys(LOCS).forEach(k=>LOCS[k]={label:'',lat:null,lng:null});
-  document.getElementById('hero').style.display='flex';
-  document.getElementById('snav').style.display='none';
-  document.getElementById('result').style.display='none';
-  [1,2,3,4].forEach(i=>document.getElementById('step'+i).style.display='none');
-  document.getElementById('progress').style.width='0';
-  window.scrollTo({top:0});
-}
-function pick(el,g){document.querySelectorAll('#'+g+' .chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');}
-function tog(el){el.classList.toggle('on');}
-function toggleEl(id,show){document.getElementById(id).classList.toggle('show',show);}
-function showCond(id,show){document.getElementById(id).classList.toggle('show',show);}
-function updW(v){document.getElementById('wlbl').textContent=v==50?'A와 B 동등 - 50% / 50%':v<50?`배우자 A 우선 - ${v}% / ${100-v}%`:`배우자 B 우선 - ${100-v}% / ${v}%`;}
-function fApt(el,r){document.querySelectorAll('.atab').forEach(t=>t.classList.remove('on'));el.classList.add('on');document.querySelectorAll('.arow').forEach(row=>row.classList.toggle('hidden',r!=='all'&&row.dataset.r!==r));}
-
-// 외부 클릭 시 드롭다운 닫기
-document.addEventListener('click',e=>{
-  Object.keys(LOCS).forEach(key=>{
-    const aw=document.getElementById('aw_'+key);
-    if(aw && !aw.contains(e.target)) hideDrop(key);
-  });
-});
-
 </script>
 </body>
 </html>
