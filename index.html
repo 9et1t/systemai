@@ -374,7 +374,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
           </div>
           <div class="field">
             <label class="flbl" id="gpWtLbl">조부모 동선 가중치 — 30%</label>
-            <div style="font-size:11px;color:var(--dim);margin-bottom:8px">출퇴근 vs 조부모 접근성 중 어느 쪽을 더 중시할지</div>
+            <div style="font-size:11px;color:var(--dim);margin-bottom:6px">높을수록 조부모 근접 지역 우선 추천</div>
             <input type="range" id="gpWt" min="0" max="60" value="30" step="10"
               oninput="document.getElementById('gpWtLbl').textContent='조부모 동선 가중치 — '+this.value+'%'">
             <div class="rll"><span>0% (출퇴근만)</span><span>60% (조부모 중시)</span></div>
@@ -439,8 +439,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
   </div>
   <div class="apt-section">
     <div class="stag" style="margin-top:44px">Apartment List · 국토부 실거래가</div>
-    <div class="stitle">추천 아파트 <span style="color:var(--a)" id="aptTitle10">10선</span></div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.7" id="aptSubTitle">국토교통부 실거래가 API 기준 - 최근 3개월 거래 데이터</p>
+    <div class="stitle">추천 아파트 <span style="color:var(--a)">10선</span></div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.7">국토교통부 실거래가 API 기준 - 최근 3개월 거래 데이터</p>
     <div class="atabs" id="aptTabs"><button class="atab on" onclick="fApt(this,'all')">전체</button></div>
     <div id="aptList"></div>
   </div>
@@ -586,8 +586,87 @@ const NATIONAL_GU = [
   {city:"제주",area:"서귀포시",lawdCd:"50130",lat:33.2541,lng:126.56,sub:"제주 서귀포시"},
 ];
 
+// 평형 -> 전용면적(m2) 범위
+function sizeToExclRange(s){
+  if(!s||s.includes('25~32')) return {min:59, max:85};
+  if(s.includes('~20'))       return {min:0,  max:49};
+  if(s.includes('33~42'))     return {min:85, max:115};
+  if(s.includes('43'))        return {min:115,max:999};
+  return {min:59, max:85};
+}
+
+// 지역 분석 엔진 - 전국 시군구 실거래가 조회 후 예산/출퇴근 기준 TOP3 추천
 let REGIONS = [];
 
+async function analyzeRegions(inp, onProgress){
+  const budgetWan = parseFloat(inp.budget||'8') * 10000;
+  const exclRange = sizeToExclRange(inp.sizeType);
+  const ym0 = getYM(0), ym1 = getYM(1);
+  const candidates = [];
+  let done = 0;
+
+  await Promise.all(NATIONAL_GU.map(async (gu) => {
+    let amounts = [];
+    for(const ym of [ym0, ym1]){
+      try{
+        const res = await fetch(
+          `https://apis.data.go.kr/1613000/RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade` +
+          `?serviceKey=${MOLIT_KEY}&LAWD_CD=${gu.lawdCd}&DEAL_YMD=${ym}&numOfRows=100&pageNo=1`
+        );
+        const xml = new DOMParser().parseFromString(await res.text(), 'text/xml');
+        xml.querySelectorAll('item').forEach(item => {
+          const excl = parseFloat(item.querySelector('excluUseAr')?.textContent||0);
+          const amt  = parseInt((item.querySelector('dealAmount')?.textContent||'0').replace(/,/g,''));
+          const canceled = (item.querySelector('cdealType')?.textContent||'').trim();
+          if(!canceled && excl>=exclRange.min && excl<=exclRange.max && amt>0) amounts.push(amt);
+        });
+        if(amounts.length >= 5) break;
+      } catch(e){}
+    }
+    done++;
+    onProgress && onProgress(done, NATIONAL_GU.length);
+    if(!amounts.length) return;
+
+    const avg = Math.round(amounts.reduce((a,b)=>a+b,0)/amounts.length);
+    if(avg > budgetWan * 1.05) return; // 예산 5% 초과 제외
+
+    const aTime = inp.work1Coord?.lat ? (estimateTime(inp.work1Coord, gu, inp.tr1)||60) : 60;
+    const bTime = inp.work2Coord?.lat ? (estimateTime(inp.work2Coord, gu, inp.tr2)||60) : 60;
+
+    // 조부모 소요시간 + 허용시간 필터
+    let gpTime = 0;
+    const hasGp = inp.gpOn && inp.gpCoord?.lat;
+    if(hasGp){
+      gpTime = estimateTime(inp.gpCoord, gu, '대중교통') || 999;
+      if(gpTime > (inp.gpMaxTime||30) * 1.5) return;
+    }
+
+    // 허용 출퇴근 시간 초과 제외
+    if(aTime > parseFloat(inp.c1||60)*1.5) return;
+    if(bTime > parseFloat(inp.c2||60)*1.5) return;
+
+    // 가중 점수
+    const gpW  = hasGp ? (inp.gpWeight||30)/100 : 0;
+    const comW = 1 - gpW;
+    const wA   = (parseFloat(inp.weight||50)/100) * comW;
+    const wB   = (1 - parseFloat(inp.weight||50)/100) * comW;
+    const score = aTime*wA + bTime*wB + gpTime*gpW;
+
+    candidates.push({...gu, avg, aTime, bTime, gpTime, score});
+  }));
+
+  candidates.sort((a,b)=>a.score-b.score);
+  return candidates.slice(0,3).map((r,i)=>({
+    ...r,
+    rank: String(i+1).padStart(2,'0'),
+    tag:  i===0 ? '✦ 1순위 추천' : i===1 ? '2순위' : '3순위',
+    metrics:[
+      ['실거래 평균', Math.floor(r.avg/10000)+'억'+(r.avg%10000?' '+Math.round(r.avg%10000/1000)+'천':'')],
+      ['A 출퇴근', r.aTime+'분 (추정)'],
+      ['B 출퇴근', r.bTime+'분 (추정)'],
+    ]
+  }));
+}
 // == 저장소 ==
 const LOCS = {
   work1:  { label:'', lat:null, lng:null },
@@ -796,37 +875,1012 @@ function addShuttleStop(containerId){
 }
 
 // == 결과 데이터 ==========================================
-const SEOUL_GU = [
-  {area:"종로구",lawdCd:"11110",lat:37.5729,lng:126.9794,sub:"청운동·효자동·사직동"},
-  {area:"중구",lawdCd:"11140",lat:37.5638,lng:126.9979,sub:"명동·을지로·신당동"},
-  {area:"용산구",lawdCd:"11170",lat:37.5326,lng:126.9903,sub:"이태원·한남동·서빙고"},
-  {area:"성동구",lawdCd:"11200",lat:37.5472,lng:127.0370,sub:"행당·금호·왕십리"},
-  {area:"광진구",lawdCd:"11215",lat:37.5385,lng:127.0823,sub:"건대·구의·자양동"},
-  {area:"동대문구",lawdCd:"11230",lat:37.5743,lng:127.0398,sub:"회기·이문·전농동"},
-  {area:"중랑구",lawdCd:"11260",lat:37.6063,lng:127.0932,sub:"망우·면목·신내동"},
-  {area:"성북구",lawdCd:"11290",lat:37.5894,lng:127.0167,sub:"길음·돈암·종암동"},
-  {area:"강북구",lawdCd:"11305",lat:37.6398,lng:127.0257,sub:"미아·수유·번동"},
-  {area:"도봉구",lawdCd:"11320",lat:37.6688,lng:127.0471,sub:"쌍문·방학·창동"},
-  {area:"노원구",lawdCd:"11350",lat:37.6542,lng:127.0568,sub:"상계·중계·하계동"},
-  {area:"은평구",lawdCd:"11380",lat:37.6177,lng:126.9226,sub:"녹번·불광·응암동"},
-  {area:"서대문구",lawdCd:"11410",lat:37.5794,lng:126.9368,sub:"홍은·남가좌·북가좌"},
-  {area:"마포구",lawdCd:"11440",lat:37.5497,lng:126.9521,sub:"공덕·아현·대흥동"},
-  {area:"양천구",lawdCd:"11470",lat:37.5170,lng:126.8665,sub:"목동·신정·신월동"},
-  {area:"강서구",lawdCd:"11500",lat:37.5509,lng:126.8495,sub:"화곡·방화·마곡동"},
-  {area:"구로구",lawdCd:"11530",lat:37.4955,lng:126.8877,sub:"구로·신도림·개봉동"},
-  {area:"금천구",lawdCd:"11545",lat:37.4569,lng:126.8955,sub:"가산·독산·시흥동"},
-  {area:"영등포구",lawdCd:"11560",lat:37.5264,lng:126.8963,sub:"여의도·영등포·당산"},
-  {area:"동작구",lawdCd:"11590",lat:37.5125,lng:126.9393,sub:"노량진·사당·흑석동"},
-  {area:"관악구",lawdCd:"11620",lat:37.4784,lng:126.9514,sub:"신림·봉천·남현동"},
-  {area:"서초구",lawdCd:"11650",lat:37.4836,lng:127.0327,sub:"서초·반포·방배동"},
-  {area:"강남구",lawdCd:"11680",lat:37.4979,lng:127.0277,sub:"역삼·삼성·압구정"},
-  {area:"송파구",lawdCd:"11710",lat:37.5145,lng:127.1066,sub:"잠실·가락·문정동"},
-  {area:"강동구",lawdCd:"11740",lat:37.5301,lng:127.1237,sub:"천호·암사·길동"},
+const REGIONS = [
+  { rank:'01', tag:'✦ 1순위 추천', area:'마포구', sub:'공덕동 · 아현동 · 대흥동',
+    metrics:[['학군','★★★☆☆'],['생활편의','★★★★☆'],['개발호재','신촌·홍대 개발']],
+    lawdCd:'11440', lat:37.5497, lng:126.9521 },
+  { rank:'02', tag:'2순위', area:'성동구', sub:'행당동 · 금호동 · 왕십리',
+    metrics:[['학군','★★★★☆'],['생활편의','★★★★★'],['개발호재','GTX-B 예정 🚄']],
+    lawdCd:'11200', lat:37.5472, lng:127.0402 },
+  { rank:'03', tag:'3순위', area:'동작구', sub:'노량진 · 사당동 · 흑석동',
+    metrics:[['학군','★★★★★'],['생활편의','★★★☆☆'],['예산 적합','★★★★☆']],
+    lawdCd:'11590', lat:37.5097, lng:126.9390 },
 ];
 
-// 분석 결과 저장 (예산 내 구만)
-let REGIONS = []; // analyzeRegions() 후 채워짐
-DOCTYPE html>
+// -- 네이버 Directions5 API 경로 조회 ------------------------------
+// 자가용: map-direction/v1/driving, 대중교통: map-direction/v1/transit
+// 주의: Directions API는 서버에서만 호출 가능 (CORS) -> 여기선 추정값 사용 + 지도 경로 표시
+
+// 출근지 -> 추천지역 소요시간 추정 (카카오 좌표 기반 직선거리 -> 도심 평균속도 적용)
+function estimateTime(fromCoord, toCoord, transport){
+  if(!fromCoord || !fromCoord.lat || !fromCoord.lng) return null;
+  // 직선 거리 (km)
+  const R=6371;
+  const dLat=(toCoord.lat-fromCoord.lat)*Math.PI/180;
+  const dLng=(toCoord.lng-fromCoord.lng)*Math.PI/180;
+  const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(fromCoord.lat*Math.PI/180)*Math.cos(toCoord.lat*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
+  const distKm=R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+  // 수도권 실거리 계수 (직선 * 1.35)
+  const realKm=distKm*1.35;
+  // 이동수단별 평균속도 (km/h)
+  let speed=25; // 대중교통 기본
+  if(transport.includes('자가용')) speed=22; // 도심 자가용 (정체 반영)
+  else if(transport.includes('셔틀')) speed=30; // 셔틀 (전용도로)
+  else if(transport.includes('도보')) speed=5;
+  // 환승.대기 보정
+  let base=Math.round(realKm/speed*60);
+  if(transport.includes('대중교통')) base+=10; // 환승 대기
+  if(transport.includes('자가용')) base+=5;  // 출발지 도달
+  return Math.max(10, Math.min(90, base));
+}
+
+// -- 카카오모빌리티 자동차 길찾기 API ------------------------------
+// CORS 허용됨 (카카오 로컬 API와 동일한 REST API 키 사용)
+const directionsCache = {};
+
+async function fetchCarRoute(fromCoord, toCoord){
+  if(!fromCoord?.lat || !toCoord?.lat) return null;
+  const ck = `${fromCoord.lat.toFixed(4)},${fromCoord.lng.toFixed(4)}-${toCoord.lat.toFixed(4)},${toCoord.lng.toFixed(4)}`;
+  if(directionsCache[ck]) return directionsCache[ck];
+
+  try{
+    const url = `https://apis-navi.kakaomobility.com/v1/directions`
+      + `?origin=${fromCoord.lng},${fromCoord.lat}`
+      + `&destination=${toCoord.lng},${toCoord.lat}`
+      + `&priority=RECOMMEND&summary=false&road_details=false`;
+
+    const res = await fetch(url, {
+      headers:{ Authorization: KAKAO_KEY, 'Content-Type':'application/json' }
+    });
+    if(!res.ok) return null;
+    const data = await res.json();
+    const route = data.routes?.[0];
+    if(!route || route.result_code !== 0) return null;
+
+    // 주요 도로명 추출 (거리 상위 3개)
+    const roads = [];
+    route.sections?.forEach(sec=>{
+      sec.roads?.forEach(r=>{ if(r.name && r.distance>200) roads.push({name:r.name, dist:r.distance}); });
+    });
+    roads.sort((a,b)=>b.dist-a.dist);
+    const topRoads = [...new Set(roads.map(r=>r.name))].slice(0,3);
+
+    // vertexes -> 지도 경로 좌표 배열
+    const pathCoords = [];
+    route.sections?.forEach(sec=>{
+      sec.roads?.forEach(r=>{
+        const vs = r.vertexes;
+        for(let i=0;i<vs.length;i+=2){
+          pathCoords.push({lng:vs[i], lat:vs[i+1]});
+        }
+      });
+    });
+
+    const result = {
+      duration: Math.round(route.summary.duration / 60), // 초 → 분
+      distance: Math.round(route.summary.distance / 1000 * 10) / 10, // m → km
+      topRoads,
+      pathCoords,
+      toll: route.summary.fare?.toll || 0
+    };
+    directionsCache[ck] = result;
+    return result;
+  } catch(e){ return null; }
+}
+
+// == ODsay 대중교통 길찾기 API ==
+const ODSAY_KEY = encodeURIComponent('7pHttv0j/xkYqhr6uY/vug');
+const transitCache = {};
+
+async function fetchTransitRoute(fromCoord, toCoord){
+  if(!fromCoord?.lat || !toCoord?.lat) return null;
+  const ck = `${fromCoord.lat.toFixed(4)},${fromCoord.lng.toFixed(4)}-${toCoord.lat.toFixed(4)},${toCoord.lng.toFixed(4)}`;
+  if(transitCache[ck]) return transitCache[ck];
+
+  try{
+    const url = `https://api.odsay.com/v1/api/searchPubTransPathT`
+      + `?SX=${fromCoord.lng}&SY=${fromCoord.lat}`
+      + `&EX=${toCoord.lng}&EY=${toCoord.lat}`
+      + `&OPT=0&SearchType=0&apiKey=${ODSAY_KEY}`;
+
+    const res = await fetch(url);
+    if(!res.ok) return null;
+    const data = await res.json();
+
+    // 오류 코드 확인
+    if(data.error || !data.result?.path?.length) return null;
+
+    // 최적 경로 (0번 = 추천)
+    const path = data.result.path[0];
+    const info = path.info;
+    const subPaths = path.subPath || [];
+
+    // 구간별 교통수단 파싱
+    const steps = [];
+    subPaths.forEach(sp => {
+      if(sp.trafficType === 1){ // 지하철
+        steps.push({
+          type: 'subway',
+          line: sp.lane?.[0]?.name || '',
+          lineColor: sp.lane?.[0]?.subwayCode ? subwayColor(sp.lane[0].subwayCode) : '#666',
+          from: sp.startName,
+          to: sp.endName,
+          stationCount: sp.stationCount,
+          time: sp.sectionTime
+        });
+      } else if(sp.trafficType === 2){ // 버스
+        const busNos = (sp.lane||[]).map(l=>l.busNo).filter(Boolean).slice(0,3);
+        steps.push({
+          type: 'bus',
+          busNos,
+          busType: sp.lane?.[0]?.type,
+          from: sp.startName,
+          to: sp.endName,
+          stationCount: sp.stationCount,
+          time: sp.sectionTime
+        });
+      } else if(sp.trafficType === 3){ // 도보
+        if(sp.sectionTime > 3){
+          steps.push({ type:'walk', time: sp.sectionTime, distance: sp.distance });
+        }
+      }
+    });
+
+    const result = {
+      totalTime: info.totalTime,
+      totalWalk: info.totalWalk,
+      transferCount: info.transitCount,
+      payment: info.payment,
+      steps
+    };
+    transitCache[ck] = result;
+    return result;
+  } catch(e){ return null; }
+}
+
+// 지하철 호선별 색상
+function subwayColor(code){
+  const colors = {
+    1:'#263c96', 2:'#3a993a', 3:'#ef7c1c', 4:'#00a2d1',
+    5:'#8b50a4', 6:'#c55c1d', 7:'#596547', 8:'#e61e2b',
+    9:'#bdb092', 21:'#77c4a3', 22:'#81a914', 100:'#e60012',
+    101:'#0054a6', 104:'#f5a200'
+  };
+  return colors[code] || '#666';
+}
+
+// ODsay 경로를 HTML 스텝으로 렌더
+function renderTransitSteps(result){
+  if(!result?.steps?.length) return '';
+  const stepHtml = result.steps.map(s => {
+    if(s.type === 'subway'){
+      return `<div class="transit-step">
+        <span class="transit-badge" style="background:${s.lineColor}22;border:1px solid ${s.lineColor}66;color:${s.lineColor}">
+          🚇 ${s.line}
+        </span>
+        <span class="transit-detail">${s.from} → ${s.to} (${s.stationCount}정거장, ${s.time}분)</span>
+      </div>`;
+    } else if(s.type === 'bus'){
+      const nos = s.busNos.join(', ');
+      return `<div class="transit-step">
+        <span class="transit-badge bus-badge">🚌 ${nos}</span>
+        <span class="transit-detail">${s.from} → ${s.to} (${s.stationCount}정거장, ${s.time}분)</span>
+      </div>`;
+    } else if(s.type === 'walk'){
+      return `<div class="transit-step walk-step">
+        <span style="font-size:11px;color:var(--dim)">🚶 도보 ${s.time}분</span>
+      </div>`;
+    }
+    return '';
+  }).join('');
+
+  return `<div class="transit-summary">
+    <span class="ts-total">${result.totalTime}분</span>
+    <span class="ts-info">환승 ${result.transferCount}회 · 도보 ${result.totalWalk}m · ${result.payment}원</span>
+  </div>
+  <div class="transit-steps">${stepHtml}</div>`;
+}
+
+// 지도에 실제 경로 폴리라인 그리기
+function drawRouteOnMap(map, pathCoords, color, weight=4){
+  if(!pathCoords?.length) return;
+  const path = pathCoords.map(c=> new naver.maps.LatLng(c.lat, c.lng));
+  return new naver.maps.Polyline({
+    path, map,
+    strokeColor: color,
+    strokeOpacity: 0.75,
+    strokeWeight: weight,
+    strokeStyle: 'solid'
+  });
+}
+
+// 이동 수단에 따른 경로 설명 생성
+function buildRouteDesc(from, to, transport, fromLabel){
+  if(!from || !from.lat) return fromLabel + ' → ' + to.area;
+  const dist = calcDistKm(from, to);
+  
+  if(transport.includes('셔틀')) {
+    // 셔틀 정류장 - 입력한 값 우선
+    const stops = [];
+    document.querySelectorAll('.addr-input.confirmed').forEach(el=>{
+      const v=el.value.trim();
+      if(v && !stops.includes(v)) stops.push(v);
+    });
+    const stopStr = stops.length>0 ? stops[0] : '셔틀 탑승지';
+    return fromLabel + ' → ' + stopStr + ' 탑승 → (셔틀) → ' + to.area;
+  }
+  if(transport.includes('자가용')) {
+    // 기본값 (API 결과 받기 전)
+    return fromLabel + ' → (경로 계산 중...) → ' + to.area;
+  }
+  if(transport.includes('대중교통')) {
+    const lines = getTransitHint(from, to);
+    const distKm = from?.lat ? Math.round(calcDistKm(from,to)*1.3) : '?';
+    return fromLabel + ' → ' + lines + ' (약 ' + distKm + 'km)';
+  }
+  return fromLabel + ' → ' + to.area + ' (' + Math.round(dist)+'km)';
+}
+
+function calcDistKm(a, b){
+  const R=6371, dLat=(b.lat-a.lat)*Math.PI/180, dLng=(b.lng-a.lng)*Math.PI/180;
+  const aa=Math.sin(dLat/2)**2+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(aa),Math.sqrt(1-aa));
+}
+
+// 자가용 주요 도로 힌트 (출발지 경도/위도 기반)
+function getRoadHint(from, to){
+  const fLng=from.lng, fLat=from.lat, tLng=to.lng, tLat=to.lat;
+  // 서울 주요 도로망 기반 추정
+  if(fLng>127.1) return '올림픽대로·강변북로'; // 동쪽
+  if(fLng<126.9) return '서부간선도로·올림픽대로'; // 서쪽
+  if(fLat<37.45) return '경부고속도로·강남대로'; // 남쪽
+  if(fLat>37.6) return '내부순환로·북부간선도로'; // 북쪽
+  return '도심 간선도로';
+}
+
+// 대중교통 힌트 (좌표 기반 주요 노선 추정)
+// 서울 주요 지하철 노선 좌표 범위 기반
+function getTransitHint(from, to){
+  if(!from?.lng) return '지하철·버스';
+  const fLng=from.lng, fLat=from.lat;
+  const tLng=to.lng, tLat=to.lat;
+  const hints = [];
+  // 출발지 인근 노선
+  if(fLng>127.1 && fLat<37.52) hints.push('2호선');
+  else if(fLng>127.05 && fLat<37.48) hints.push('수인분당선');
+  else if(fLng<126.88) hints.push('9호선');
+  else if(fLng<126.92 && fLat<37.52) hints.push('5호선');
+  else if(fLat>37.62) hints.push('1호선·4호선');
+  else if(fLng>126.95 && fLng<127.05 && fLat>37.52) hints.push('5호선·6호선');
+  else hints.push('지하철');
+  // 목적지 인근 환승 노선
+  if(to.area==='마포구') hints.push('5호선·6호선');
+  else if(to.area==='성동구') hints.push('2호선·5호선');
+  else if(to.area==='동작구') hints.push('9호선');
+  return hints.join(' → ') + ' 이용';
+}
+
+const APTS = [
+  {r:'1',rank:1,name:'마포래미안푸르지오',lawdCd:'11440',area:'마포구',addr:'아현동 · 아현역 도보 3분',size:'34평',excl:84,tags:['new'],aT:'26분',bT:'33분',gpT:'40분'},
+  {r:'1',rank:2,name:'공덕자이',lawdCd:'11440',area:'마포구',addr:'공덕동 · 공덕역 도보 5분',size:'33평',excl:84,tags:[],aT:'28분',bT:'31분',gpT:'43분'},
+  {r:'1',rank:3,name:'마포한강2차아이파크',lawdCd:'11440',area:'마포구',addr:'대흥동 · 대흥역 도보 7분',size:'30평',excl:59,tags:[],aT:'31분',bT:'36분',gpT:'38분'},
+  {r:'1',rank:4,name:'신촌숲아이파크',lawdCd:'11440',area:'마포구',addr:'동교동 · 홍대입구역 도보 8분',size:'32평',excl:84,tags:[],aT:'29분',bT:'38분',gpT:'41분'},
+  {r:'2',rank:5,name:'왕십리자이',lawdCd:'11200',area:'성동구',addr:'행당동 · 왕십리역 도보 4분',size:'34평',excl:84,tags:['gtx'],aT:'30분',bT:'36분',gpT:'37분'},
+  {r:'2',rank:6,name:'금호두산위브',lawdCd:'11200',area:'성동구',addr:'금호동 · 금호역 도보 6분',size:'31평',excl:84,tags:[],aT:'33분',bT:'40분',gpT:'42분'},
+  {r:'2',rank:7,name:'서울숲리버뷰자이',lawdCd:'11200',area:'성동구',addr:'성수동 · 뚝섬역 도보 9분',size:'33평',excl:84,tags:['new'],aT:'35분',bT:'42분',gpT:'39분'},
+  {r:'3',rank:8,name:'흑석한강센트레빌',lawdCd:'11590',area:'동작구',addr:'흑석동 · 흑석역 도보 5분',size:'33평',excl:84,tags:['etc:학군 우수'],aT:'40분',bT:'27분',gpT:'52분'},
+  {r:'3',rank:9,name:'사당래미안',lawdCd:'11590',area:'동작구',addr:'사당동 · 사당역 도보 6분',size:'30평',excl:84,tags:['etc:셔틀 최적'],aT:'38분',bT:'28분',gpT:'55분'},
+  {r:'3',rank:10,name:'노량진e편한세상',lawdCd:'11590',area:'동작구',addr:'노량진동 · 노량진역 도보 4분',size:'32평',excl:84,tags:[],aT:'42분',bT:'25분',gpT:'58분'},
+];
+
+const MOLIT_KEY = encodeURIComponent('66ee7240d70d045a4d3808209ee995f60fa7195ea6e79ac65cc9124379828e3a');
+const priceCache = {};
+
+function getYM(offset=0){
+  // 국토부 API는 신고~등록까지 시간이 걸려 최신달 데이터가 없는 경우가 많음
+  // 기본 offset 1 (1개월 전)부터 시작
+  const d=new Date(); d.setMonth(d.getMonth()-(offset+1));
+  return d.getFullYear()*100+(d.getMonth()+1);
+}
+
+async function fetchPrice(lawdCd, aptName, excl){
+  const ck=lawdCd+'_'+aptName;
+  if(priceCache[ck]) return priceCache[ck];
+  for(let m=0;m<5;m++){
+    const ym=getYM(m);
+    try{
+      const res=await fetch(`https://apis.data.go.kr/1613000/RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade?serviceKey=${MOLIT_KEY}&LAWD_CD=${lawdCd}&DEAL_YMD=${ym}&numOfRows=100&pageNo=1`);
+      const text=await res.text();
+      const xml=new DOMParser().parseFromString(text,'text/xml');
+      const curExcl = sizeToExclRange(document.querySelector('#sz .on')?.textContent||'25~32평');
+      let best=null, bestDiff=Infinity;
+      xml.querySelectorAll('item').forEach(item=>{
+        const name=(item.querySelector('aptNm')?.textContent||'').trim();
+        const area=parseFloat(item.querySelector('excluUseAr')?.textContent||0);
+        const amt=(item.querySelector('dealAmount')?.textContent||'').replace(/,/g,'').trim();
+        const canceled=(item.querySelector('cdealType')?.textContent||'').trim();
+        if(canceled||!amt) return;
+        if(area<curExcl.min||area>curExcl.max) return;
+        // 단지명 4자 이상 매칭 or 포함 관계
+        const q=aptName.replace(/[\s\(\)]/g,'').slice(0,5);
+        const nm=name.replace(/[\s\(\)]/g,'');
+        const nmatch=nm.includes(q)||q.includes(nm.slice(0,4))||aptName.slice(0,4)===name.slice(0,4);
+        if(!nmatch) return;
+        const diff=Math.abs(area-excl);
+        if(diff<bestDiff){bestDiff=diff;best=amt;}
+      });
+      // 단지명 매칭 실패시 해당 구 전체에서 면적 근사값 사용
+      if(!best){
+        xml.querySelectorAll('item').forEach(item=>{
+          const area=parseFloat(item.querySelector('excluUseAr')?.textContent||0);
+          const amt=(item.querySelector('dealAmount')?.textContent||'').replace(/,/g,'').trim();
+          const canceled=(item.querySelector('cdealType')?.textContent||'').trim();
+          if(canceled||!amt) return;
+          const diff=Math.abs(area-excl);
+          if(diff<10 && diff<bestDiff){bestDiff=diff;best=amt;}
+        });
+      }
+      if(best){
+        const v=parseInt(best);
+        const str=Math.floor(v/10000)+'억'+(v%10000>0?' '+Math.round(v%10000/1000)+'천':'');
+        priceCache[ck]=str; return str;
+      }
+    }catch(e){}
+  }
+  return null;
+}
+
+// == 결과 진입 ==
+function getInputs(){
+  return {
+    work1:  LOCS.work1.label  || '(미입력)',
+    work2:  LOCS.work2.label  || '(미입력)',
+    work1Label: LOCS.work1.label || 'A 출근지',
+    work2Label: LOCS.work2.label || 'B 출근지',
+    work1Coord: LOCS.work1,
+    work2Coord: LOCS.work2,
+    gpCoord:    LOCS.gpAddr,
+    c1: document.getElementById('c1').value,
+    c2: document.getElementById('c2').value,
+    tr1: document.querySelector('#tr1 .on')?.textContent.trim()||'🚇 대중교통',
+    tr2: document.querySelector('#tr2 .on')?.textContent.trim()||'🚇 대중교통',
+    gpOn: document.querySelector('#gp .on')?.textContent.trim()==='가능',
+    gpLabel: LOCS.gpAddr.label||'(미입력)',
+    budget: document.getElementById('bud').value,
+    dealType: document.querySelector('#dt .on')?.textContent.trim()||'매매',
+    sizeType: document.querySelector('#sz .on')?.textContent.trim()||'25~32평',
+    weight:   document.getElementById('wt')?.value || '50',
+    gpMaxTime: parseInt(document.getElementById('gpTime')?.value || '30'),
+    gpWeight:  parseInt(document.getElementById('gpWt')?.value || '30'),
+  };
+}
+
+async function showResult(){
+  [1,2,3,4].forEach(i=>document.getElementById('step'+i).style.display='none');
+  document.getElementById('result').style.display='block';
+  [1,2,3,4,5].forEach(i=>{
+    const el=document.getElementById('nav'+i);
+    el.classList.remove('active','done');
+    if(i===5) el.classList.add('active'); else el.classList.add('done');
+  });
+  document.getElementById('progress').style.width='100%';
+  window.scrollTo({top:0,behavior:'smooth'});
+
+  const inp = getInputs();
+
+  document.getElementById('inputSummary').innerHTML=[
+    `A 출근지: <b>${inp.work1}</b>`,
+    `B 출근지: <b>${inp.work2}</b>`,
+    `A 이동: <b>${inp.tr1}</b>`,
+    `B 이동: <b>${inp.tr2}</b>`,
+    `예산: <b>${inp.budget}억 (${inp.sizeType})</b>`,
+    `거래: <b>${inp.dealType}</b>`,
+    ...(inp.gpOn?[`조부모: <b>${inp.gpLabel} 허용${inp.gpMaxTime}분·가중${inp.gpWeight}%</b>`]:[]),
+  ].map(t=>`<div class="ibadge">${t}</div>`).join('');
+
+  document.getElementById('s_a').textContent=inp.c1+'분';
+  document.getElementById('s_b').textContent=inp.c2+'분';
+  document.getElementById('gpLegend').style.display=inp.gpOn?'flex':'none';
+
+  // 분석 로딩 화면
+  document.getElementById('regionCards').innerHTML=`
+    <div style="grid-column:1/-1;padding:48px;text-align:center;">
+      <div style="font-family:'DM Mono',monospace;font-size:13px;color:var(--a);margin-bottom:16px">
+        전국 ${NATIONAL_GU.length}개 시군구 · ${inp.sizeType} · ${inp.budget}억 이내 분석 중...
+      </div>
+      <div style="background:var(--border);height:2px;border-radius:1px;overflow:hidden;max-width:400px;margin:0 auto;">
+        <div id="analyzeBar" style="height:100%;background:var(--a);width:0%;transition:width .2s"></div>
+      </div>
+      <div id="analyzeStatus" style="font-size:11px;color:var(--dim);margin-top:10px">0 / ${NATIONAL_GU.length}</div>
+    </div>`;
+
+  // 전국 분석 실행
+  try{
+    REGIONS = await analyzeRegions(inp, (done,total)=>{
+      const pct = Math.round(done/total*100);
+      const bar = document.getElementById('analyzeBar');
+      const st  = document.getElementById('analyzeStatus');
+      if(bar) bar.style.width = pct+'%';
+      if(st)  st.textContent  = done+' / '+total+' 완료';
+    });
+  } catch(e){ REGIONS=[]; }
+
+  if(REGIONS.length===0){
+    document.getElementById('regionCards').innerHTML=`
+      <div style="grid-column:1/-1;padding:48px;text-align:center;">
+        <div style="font-size:28px;margin-bottom:12px">😔</div>
+        <div style="color:var(--muted)">전국 ${NATIONAL_GU.length}개 시군구 중 예산(${inp.budget}억)과 출퇴근 조건에 맞는 지역이 없어요.</div>
+        <div style="font-size:12px;color:var(--dim);margin-top:8px">예산을 높이거나 출퇴근 허용 시간을 늘려보세요.</div>
+      </div>`;
+    return;
+  }
+
+  renderRegionCards(inp);
+  renderApts(inp);
+  loadAndRenderMap(inp);
+}
+
+function tClass(t){
+  if(!t) return 'rec';
+  if(t.includes('지하철')||t.includes('대중교통')) return 'sub';
+  if(t.includes('자가용')) return 'car';
+  if(t.includes('셔틀')) return 'sh';
+  return 'wk';
+}
+
+async function renderRegionCards(inp){
+  const rc=document.getElementById('regionCards');
+  const budgetWan = parseFloat(inp.budget) * 10000; // 억 -> 만원
+
+  // 예산 초과 지역은 렌더 전에 제외 (실거래가 데이터 먼저 조회)
+  // 초기 렌더는 전체 보여주되, API 응답 후 초과 지역 숨김
+  // -> 사용자 경험: 처음엔 "로딩중" 표시, 실거래가 확인 후 필터
+  rc.innerHTML=REGIONS.map((r,ri)=>{
+    // 입력한 교통수단 기반 소요시간 추정
+    // 초기 추정값 (API 결과 받기 전 표시용)
+    let aTime = inp.work1Coord?.lat
+      ? (estimateTime(inp.work1Coord, r, inp.tr1) || 30)
+      : 30;
+    let bTime = inp.work2Coord?.lat
+      ? (estimateTime(inp.work2Coord, r, inp.tr2) || 35)
+      : 35;
+
+    // 경로 설명 - 입력 교통수단 기반
+    const aFrom = inp.work1!=='(미입력)' ? inp.work1 : '출근지 A';
+    const bFrom = inp.work2!=='(미입력)' ? inp.work2 : '출근지 B';
+    const aRouteText = buildRouteDesc(inp.work1Coord, r, inp.tr1, aFrom);
+    const bRouteText = buildRouteDesc(inp.work2Coord, r, inp.tr2, bFrom);
+
+    // 조부모 행 - gpOn이고 좌표/주소가 있을 때만
+    const hasGp = inp.gpOn && inp.gpLabel && inp.gpLabel !== '(미입력)';
+    const gpTime = hasGp && inp.gpCoord?.lat
+      ? estimateTime(inp.gpCoord, r, '🚇 대중교통')
+      : null;
+    const gpRow = hasGp ? `<div class="gprow"><span style="font-size:15px">👴</span>
+      <div class="gpi"><div class="gplb">조부모(${inp.gpLabel})까지</div>
+      <div class="gpvl">🚇 대중교통 ${gpTime || '-'}분</div></div></div>` : '';
+    const aBarW = Math.min(95, aTime);
+    const bBarW = Math.min(95, bTime);
+    return `<div class="rcard">
+      <div class="rrank">${r.rank}</div>
+      <div class="rtag">${r.tag}</div>
+      <div class="rarea">${r.city&&r.city!==r.area?r.city+' ':''}${r.area}</div>
+      <div class="rsub">${r.sub||''}</div>
+      <div class="crow">
+        <div class="ctop">
+          <div class="cpill" style="background:rgba(200,169,110,.15);border:1px solid rgba(200,169,110,.3);color:var(--a)">A</div>
+          <div class="cinfo">
+            <div class="ctime" id="rt_a_time_${ri}">${aTime}<span>분 (추정)</span></div>
+            <div class="trow">
+              <span class="tbadge ${tClass(inp.tr1)}">${inp.tr1}</span>
+            </div>
+            <div class="troute" id="rt_a_route_${ri}">${aRouteText}</div>
+            ${inp.tr1.includes('대중교통') ? `<div class="transit-block" id="rt_a_transit_${ri}"><div class="transit-loading">경로 조회 중...</div></div>` : ''}
+          </div>
+        </div>
+        <div class="cbar"><div class="cbar-f" id="rt_a_bar_${ri}" style="width:${aBarW}%;background:var(--a)"></div></div>
+      </div>
+      <div class="crow">
+        <div class="ctop">
+          <div class="cpill" style="background:rgba(127,181,160,.15);border:1px solid rgba(127,181,160,.3);color:var(--a2)">B</div>
+          <div class="cinfo">
+            <div class="ctime" id="rt_b_time_${ri}">${bTime}<span>분 (추정)</span></div>
+            <div class="trow">
+              <span class="tbadge ${tClass(inp.tr2)}">${inp.tr2}</span>
+            </div>
+            <div class="troute" id="rt_b_route_${ri}">${bRouteText}</div>
+            ${inp.tr2.includes('대중교통') ? `<div class="transit-block" id="rt_b_transit_${ri}"><div class="transit-loading">경로 조회 중...</div></div>` : ''}
+          </div>
+        </div>
+        <div class="cbar"><div class="cbar-f" id="rt_b_bar_${ri}" style="width:${bBarW}%;background:var(--a2)"></div></div>
+      </div>
+      ${gpRow}
+      <div class="dthin"></div>
+      ${r.metrics.map(([k,v])=>`<div class="mrow"><span class="mk">${k}</span><span class="mv">${v}</span></div>`).join('')}
+      <div class="rpx">
+        <div>
+          <div class="rplb">30평대 실거래 평균 (3개월)</div>
+          <div class="rplb" style="color:var(--dim);margin-top:2px">예산 ${inp.budget}억 기준</div>
+        </div>
+        <div class="rpv aprice loading" id="rp_${r.lawdCd}">조회 중</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // -- 자가용/셔틀 경로 API로 실제 소요시간+경로명 업데이트 --
+  REGIONS.forEach(async (r, ri)=>{
+    const rIdx = ri; // 0,1,2
+
+    // A 자가용 경로
+    if(inp.tr1.includes('자가용') && inp.work1Coord?.lat){
+      const route = await fetchCarRoute(inp.work1Coord, {lat:r.lat, lng:r.lng});
+      if(route){
+        const elTime = document.getElementById(`rt_a_time_${ri}`);
+        const elRoute = document.getElementById(`rt_a_route_${ri}`);
+        if(elTime) elTime.textContent = route.duration + '분';
+        if(elRoute) elRoute.textContent =
+          inp.work1Label + ' → ' + route.topRoads.join(' → ') + ' → ' + r.area
+          + ' (' + route.distance + 'km' + (route.toll ? ', 통행료 있음' : '') + ')';
+        const bar = document.getElementById(`rt_a_bar_${ri}`);
+        if(bar) bar.style.width = Math.min(95, route.duration) + '%';
+      }
+    }
+
+    // B 자가용 경로
+    if(inp.tr2.includes('자가용') && inp.work2Coord?.lat){
+      const route = await fetchCarRoute(inp.work2Coord, {lat:r.lat, lng:r.lng});
+      if(route){
+        const elTime = document.getElementById(`rt_b_time_${ri}`);
+        const elRoute = document.getElementById(`rt_b_route_${ri}`);
+        if(elTime) elTime.textContent = route.duration + '분';
+        if(elRoute) elRoute.textContent =
+          inp.work2Label + ' → ' + route.topRoads.join(' → ') + ' → ' + r.area
+          + ' (' + route.distance + 'km' + (route.toll ? ', 통행료 있음' : '') + ')';
+        const bar = document.getElementById(`rt_b_bar_${ri}`);
+        if(bar) bar.style.width = Math.min(95, route.duration) + '%';
+      }
+    }
+  });
+
+  REGIONS.forEach(async r=>{
+    const el=document.getElementById('rp_'+r.lawdCd);
+    if(!el) return;
+    // analyzeRegions에서 계산된 값 바로 사용
+    if(r.avg){
+      el.classList.remove('loading');
+      const avgStr = Math.floor(r.avg/10000)+'억'+(r.avg%10000?' '+Math.round(r.avg%10000/1000)+'천':'');
+      el.textContent = avgStr;
+      el.style.color = 'var(--a2)';
+      const tag = document.createElement('div');
+      tag.style.cssText='font-size:10px;margin-top:3px;font-family:"DM Mono",monospace;color:var(--a2)';
+      tag.textContent = '✓ '+inp.sizeType+' 예산 내';
+      el.parentNode.appendChild(tag);
+      return;
+    }
+    // 최근 3개월 데이터 합산
+    const amounts=[];
+    for(let m=0;m<3;m++){
+      const ym=getYM(m);
+      try{
+        const res=await fetch(`https://apis.data.go.kr/1613000/RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade?serviceKey=${MOLIT_KEY}&LAWD_CD=${r.lawdCd}&DEAL_YMD=${ym}&numOfRows=100&pageNo=1`);
+        const text=await res.text();
+        const xml=new DOMParser().parseFromString(text,'text/xml');
+        xml.querySelectorAll('item').forEach(item=>{
+          const excl=parseFloat(item.querySelector('excluUseAr')?.textContent||0);
+          const amt=parseInt((item.querySelector('dealAmount')?.textContent||'0').replace(/,/g,''));
+          const canceled=(item.querySelector('cdealType')?.textContent||'').trim();
+          if(!canceled && excl>=59&&excl<=135 && amt>0) amounts.push(amt);
+        });
+      }catch(e){}
+    }
+    el.classList.remove('loading');
+    if(amounts.length){
+      const avg = Math.round(amounts.reduce((a,b)=>a+b,0)/amounts.length);
+      const avgOk = Math.floor(avg/10000)+'억'+(avg%10000>0?' '+Math.round(avg%10000/1000)+'천':'');
+      const budgetVal = budgetOk * 10000;
+      const overBudget = avg > budgetVal * 1.1; // 10% 초과시 예산 초과
+
+      el.textContent = avgOk;
+
+      if(overBudget){
+        // 예산 초과 - 카드 완전히 제거
+        el.style.color = 'var(--a3)';
+        const card = el.closest('.rcard');
+        if(card){
+          card.style.display = 'none';
+          // 남은 카드 수 확인해서 없으면 안내 메시지
+          const visible = rc.querySelectorAll('.rcard:not([style*="display: none"])');
+          if(visible.length === 0){
+            rc.innerHTML = `<div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--muted);font-size:14px">
+              <div style="font-size:28px;margin-bottom:12px">😔</div>
+              <div>입력하신 예산(${inp.budget}억) 내 추천 지역이 없어요.</div>
+              <div style="font-size:12px;color:var(--dim);margin-top:8px">예산을 높이거나 조건을 조정해보세요.</div>
+            </div>`;
+          }
+        }
+      } else {
+        el.style.color = avg < budgetVal * 0.9 ? 'var(--a2)' : 'var(--a)';
+        const tag = document.createElement('div');
+        tag.style.cssText = 'font-size:10px;margin-top:3px;font-family:"DM Mono",monospace';
+        tag.style.color = avg < budgetVal * 0.9 ? 'var(--a2)' : 'var(--muted)';
+        tag.textContent = avg < budgetVal * 0.9 ? '✓ 예산 내' : '~ 예산 근접';
+        el.parentNode.appendChild(tag);
+      }
+    } else {
+      el.textContent = '데이터 없음';
+      el.style.fontSize = '12px';
+    }
+  });
+}
+
+function renderApts(inp){
+  const aptListEl = document.getElementById('aptList');
+  if(!aptListEl) return;
+
+  const budgetOk = parseFloat(inp.budget || '8');
+  const regionAreas = REGIONS.map(r=>r.area);
+  const filteredApts = regionAreas.length>0 ? APTS.filter(a=>regionAreas.includes(a.area)) : APTS;
+
+  // 탭 동적 생성
+  const tabsEl = document.getElementById('aptTabs');
+  if(tabsEl && REGIONS.length>0){
+    tabsEl.innerHTML = '<button class="atab on" onclick="fApt(this,'all')">전체</button>'
+      + REGIONS.map((r,i)=>`<button class="atab" onclick="fApt(this,'${i+1}')">${r.city&&r.city!==r.area?r.city+' ':''}${r.area}</button>`).join('');
+  }
+  const showGp = inp.gpOn && inp.gpLabel && inp.gpLabel !== '(미입력)';
+  const aIcon = inp.tr1.includes('셔틀') ? '🚌' : inp.tr1.includes('자가용') ? '🚗' : '🚇';
+  const bIcon = inp.tr2.includes('셔틀') ? '🚌' : inp.tr2.includes('자가용') ? '🚗' : '🚇';
+
+  const regionColors = {'1': 'var(--a)', '2': 'var(--a2)', '3': 'var(--a3)'};
+
+  const rows = APTS.map(a => {
+    const tags = (a.tags || []).map(t => {
+      if(t === 'new') return '<span class="atag new">신축</span>';
+      if(t === 'gtx') return '<span class="atag gtx">GTX-B</span>';
+      if(t.startsWith('etc:')) return `<span class="atag etc">${t.slice(4)}</span>`;
+      return '';
+    }).join('');
+
+    const gpChip = showGp ? `<span class="achip">👴 ${a.gpT}</span>` : '';
+
+    return `<div class="arow r${a.r}" data-r="${a.r}" id="apt_row_${a.rank}">
+      <div class="arnk">${String(a.rank).padStart(2,'0')}</div>
+      <div>
+        <div class="anr">
+          <span class="aname">${a.name}</span>
+          <span class="atag r${a.r}">${a.area}</span>
+          ${tags}
+          <span class="atag apt-budget-tag" id="apt_btag_${a.rank}"></span>
+        </div>
+        <div class="aaddr">${a.addr}</div>
+        <div class="achips">
+          <span class="achip">A ${aIcon} ${a.aT}</span>
+          <span class="achip">B ${bIcon} ${a.bT}</span>
+          ${gpChip}
+        </div>
+      </div>
+      <div class="apb">
+        <div class="asz">${a.size}</div>
+        <div class="aprice loading" id="ap_${a.rank}">조회 중</div>
+        <div class="apdt">국토부 실거래</div>
+      </div>
+    </div>`;
+  });
+
+  aptListEl.innerHTML = rows.join('');
+
+  // 비동기로 실거래가 조회 + 예산 필터
+  APTS.forEach(async a => {
+    const priceEl = document.getElementById('ap_' + a.rank);
+    const btagEl = document.getElementById('apt_btag_' + a.rank);
+    const rowEl = document.getElementById('apt_row_' + a.rank);
+    if(!priceEl) return;
+
+    const price = await fetchPrice(a.lawdCd, a.name, a.excl);
+    priceEl.classList.remove('loading');
+
+    if(price) {
+      priceEl.textContent = price;
+      // 예산 비교
+      const priceNum = parseFloat(price.replace('억','').trim().split(' ')[0]);
+      if(priceNum > budgetOk * 1.15) {
+        priceEl.style.color = 'var(--a3)';
+        if(btagEl) {
+          btagEl.textContent = '예산초과';
+          btagEl.style.cssText = 'background:rgba(212,117,110,.08);border:1px solid rgba(212,117,110,.25);color:var(--a3)';
+        }
+      } else if(priceNum <= budgetOk) {
+        priceEl.style.color = 'var(--a2)';
+        if(btagEl) {
+          btagEl.textContent = '예산내';
+          btagEl.style.cssText = 'background:rgba(127,181,160,.08);border:1px solid rgba(127,181,160,.25);color:var(--a2)';
+        }
+      }
+    } else {
+      priceEl.textContent = '데이터 없음';
+      priceEl.style.fontSize = '11px';
+    }
+  });
+}
+
+
+// == 지도 ==
+let naverMap=null;
+function loadAndRenderMap(inp){
+  // DOM 렌더 완료 후 지도 초기화
+  setTimeout(() => {
+    const mapEl = document.getElementById('naverMap');
+    if(!mapEl || mapEl.offsetWidth === 0) {
+      // 아직 DOM 미준비 - 한번 더 대기
+      setTimeout(() => {
+        document.getElementById('mapMsg').classList.remove('hidden');
+        loadNaverSDK(() => renderMap(inp));
+      }, 500);
+      return;
+    }
+    document.getElementById('mapMsg').classList.remove('hidden');
+    loadNaverSDK(() => renderMap(inp));
+  }, 200);
+}
+
+function renderMap(inp){
+  const mapMsgEl = document.getElementById('mapMsg');
+  if(mapMsgEl) mapMsgEl.classList.add('hidden');
+  if(naverMap) {
+    // 이미 생성된 지도 - 마커만 다시 그리기
+    return;
+  }
+  const mapContainer = document.getElementById('naverMap');
+  if(!mapContainer) return;
+  naverMap = new naver.maps.Map('naverMap',{
+    center:new naver.maps.LatLng(37.535,126.985), zoom:12,
+    scaleControl:false,logoControl:true,mapDataControl:false,
+    zoomControl:true,zoomControlOptions:{position:naver.maps.Position.TOP_RIGHT}
+  });
+
+  // 추천 지역 마커
+  const rc=['#c8a96e','#7fb5a0','#d4756e'];
+  REGIONS.forEach((r,i)=>{
+    new naver.maps.Marker({
+      position:new naver.maps.LatLng(r.lat,r.lng),map:naverMap,
+      icon:{content:`<div style="position:relative;white-space:nowrap">
+        <div style="background:${rc[i]};color:#0e0e0e;font-family:'DM Mono',monospace;font-size:11px;font-weight:500;padding:5px 10px;box-shadow:0 2px 8px rgba(0,0,0,.5)">${i+1}위 ${r.area}</div>
+        <div style="position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid ${rc[i]}"></div>
+      </div>`,anchor:new naver.maps.Point(40,34)}
+    });
+  });
+
+  // 출근지 마커 - 좌표 있으면 바로, 없으면 geocoding
+  function placeWorkMarker(coord, label, color){
+    if(coord.lat && coord.lng){
+      addPinMarker(coord.lat, coord.lng, label, coord.label||label, color);
+    } else if(coord.label && coord.label!=='(미입력)'){
+      naver.maps.Service.geocode({query:coord.label},(st,res)=>{
+        const items=res.v2?.addresses;
+        if(!items||!items.length) return;
+        addPinMarker(parseFloat(items[0].y),parseFloat(items[0].x),label,coord.label,color);
+      });
+    }
+  }
+
+  function addPinMarker(lat,lng,label,subLabel,color){
+    const pos=new naver.maps.LatLng(lat,lng);
+    new naver.maps.Marker({
+      position:pos,map:naverMap,
+      icon:{content:`<div style="background:#141414;border:1.5px solid ${color};color:${color};font-family:'DM Mono',monospace;font-size:10px;padding:5px 10px;box-shadow:0 2px 6px rgba(0,0,0,.6);white-space:nowrap">
+        ${label}<br><span style="font-size:9px;opacity:.7">${subLabel}</span>
+      </div>`,anchor:new naver.maps.Point(50,32)}
+    });
+    // 추천 지역들과 연결선
+    if(transport.includes('자가용')){
+      // 자가용 - 카카오 실제 경로 (이미 placeAndRoute에서 처리)
+      REGIONS.slice(1).forEach((rg)=>{
+        new naver.maps.Polyline({
+          path:[pos, new naver.maps.LatLng(rg.lat, rg.lng)],
+          map:naverMap, strokeColor:color,
+          strokeOpacity:0.15, strokeWeight:1, strokeStyle:'dashed'
+        });
+      });
+    } else {
+      // 대중교통 - ODsay 경로 폴리라인 시도
+      const destCoord = {lat:REGIONS[0].lat, lng:REGIONS[0].lng};
+      const fromC = {lat:coord.lat, lng:coord.lng};
+      fetchTransitRoute(fromC, destCoord).then(route => {
+        if(route?.steps?.length){
+          // 경로가 있으면 색상 구분 선
+          REGIONS.forEach((rg, ri)=>{
+            new naver.maps.Polyline({
+              path:[pos, new naver.maps.LatLng(rg.lat, rg.lng)],
+              map:naverMap, strokeColor:color,
+              strokeOpacity: ri===0 ? 0.45 : 0.15,
+              strokeWeight: ri===0 ? 2 : 1,
+              strokeStyle:'dashed'
+            });
+          });
+        } else {
+          REGIONS.forEach((rg, ri)=>{
+            new naver.maps.Polyline({
+              path:[pos, new naver.maps.LatLng(rg.lat, rg.lng)],
+              map:naverMap, strokeColor:color,
+              strokeOpacity: ri===0 ? 0.35 : 0.12,
+              strokeWeight: ri===0 ? 1.5 : 1,
+              strokeStyle:'dashed'
+            });
+          });
+        }
+      });
+    }
+  }
+
+  const rColors=['#c8a96e','#7fb5a0','#d4756e'];
+
+  // 출근지 마커 + 자가용이면 실제 경로 폴리라인
+  async function placeAndRoute(coord, label, color, transport, personKey){
+    if(!coord?.lat) return;
+    // 마커 먼저
+    addPinMarker(coord.lat, coord.lng, label, coord.label||label, color);
+    // 자가용이면 실제 경로
+    if(transport.includes('자가용')){
+      const route = await fetchCarRoute(coord, {lat:REGIONS[0].lat, lng:REGIONS[0].lng});
+      if(route?.pathCoords?.length){
+        drawRouteOnMap(map, route.pathCoords, color, 3);
+        return;
+      }
+    }
+    // 자가용 아니거나 API 실패시 점선
+    REGIONS.forEach((rg,ri)=>{
+      new naver.maps.Polyline({
+        path:[new naver.maps.LatLng(coord.lat,coord.lng), new naver.maps.LatLng(rg.lat,rg.lng)],
+        map, strokeColor:color,
+        strokeOpacity: ri===0 ? 0.5 : 0.2,
+        strokeWeight: ri===0 ? 2 : 1,
+        strokeStyle: ri===0 ? 'solid' : 'dashed'
+      });
+    });
+  }
+
+  placeAndRoute(inp.work1Coord, 'A 출근지', '#7da8e0', inp.tr1, 'A');
+  placeAndRoute(inp.work2Coord, 'B 출근지', '#7fb5a0', inp.tr2, 'B');
+
+  if(inp.gpOn && inp.gpCoord){
+    document.getElementById('gpLegend').style.display='flex';
+    if(inp.gpCoord.lat && inp.gpCoord.lng){
+      new naver.maps.Marker({
+        position:new naver.maps.LatLng(inp.gpCoord.lat,inp.gpCoord.lng),map:naverMap,
+        icon:{content:`<div style="background:#141414;border:1.5px solid #a0a0c8;color:#a0a0c8;font-family:'DM Mono',monospace;font-size:10px;padding:5px 10px;box-shadow:0 2px 6px rgba(0,0,0,.6);white-space:nowrap">
+          👴 조부모 거주지<br><span style="font-size:9px;opacity:.7">${inp.gpLabel}</span>
+        </div>`,anchor:new naver.maps.Point(60,32)}
+      });
+    } else if(inp.gpLabel && inp.gpLabel!=='(미입력)'){
+      naver.maps.Service.geocode({query:inp.gpLabel},(st,res)=>{
+        const items=res.v2?.addresses;
+        if(!items||!items.length) return;
+        new naver.maps.Marker({
+          position:new naver.maps.LatLng(parseFloat(items[0].y),parseFloat(items[0].x)),map:naverMap,
+          icon:{content:`<div style="background:#141414;border:1.5px solid #a0a0c8;color:#a0a0c8;font-family:'DM Mono',monospace;font-size:10px;padding:5px 10px;box-shadow:0 2px 6px rgba(0,0,0,.6);white-space:nowrap">
+            👴 조부모 거주지<br><span style="font-size:9px;opacity:.7">${inp.gpLabel}</span>
+          </div>`,anchor:new naver.maps.Point(60,32)}
+        });
+      });
+    }
+    // 조부모 -> 1순위 추천지역 연결선
+    if(inp.gpCoord?.lat){
+      naver.maps.Service.geocode({query:inp.gpLabel},(st,res)=>{
+        const items=res?.v2?.addresses;
+        const gpLat = inp.gpCoord.lat, gpLng = inp.gpCoord.lng;
+        if(gpLat && REGIONS[0]){
+          new naver.maps.Polyline({
+            path:[new naver.maps.LatLng(gpLat,gpLng), new naver.maps.LatLng(REGIONS[0].lat,REGIONS[0].lng)],
+            map:naverMap,
+            strokeColor:'#a0a0c8',
+            strokeOpacity:.35,
+            strokeWeight:1.5,
+            strokeStyle:'dashed'
+          });
+        }
+      });
+    }
+  }
+}
+
+// == 네비게이션 ==
+let cur=0;
+// 네이버 SDK 로드 상태
+let naverSDKReady = false;
+let naverSDKLoading = false;
+const naverSDKCallbacks = [];
+
+function loadNaverSDK(callback){
+  if(naverSDKReady){
+    // 이미 로드 완료
+    callback && callback(); return;
+  }
+  if(callback) naverSDKCallbacks.push(callback);
+  if(naverSDKLoading) return; // 로딩 중 - callback은 큐에 추가됨
+  naverSDKLoading = true;
+  window._onNaverSDKInit = function(){
+    naverSDKReady = true;
+    naverSDKLoading = false;
+    const cbs = naverSDKCallbacks.splice(0);
+    cbs.forEach(cb=>{ try{ cb(); } catch(e){} });
+  };
+  const s = document.createElement('script');
+  s.src = 'https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=3wwumsfkd2&submodules=geocoder&callback=_onNaverSDKInit';
+  s.onerror = () => {
+    naverSDKLoading = false;
+    document.getElementById('mapMsgText').textContent = '네이버 지도 로드 실패 - 네트워크를 확인해주세요';
+  };
+  document.head.appendChild(s);
+}
+
+function startForm(){
+  document.getElementById('hero').style.display='none';
+  document.getElementById('snav').style.display='block';
+  // SDK 미리 로드 (주소 검색용)
+  loadNaverSDK();
+  go(1);
+  // 검색 컴포넌트 초기화
+  setTimeout(()=>{
+    createAddrSearch('work1','search_work1','예: 강남역, 판교역, 테헤란로');
+    createAddrSearch('work2','search_work2','예: 여의도, 마곡나루역, 상암DMC');
+    createAddrSearch('gpAddr','search_gpAddr','예: 노원구청역, 분당, 인천');
+    createAddrSearch('prefer','search_prefer','예: 마포구, 성동구');
+    createAddrSearch('avoid','search_avoid','예: 강남구');
+    // 셔틀 첫 정류장도 초기화
+    addShuttleStop('shuttle_stops1');
+    addShuttleStop('shuttle_stops2');
+  }, 100);
+}
+
+function go(n){
+  [1,2,3,4].forEach(i=>document.getElementById('step'+i).style.display='none');
+  document.getElementById('result').style.display='none';
+  if(n<=4) document.getElementById('step'+n).style.display='block';
+  [1,2,3,4,5].forEach(i=>{
+    const el=document.getElementById('nav'+i);
+    el.classList.remove('active','done');
+    if(i===n) el.classList.add('active'); else if(i<n) el.classList.add('done');
+  });
+  cur=n;
+  document.getElementById('progress').style.width=((n-1)/4*100)+'%';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function tryGo(n){if(n<cur) go(n);}
+function restart(){
+  naverMap=null;
+  Object.keys(LOCS).forEach(k=>LOCS[k]={label:'',lat:null,lng:null});
+  document.getElementById('hero').style.display='flex';
+  document.getElementById('snav').style.display='none';
+  document.getElementById('result').style.display='none';
+  [1,2,3,4].forEach(i=>document.getElementById('step'+i).style.display='none');
+  document.getElementById('progress').style.width='0';
+  window.scrollTo({top:0});
+}
+function pick(el,g){document.querySelectorAll('#'+g+' .chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');}
+function tog(el){el.classList.toggle('on');}
+function toggleEl(id,show){document.getElementById(id).classList.toggle('show',show);}
+function showCond(id,show){document.getElementById(id).classList.toggle('show',show);}
+function updW(v){document.getElementById('wlbl').textContent=v==50?'A와 B 동등 - 50% / 50%':v<50?`배우자 A 우선 - ${v}% / ${100-v}%`:`배우자 B 우선 - ${100-v}% / ${v}%`;}
+function fApt(el,r){document.querySelectorAll('.atab').forEach(t=>t.classList.remove('on'));el.classList.add('on');document.querySelectorAll('.arow').forEach(row=>row.classList.toggle('hidden',r!=='all'&&row.dataset.r!==r));}
+
+// 외부 클릭 시 드롭다운 닫기
+document.addEventListener('click',e=>{
+  Object.keys(LOCS).forEach(key=>{
+    const aw=document.getElementById('aw_'+key);
+    if(aw && !aw.contains(e.target)) hideDrop(key);
+  });
+});
+const gpMax = inp.gpMaxTime||30;
+    const gpTimeDisp = r.gpTime || gpTime;
+    const gpOver = gpTimeDisp && gpTimeDisp > gpMax;
+    const gpRow = inp.gpOn ? `<div class="gprow"><span style="font-size:15px">👴</span>
+      <div class="gpi">
+        <div class="gplb">조부모(${inp.gpLabel})까지 · 허용 ${gpMax}분</div>
+        <div class="gpvl" style="color:${gpOver?'var(--a3)':'var(--a2)'}">
+          🚇 ${gpTimeDisp||'—'}분 ${gpOver?'초과':'✓'}
+        </div>
+      </div>
+    </div>` : '';YPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -1262,1331 +2316,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
   <div style="text-align:center"><button class="brst" onclick="restart()">↺ 조건 다시 설정하기</button></div>
 </div>
 
-<script>
-// == 저장소 ==
-const LOCS = {
-  work1:  { label:'', lat:null, lng:null },
-  work2:  { label:'', lat:null, lng:null },
-  gpAddr: { label:'', lat:null, lng:null },
-  prefer: { label:'', lat:null, lng:null },
-  avoid:  { label:'', lat:null, lng:null },
-};
 
-// == 카카오 로컬 API - 역명.건물명.POI.주소 통합 검색 ==
-const KAKAO_KEY = 'KakaoAK 9642e6e4e92954d552e94eb32af57a8b';
-
-async function searchPlace(q){
-  const results = [];
-
-  // 1. 카카오 키워드 검색 - 역명.건물명.장소명 (메인)
-  try{
-    const kwRes = await fetch(
-      `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(q)}&size=8`,
-      {headers:{Authorization: KAKAO_KEY}}
-    );
-    if(kwRes.ok){
-      const d = await kwRes.json();
-      (d.documents||[]).forEach(doc=>{
-        results.push({
-          label: doc.place_name,
-          sub:   doc.road_address_name || doc.address_name,
-          lat:   parseFloat(doc.y),
-          lng:   parseFloat(doc.x),
-          type:  doc.category_group_name || '장소'
-        });
-      });
-    }
-  } catch(e){}
-
-  // 2. 카카오 주소 검색 - 도로명.지번 (보완)
-  if(results.length < 3){
-    try{
-      const adRes = await fetch(
-        `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(q)}&size=5`,
-        {headers:{Authorization: KAKAO_KEY}}
-      );
-      if(adRes.ok){
-        const d = await adRes.json();
-        (d.documents||[]).forEach(doc=>{
-          const addr = doc.road_address?.address_name || doc.address?.address_name;
-          if(!addr) return;
-          const dup = results.some(r=>
-            Math.abs(r.lat-parseFloat(doc.y))<0.0001 &&
-            Math.abs(r.lng-parseFloat(doc.x))<0.0001
-          );
-          if(!dup) results.push({
-            label: addr,
-            sub:   doc.address?.address_name||'',
-            lat:   parseFloat(doc.y),
-            lng:   parseFloat(doc.x),
-            type:  '주소'
-          });
-        });
-      }
-    } catch(e){}
-  }
-
-  return results;
-}
-
-// == 주소 검색 컴포넌트 ==
-function createAddrSearch(key, containerId, placeholder, accentColor='#c8a96e'){
-  const wrap = document.getElementById(containerId);
-  if(!wrap) return;
-  wrap.innerHTML = `
-    <div class="addr-wrap" id="aw_${key}">
-      <div class="addr-input-row">
-        <input class="addr-input" id="ai_${key}" placeholder="${placeholder}" autocomplete="off"
-          oninput="onAddrInput('${key}')" onkeydown="onAddrKey(event,'${key}')" onfocus="showDrop('${key}')">
-        <button class="addr-btn" onclick="clearAddr('${key}')" title="초기화">✕</button>
-      </div>
-      <div class="addr-dropdown" id="ad_${key}"></div>
-      <div id="ac_${key}" style="display:none" class="addr-confirmed">
-        <span style="font-size:13px">📍</span>
-        <span class="addr-confirmed-text" id="act_${key}"></span>
-        <button class="addr-confirmed-clear" onclick="clearAddr('${key}')">✕</button>
-      </div>
-    </div>`;
-  const inp = document.getElementById('ai_'+key);
-  inp.addEventListener('focus',()=>{ inp.style.borderColor=accentColor; });
-  inp.addEventListener('blur',()=>{ setTimeout(()=>hideDrop(key),200); if(!LOCS[key].label) inp.style.borderColor=''; });
-}
-
-const searchTimers={}, dropFocusIdx={};
-
-function onAddrInput(key){
-  clearTimeout(searchTimers[key]);
-  const q = document.getElementById('ai_'+key).value.trim();
-  // 선택 확정된 상태에서 다시 타이핑하면 초기화
-  if(LOCS[key].label && q !== LOCS[key].label){
-    LOCS[key]={label:'',lat:null,lng:null};
-    document.getElementById('ac_'+key).style.display='none';
-    document.getElementById('ai_'+key).classList.remove('confirmed');
-  }
-  if(q.length < 1){ hideDrop(key); return; }
-  showDropLoading(key);
-  searchTimers[key] = setTimeout(async()=>{
-    const items = await searchPlace(q);
-    renderDropdown(key, items, q);
-  }, 400);
-}
-
-function renderDropdown(key, items, q){
-  const dd = document.getElementById('ad_'+key);
-  dropFocusIdx[key] = -1;
-  if(!items.length){
-    // 입력값 그대로 저장 (좌표 없이) - 지도엔 geocoding으로 나중에 처리
-    LOCS[key] = { label: document.getElementById('ai_'+key).value.trim(), lat:null, lng:null };
-    dd.innerHTML=`<div class="addr-empty">
-      <div style="margin-bottom:6px">검색 결과가 없어요</div>
-      <div style="font-size:10px;color:var(--dim);line-height:1.6">
-        · 역명: "강남역", "판교역" 처럼 역 포함<br>
-        · 건물: "삼성전자 수원", "카카오 판교"<br>
-        · 주소: "성남시 분당구 판교역로"
-      </div>
-      <button onmousedown="confirmAsText('${key}')" style="margin-top:8px;width:100%;background:rgba(200,169,110,.1);border:1px solid rgba(200,169,110,.3);color:var(--a);padding:6px;font-size:11px;cursor:pointer;">입력한 텍스트로 그대로 사용</button>
-    </div>`;
-    dd.classList.add('show'); return;
-  }
-  const esc = s => s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const hiQ = q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-  dd.innerHTML = items.map((item,i)=>{
-    const hi = esc(item.label).replace(new RegExp(`(${hiQ})`, 'gi'), '<em>$1</em>');
-    const safeLabel = item.label.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    return `<div class="addr-item" data-idx="${i}"
-      onmousedown="selectAddr('${key}',${item.lng},${item.lat},'${safeLabel}')">
-      <div class="addr-item-main">
-        <span class="addr-item-type">${item.type||'장소'}</span>${hi}
-      </div>
-      ${item.sub&&item.sub!==item.label?`<div class="addr-item-sub">${esc(item.sub)}</div>`:''}
-    </div>`;
-  }).join('');
-  dd.classList.add('show');
-}
-
-function showDropLoading(key){
-  const dd=document.getElementById('ad_'+key);
-  dd.innerHTML=`<div class="addr-loading">검색 중...</div>`;
-  dd.classList.add('show');
-}
-function showDrop(key){
-  const q=document.getElementById('ai_'+key).value.trim();
-  const dd=document.getElementById('ad_'+key);
-  if(q.length>0 && dd.children.length>0) dd.classList.add('show');
-}
-function hideDrop(key){ document.getElementById('ad_'+key)?.classList.remove('show'); }
-
-function selectAddr(key, x, y, label){
-  LOCS[key]={label, lat:parseFloat(y), lng:parseFloat(x)};
-  const inp=document.getElementById('ai_'+key);
-  inp.value=label; inp.classList.add('confirmed');
-  hideDrop(key);
-  document.getElementById('act_'+key).textContent=label;
-  document.getElementById('ac_'+key).style.display='flex';
-}
-function clearAddr(key){
-  LOCS[key]={label:'',lat:null,lng:null};
-  const inp=document.getElementById('ai_'+key);
-  inp.value=''; inp.classList.remove('confirmed'); inp.style.borderColor='';
-  hideDrop(key);
-  document.getElementById('ac_'+key).style.display='none';
-  inp.focus();
-}
-function onAddrKey(e,key){
-  const items=document.getElementById('ad_'+key).querySelectorAll('.addr-item');
-  if(!items.length) return;
-  if(e.key==='ArrowDown'){e.preventDefault();setFocusItem(key,(dropFocusIdx[key]??-1)+1,items);}
-  else if(e.key==='ArrowUp'){e.preventDefault();setFocusItem(key,(dropFocusIdx[key]??0)-1,items);}
-  else if(e.key==='Enter'&&dropFocusIdx[key]>=0){e.preventDefault();items[dropFocusIdx[key]].dispatchEvent(new MouseEvent('mousedown'));}
-  else if(e.key==='Escape') hideDrop(key);
-}
-function confirmAsText(key){
-  const label = document.getElementById('ai_'+key).value.trim();
-  if(!label) return;
-  LOCS[key] = { label, lat:null, lng:null };
-  const inp = document.getElementById('ai_'+key);
-  inp.classList.add('confirmed');
-  hideDrop(key);
-  document.getElementById('act_'+key).textContent = label + ' (좌표 미확인)';
-  document.getElementById('ac_'+key).style.display='flex';
-}
-
-function setFocusItem(key,idx,items){
-  items.forEach(el=>el.classList.remove('focused'));
-  const n=Math.max(0,Math.min(items.length-1,idx));
-  dropFocusIdx[key]=n; items[n].classList.add('focused');
-  items[n].scrollIntoView({block:'nearest'});
-}
-
-// 셔틀 정류장
-let shuttleStopCount={shuttle_stops1:0,shuttle_stops2:0};
-function addShuttleStop(containerId){
-  const cnt=++shuttleStopCount[containerId];
-  const key=containerId+'_'+cnt;
-  LOCS[key]={label:'',lat:null,lng:null};
-  const div=document.createElement('div');
-  div.style.marginBottom='10px'; div.id='ss_wrap_'+key;
-  document.getElementById(containerId).appendChild(div);
-  createAddrSearch(key,'ss_wrap_'+key,'정류장명 또는 주소 검색','#e09090');
-}
-
-// == 결과 데이터 ==========================================
-const REGIONS = [
-  { rank:'01', tag:'✦ 1순위 추천', area:'마포구', sub:'공덕동 · 아현동 · 대흥동',
-    metrics:[['학군','★★★☆☆'],['생활편의','★★★★☆'],['개발호재','신촌·홍대 개발']],
-    lawdCd:'11440', lat:37.5497, lng:126.9521 },
-  { rank:'02', tag:'2순위', area:'성동구', sub:'행당동 · 금호동 · 왕십리',
-    metrics:[['학군','★★★★☆'],['생활편의','★★★★★'],['개발호재','GTX-B 예정 🚄']],
-    lawdCd:'11200', lat:37.5472, lng:127.0402 },
-  { rank:'03', tag:'3순위', area:'동작구', sub:'노량진 · 사당동 · 흑석동',
-    metrics:[['학군','★★★★★'],['생활편의','★★★☆☆'],['예산 적합','★★★★☆']],
-    lawdCd:'11590', lat:37.5097, lng:126.9390 },
-];
-
-// -- 네이버 Directions5 API 경로 조회 ------------------------------
-// 자가용: map-direction/v1/driving, 대중교통: map-direction/v1/transit
-// 주의: Directions API는 서버에서만 호출 가능 (CORS) -> 여기선 추정값 사용 + 지도 경로 표시
-
-// 출근지 -> 추천지역 소요시간 추정 (카카오 좌표 기반 직선거리 -> 도심 평균속도 적용)
-function estimateTime(fromCoord, toCoord, transport){
-  if(!fromCoord || !fromCoord.lat || !fromCoord.lng) return null;
-  // 직선 거리 (km)
-  const R=6371;
-  const dLat=(toCoord.lat-fromCoord.lat)*Math.PI/180;
-  const dLng=(toCoord.lng-fromCoord.lng)*Math.PI/180;
-  const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(fromCoord.lat*Math.PI/180)*Math.cos(toCoord.lat*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
-  const distKm=R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-  // 수도권 실거리 계수 (직선 * 1.35)
-  const realKm=distKm*1.35;
-  // 이동수단별 평균속도 (km/h)
-  let speed=25; // 대중교통 기본
-  if(transport.includes('자가용')) speed=22; // 도심 자가용 (정체 반영)
-  else if(transport.includes('셔틀')) speed=30; // 셔틀 (전용도로)
-  else if(transport.includes('도보')) speed=5;
-  // 환승.대기 보정
-  let base=Math.round(realKm/speed*60);
-  if(transport.includes('대중교통')) base+=10; // 환승 대기
-  if(transport.includes('자가용')) base+=5;  // 출발지 도달
-  return Math.max(10, Math.min(90, base));
-}
-
-// -- 카카오모빌리티 자동차 길찾기 API ------------------------------
-// CORS 허용됨 (카카오 로컬 API와 동일한 REST API 키 사용)
-const directionsCache = {};
-
-async function fetchCarRoute(fromCoord, toCoord){
-  if(!fromCoord?.lat || !toCoord?.lat) return null;
-  const ck = `${fromCoord.lat.toFixed(4)},${fromCoord.lng.toFixed(4)}-${toCoord.lat.toFixed(4)},${toCoord.lng.toFixed(4)}`;
-  if(directionsCache[ck]) return directionsCache[ck];
-
-  try{
-    const url = `https://apis-navi.kakaomobility.com/v1/directions`
-      + `?origin=${fromCoord.lng},${fromCoord.lat}`
-      + `&destination=${toCoord.lng},${toCoord.lat}`
-      + `&priority=RECOMMEND&summary=false&road_details=false`;
-
-    const res = await fetch(url, {
-      headers:{ Authorization: KAKAO_KEY, 'Content-Type':'application/json' }
-    });
-    if(!res.ok) return null;
-    const data = await res.json();
-    const route = data.routes?.[0];
-    if(!route || route.result_code !== 0) return null;
-
-    // 주요 도로명 추출 (거리 상위 3개)
-    const roads = [];
-    route.sections?.forEach(sec=>{
-      sec.roads?.forEach(r=>{ if(r.name && r.distance>200) roads.push({name:r.name, dist:r.distance}); });
-    });
-    roads.sort((a,b)=>b.dist-a.dist);
-    const topRoads = [...new Set(roads.map(r=>r.name))].slice(0,3);
-
-    // vertexes -> 지도 경로 좌표 배열
-    const pathCoords = [];
-    route.sections?.forEach(sec=>{
-      sec.roads?.forEach(r=>{
-        const vs = r.vertexes;
-        for(let i=0;i<vs.length;i+=2){
-          pathCoords.push({lng:vs[i], lat:vs[i+1]});
-        }
-      });
-    });
-
-    const result = {
-      duration: Math.round(route.summary.duration / 60), // 초 → 분
-      distance: Math.round(route.summary.distance / 1000 * 10) / 10, // m → km
-      topRoads,
-      pathCoords,
-      toll: route.summary.fare?.toll || 0
-    };
-    directionsCache[ck] = result;
-    return result;
-  } catch(e){ return null; }
-}
-
-// 평형 → 전용면적(㎡) 범위 변환
-function sizeToExclRange(sizeType){
-  if(sizeType.includes('~20')) return {min:0,   max:49};   // ~20평 (66㎡ 이하)
-  if(sizeType.includes('25~32')) return {min:59,  max:85};  // 25~32평
-  if(sizeType.includes('33~42')) return {min:85,  max:115}; // 33~42평
-  if(sizeType.includes('43'))    return {min:115, max:999}; // 43평+
-  return {min:59, max:85}; // 기본값 25~32평
-}
-
-// == 지역 분석 엔진 ==
-// 서울 25개 구 실거래가 조회 후 예산 내 구만 필터, 출퇴근 소요시간 순 TOP3 추천
-async function analyzeRegions(inp, onProgress){
-  const budgetWan = parseFloat(inp.budget || '8') * 10000;
-  const ym = getYM(0); // 가장 최근 월부터 시도
-  const ymPrev = getYM(1);
-
-  const candidates = [];
-  let done = 0;
-
-  // 25개 구 병렬 조회 (Promise.all)
-  await Promise.all(NATIONAL_GU.map(async (gu) => {
-    // 실거래가 조회 (최근 2개월)
-    let amounts = [];
-    for(const ym_ of [ym, ymPrev]) {
-      try {
-        const res = await fetch(
-          `https://apis.data.go.kr/1613000/RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade` +
-          `?serviceKey=${MOLIT_KEY}&LAWD_CD=${gu.lawdCd}&DEAL_YMD=${ym_}&numOfRows=100&pageNo=1`
-        );
-        const xml = new DOMParser().parseFromString(await res.text(), 'text/xml');
-        xml.querySelectorAll('item').forEach(item => {
-          const excl = parseFloat(item.querySelector('excluUseAr')?.textContent || 0);
-          const amt = parseInt((item.querySelector('dealAmount')?.textContent || '0').replace(/,/g, ''));
-          const canceled = (item.querySelector('cdealType')?.textContent || '').trim();
-          const exclRange = sizeToExclRange(inp.sizeType || '25~32평');
-        if(!canceled && excl >= exclRange.min && excl <= exclRange.max && amt > 0) amounts.push(amt);
-        });
-        if(amounts.length >= 5) break; // 데이터 충분하면 중단
-      } catch(e) {}
-    }
-
-    done++;
-    onProgress && onProgress(done, NATIONAL_GU.length);
-
-    if(amounts.length === 0) return; // 데이터 없는 구 제외
-
-    const avg = Math.round(amounts.reduce((a,b)=>a+b,0) / amounts.length);
-
-    // 예산 초과면 제외
-    if(avg > budgetWan * 1.05) return;
-
-    // 출퇴근 소요시간 추정
-    const aTime = inp.work1Coord?.lat ? (estimateTime(inp.work1Coord, gu, inp.tr1) || 60) : 60;
-    const bTime = inp.work2Coord?.lat ? (estimateTime(inp.work2Coord, gu, inp.tr2) || 60) : 60;
-
-    // 조부모 소요시간 계산
-    let gpTime = 0;
-    const hasGp = inp.gpOn && inp.gpCoord?.lat;
-    if(hasGp){
-      gpTime = estimateTime(inp.gpCoord, gu, '대중교통') || 999;
-      const maxGp = inp.gpMaxTime || 30;
-      if(gpTime > maxGp * 1.5) return; // 조부모 허용시간 초과 제외
-    }
-
-    // 가중 점수 계산 (낮을수록 좋음)
-    // 조부모 가중치만큼 출퇴근 가중치에서 차감
-    const gpW  = hasGp ? (inp.gpWeight || 30) / 100 : 0;
-    const comW = 1 - gpW;
-    const wtA  = (parseFloat(inp.weight || 50) / 100) * comW;
-    const wtB  = (1 - parseFloat(inp.weight || 50) / 100) * comW;
-    const score = aTime * wtA + bTime * wtB + gpTime * gpW;
-
-    // 출퇴근 허용 시간 초과 구 제외 (50% 여유)
-    const maxA = parseFloat(inp.c1 || 60);
-    const maxB = parseFloat(inp.c2 || 60);
-    if(aTime > maxA * 1.5 || bTime > maxB * 1.5) return;
-
-    candidates.push({ ...gu, avg, aTime, bTime, gpTime, score });
-    // 진행 상황 로그
-    // console.log(`${gu.city} ${gu.area}: 평균 ${Math.floor(avg/10000)}억, A:${aTime}분, B:${bTime}분`);
-  }));
-
-  // 점수 순 정렬 → TOP 3
-  candidates.sort((a,b) => a.score - b.score);
-  return candidates.slice(0, 3).map((r, i) => ({
-    ...r,
-    rank: String(i+1).padStart(2,'0'),
-    tag: i === 0 ? '✦ 1순위 추천' : i === 1 ? '2순위' : '3순위',
-    metrics: [
-      ['30평대 실거래 평균', Math.floor(r.avg/10000)+'억'+( r.avg%10000 ? ' '+Math.round(r.avg%10000/1000)+'천' : '')],
-      ['A 추정 출퇴근', r.aTime+'분'],
-      ['B 추정 출퇴근', r.bTime+'분'],
-    ]
-  }));
-}
-
-// == ODsay 대중교통 길찾기 API ==
-const ODSAY_KEY = encodeURIComponent('7pHttv0j/xkYqhr6uY/vug');
-const transitCache = {};
-
-async function fetchTransitRoute(fromCoord, toCoord){
-  if(!fromCoord?.lat || !toCoord?.lat) return null;
-  const ck = `${fromCoord.lat.toFixed(4)},${fromCoord.lng.toFixed(4)}-${toCoord.lat.toFixed(4)},${toCoord.lng.toFixed(4)}`;
-  if(transitCache[ck]) return transitCache[ck];
-
-  try{
-    const url = `https://api.odsay.com/v1/api/searchPubTransPathT`
-      + `?SX=${fromCoord.lng}&SY=${fromCoord.lat}`
-      + `&EX=${toCoord.lng}&EY=${toCoord.lat}`
-      + `&OPT=0&SearchType=0&apiKey=${ODSAY_KEY}`;
-
-    const res = await fetch(url);
-    if(!res.ok) return null;
-    const data = await res.json();
-
-    // 오류 코드 확인
-    if(data.error || !data.result?.path?.length) return null;
-
-    // 최적 경로 (0번 = 추천)
-    const path = data.result.path[0];
-    const info = path.info;
-    const subPaths = path.subPath || [];
-
-    // 구간별 교통수단 파싱
-    const steps = [];
-    subPaths.forEach(sp => {
-      if(sp.trafficType === 1){ // 지하철
-        steps.push({
-          type: 'subway',
-          line: sp.lane?.[0]?.name || '',
-          lineColor: sp.lane?.[0]?.subwayCode ? subwayColor(sp.lane[0].subwayCode) : '#666',
-          from: sp.startName,
-          to: sp.endName,
-          stationCount: sp.stationCount,
-          time: sp.sectionTime
-        });
-      } else if(sp.trafficType === 2){ // 버스
-        const busNos = (sp.lane||[]).map(l=>l.busNo).filter(Boolean).slice(0,3);
-        steps.push({
-          type: 'bus',
-          busNos,
-          busType: sp.lane?.[0]?.type,
-          from: sp.startName,
-          to: sp.endName,
-          stationCount: sp.stationCount,
-          time: sp.sectionTime
-        });
-      } else if(sp.trafficType === 3){ // 도보
-        if(sp.sectionTime > 3){
-          steps.push({ type:'walk', time: sp.sectionTime, distance: sp.distance });
-        }
-      }
-    });
-
-    const result = {
-      totalTime: info.totalTime,
-      totalWalk: info.totalWalk,
-      transferCount: info.transitCount,
-      payment: info.payment,
-      steps
-    };
-    transitCache[ck] = result;
-    return result;
-  } catch(e){ return null; }
-}
-
-// 지하철 호선별 색상
-function subwayColor(code){
-  const colors = {
-    1:'#263c96', 2:'#3a993a', 3:'#ef7c1c', 4:'#00a2d1',
-    5:'#8b50a4', 6:'#c55c1d', 7:'#596547', 8:'#e61e2b',
-    9:'#bdb092', 21:'#77c4a3', 22:'#81a914', 100:'#e60012',
-    101:'#0054a6', 104:'#f5a200'
-  };
-  return colors[code] || '#666';
-}
-
-// ODsay 경로를 HTML 스텝으로 렌더
-function renderTransitSteps(result){
-  if(!result?.steps?.length) return '';
-  const stepHtml = result.steps.map(s => {
-    if(s.type === 'subway'){
-      return `<div class="transit-step">
-        <span class="transit-badge" style="background:${s.lineColor}22;border:1px solid ${s.lineColor}66;color:${s.lineColor}">
-          🚇 ${s.line}
-        </span>
-        <span class="transit-detail">${s.from} → ${s.to} (${s.stationCount}정거장, ${s.time}분)</span>
-      </div>`;
-    } else if(s.type === 'bus'){
-      const nos = s.busNos.join(', ');
-      return `<div class="transit-step">
-        <span class="transit-badge bus-badge">🚌 ${nos}</span>
-        <span class="transit-detail">${s.from} → ${s.to} (${s.stationCount}정거장, ${s.time}분)</span>
-      </div>`;
-    } else if(s.type === 'walk'){
-      return `<div class="transit-step walk-step">
-        <span style="font-size:11px;color:var(--dim)">🚶 도보 ${s.time}분</span>
-      </div>`;
-    }
-    return '';
-  }).join('');
-
-  return `<div class="transit-summary">
-    <span class="ts-total">${result.totalTime}분</span>
-    <span class="ts-info">환승 ${result.transferCount}회 · 도보 ${result.totalWalk}m · ${result.payment}원</span>
-  </div>
-  <div class="transit-steps">${stepHtml}</div>`;
-}
-
-// 지도에 실제 경로 폴리라인 그리기
-function drawRouteOnMap(map, pathCoords, color, weight=4){
-  if(!pathCoords?.length) return;
-  const path = pathCoords.map(c=> new naver.maps.LatLng(c.lat, c.lng));
-  return new naver.maps.Polyline({
-    path, map,
-    strokeColor: color,
-    strokeOpacity: 0.75,
-    strokeWeight: weight,
-    strokeStyle: 'solid'
-  });
-}
-
-// 이동 수단에 따른 경로 설명 생성
-function buildRouteDesc(from, to, transport, fromLabel){
-  if(!from || !from.lat) return fromLabel + ' → ' + to.area;
-  const dist = calcDistKm(from, to);
-  
-  if(transport.includes('셔틀')) {
-    // 셔틀 정류장 - 입력한 값 우선
-    const stops = [];
-    document.querySelectorAll('.addr-input.confirmed').forEach(el=>{
-      const v=el.value.trim();
-      if(v && !stops.includes(v)) stops.push(v);
-    });
-    const stopStr = stops.length>0 ? stops[0] : '셔틀 탑승지';
-    return fromLabel + ' → ' + stopStr + ' 탑승 → (셔틀) → ' + to.area;
-  }
-  if(transport.includes('자가용')) {
-    // 기본값 (API 결과 받기 전)
-    return fromLabel + ' → (경로 계산 중...) → ' + to.area;
-  }
-  if(transport.includes('대중교통')) {
-    const lines = getTransitHint(from, to);
-    const distKm = from?.lat ? Math.round(calcDistKm(from,to)*1.3) : '?';
-    return fromLabel + ' → ' + lines + ' (약 ' + distKm + 'km)';
-  }
-  return fromLabel + ' → ' + to.area + ' (' + Math.round(dist)+'km)';
-}
-
-function calcDistKm(a, b){
-  const R=6371, dLat=(b.lat-a.lat)*Math.PI/180, dLng=(b.lng-a.lng)*Math.PI/180;
-  const aa=Math.sin(dLat/2)**2+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLng/2)**2;
-  return R*2*Math.atan2(Math.sqrt(aa),Math.sqrt(1-aa));
-}
-
-// 자가용 주요 도로 힌트 (출발지 경도/위도 기반)
-function getRoadHint(from, to){
-  const fLng=from.lng, fLat=from.lat, tLng=to.lng, tLat=to.lat;
-  // 서울 주요 도로망 기반 추정
-  if(fLng>127.1) return '올림픽대로·강변북로'; // 동쪽
-  if(fLng<126.9) return '서부간선도로·올림픽대로'; // 서쪽
-  if(fLat<37.45) return '경부고속도로·강남대로'; // 남쪽
-  if(fLat>37.6) return '내부순환로·북부간선도로'; // 북쪽
-  return '도심 간선도로';
-}
-
-// 대중교통 힌트 (좌표 기반 주요 노선 추정)
-// 서울 주요 지하철 노선 좌표 범위 기반
-function getTransitHint(from, to){
-  if(!from?.lng) return '지하철·버스';
-  const fLng=from.lng, fLat=from.lat;
-  const tLng=to.lng, tLat=to.lat;
-  const hints = [];
-  // 출발지 인근 노선
-  if(fLng>127.1 && fLat<37.52) hints.push('2호선');
-  else if(fLng>127.05 && fLat<37.48) hints.push('수인분당선');
-  else if(fLng<126.88) hints.push('9호선');
-  else if(fLng<126.92 && fLat<37.52) hints.push('5호선');
-  else if(fLat>37.62) hints.push('1호선·4호선');
-  else if(fLng>126.95 && fLng<127.05 && fLat>37.52) hints.push('5호선·6호선');
-  else hints.push('지하철');
-  // 목적지 인근 환승 노선
-  if(to.area==='마포구') hints.push('5호선·6호선');
-  else if(to.area==='성동구') hints.push('2호선·5호선');
-  else if(to.area==='동작구') hints.push('9호선');
-  return hints.join(' → ') + ' 이용';
-}
-
-const APTS = [
-  {r:'1',rank:1,name:'마포래미안푸르지오',lawdCd:'11440',area:'마포구',addr:'아현동 · 아현역 도보 3분',size:'34평',excl:84,tags:['new'],aT:'26분',bT:'33분',gpT:'40분'},
-  {r:'1',rank:2,name:'공덕자이',lawdCd:'11440',area:'마포구',addr:'공덕동 · 공덕역 도보 5분',size:'33평',excl:84,tags:[],aT:'28분',bT:'31분',gpT:'43분'},
-  {r:'1',rank:3,name:'마포한강2차아이파크',lawdCd:'11440',area:'마포구',addr:'대흥동 · 대흥역 도보 7분',size:'30평',excl:59,tags:[],aT:'31분',bT:'36분',gpT:'38분'},
-  {r:'1',rank:4,name:'신촌숲아이파크',lawdCd:'11440',area:'마포구',addr:'동교동 · 홍대입구역 도보 8분',size:'32평',excl:84,tags:[],aT:'29분',bT:'38분',gpT:'41분'},
-  {r:'2',rank:5,name:'왕십리자이',lawdCd:'11200',area:'성동구',addr:'행당동 · 왕십리역 도보 4분',size:'34평',excl:84,tags:['gtx'],aT:'30분',bT:'36분',gpT:'37분'},
-  {r:'2',rank:6,name:'금호두산위브',lawdCd:'11200',area:'성동구',addr:'금호동 · 금호역 도보 6분',size:'31평',excl:84,tags:[],aT:'33분',bT:'40분',gpT:'42분'},
-  {r:'2',rank:7,name:'서울숲리버뷰자이',lawdCd:'11200',area:'성동구',addr:'성수동 · 뚝섬역 도보 9분',size:'33평',excl:84,tags:['new'],aT:'35분',bT:'42분',gpT:'39분'},
-  {r:'3',rank:8,name:'흑석한강센트레빌',lawdCd:'11590',area:'동작구',addr:'흑석동 · 흑석역 도보 5분',size:'33평',excl:84,tags:['etc:학군 우수'],aT:'40분',bT:'27분',gpT:'52분'},
-  {r:'3',rank:9,name:'사당래미안',lawdCd:'11590',area:'동작구',addr:'사당동 · 사당역 도보 6분',size:'30평',excl:84,tags:['etc:셔틀 최적'],aT:'38분',bT:'28분',gpT:'55분'},
-  {r:'3',rank:10,name:'노량진e편한세상',lawdCd:'11590',area:'동작구',addr:'노량진동 · 노량진역 도보 4분',size:'32평',excl:84,tags:[],aT:'42분',bT:'25분',gpT:'58분'},
-];
-
-const MOLIT_KEY = encodeURIComponent('66ee7240d70d045a4d3808209ee995f60fa7195ea6e79ac65cc9124379828e3a');
-const priceCache = {};
-
-function getYM(offset=0){
-  // 국토부 API는 신고~등록까지 시간이 걸려 최신달 데이터가 없는 경우가 많음
-  // 기본 offset 1 (1개월 전)부터 시작
-  const d=new Date(); d.setMonth(d.getMonth()-(offset+1));
-  return d.getFullYear()*100+(d.getMonth()+1);
-}
-
-async function fetchPrice(lawdCd, aptName, excl){
-  const ck=lawdCd+'_'+aptName;
-  if(priceCache[ck]) return priceCache[ck];
-  for(let m=0;m<5;m++){
-    const ym=getYM(m);
-    try{
-      const res=await fetch(`https://apis.data.go.kr/1613000/RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade?serviceKey=${MOLIT_KEY}&LAWD_CD=${lawdCd}&DEAL_YMD=${ym}&numOfRows=100&pageNo=1`);
-      const text=await res.text();
-      const xml=new DOMParser().parseFromString(text,'text/xml');
-      // 현재 선택된 평형 기준 면적 범위
-      const curSizeType = document.querySelector('#sz .on')?.textContent.trim() || '25~32평';
-      const curExclRange = sizeToExclRange(curSizeType);
-      let best=null, bestDiff=Infinity;
-      xml.querySelectorAll('item').forEach(item=>{
-        const name=(item.querySelector('aptNm')?.textContent||'').trim();
-        const area=parseFloat(item.querySelector('excluUseAr')?.textContent||0);
-        const amt=(item.querySelector('dealAmount')?.textContent||'').replace(/,/g,'').trim();
-        const canceled=(item.querySelector('cdealType')?.textContent||'').trim();
-        if(canceled||!amt) return;
-        // 선택 평형 범위 외 제외
-        if(area < curExclRange.min || area > curExclRange.max) return;
-        // 단지명 4자 이상 매칭 or 포함 관계
-        const q=aptName.replace(/[\s\(\)]/g,'').slice(0,5);
-        const nm=name.replace(/[\s\(\)]/g,'');
-        const nmatch=nm.includes(q)||q.includes(nm.slice(0,4))||aptName.slice(0,4)===name.slice(0,4);
-        if(!nmatch) return;
-        const diff=Math.abs(area-excl);
-        if(diff<bestDiff){bestDiff=diff;best=amt;}
-      });
-      // 단지명 매칭 실패시 해당 구 전체에서 면적 근사값 사용
-      if(!best){
-        xml.querySelectorAll('item').forEach(item=>{
-          const area=parseFloat(item.querySelector('excluUseAr')?.textContent||0);
-          const amt=(item.querySelector('dealAmount')?.textContent||'').replace(/,/g,'').trim();
-          const canceled=(item.querySelector('cdealType')?.textContent||'').trim();
-          if(canceled||!amt) return;
-          const diff=Math.abs(area-excl);
-          if(diff<10 && diff<bestDiff){bestDiff=diff;best=amt;}
-        });
-      }
-      if(best){
-        const v=parseInt(best);
-        const str=Math.floor(v/10000)+'억'+(v%10000>0?' '+Math.round(v%10000/1000)+'천':'');
-        priceCache[ck]=str; return str;
-      }
-    }catch(e){}
-  }
-  return null;
-}
-
-// == 결과 진입 ==
-function getInputs(){
-  return {
-    work1:  LOCS.work1.label  || '(미입력)',
-    work2:  LOCS.work2.label  || '(미입력)',
-    work1Label: LOCS.work1.label || 'A 출근지',
-    work2Label: LOCS.work2.label || 'B 출근지',
-    work1Coord: LOCS.work1,
-    work2Coord: LOCS.work2,
-    gpCoord:    LOCS.gpAddr,
-    c1: document.getElementById('c1').value,
-    c2: document.getElementById('c2').value,
-    tr1: document.querySelector('#tr1 .on')?.textContent.trim()||'🚇 대중교통',
-    tr2: document.querySelector('#tr2 .on')?.textContent.trim()||'🚇 대중교통',
-    gpOn: document.querySelector('#gp .on')?.textContent.trim()==='가능',
-    gpLabel: LOCS.gpAddr.label||'(미입력)',
-    budget: document.getElementById('bud').value,
-    dealType: document.querySelector('#dt .on')?.textContent.trim()||'매매',
-    sizeType: document.querySelector('#sz .on')?.textContent.trim()||'25~32평',
-    weight: document.getElementById('wt')?.value || '50',
-    gpMaxTime: parseInt(document.getElementById('gpTime')?.value || '30'),
-    gpWeight: parseInt(document.getElementById('gpWt')?.value || '30'),
-  };
-}
-
-async function showResult(){
-  [1,2,3,4].forEach(i=>document.getElementById('step'+i).style.display='none');
-  document.getElementById('result').style.display='block';
-  [1,2,3,4,5].forEach(i=>{
-    const el=document.getElementById('nav'+i);
-    el.classList.remove('active','done');
-    if(i===5) el.classList.add('active'); else el.classList.add('done');
-  });
-  document.getElementById('progress').style.width='100%';
-  window.scrollTo({top:0,behavior:'smooth'});
-
-  const inp = getInputs();
-
-  // 입력값 요약
-  document.getElementById('inputSummary').innerHTML=[
-    `A 출근지: <b>${inp.work1}</b>`,
-    `B 출근지: <b>${inp.work2}</b>`,
-    `A 이동: <b>${inp.tr1}</b>`,
-    `B 이동: <b>${inp.tr2}</b>`,
-    `예산: <b>${inp.budget}억</b>`,
-    `평형: <b>${inp.sizeType}</b>`,
-    `거래: <b>${inp.dealType}</b>`,
-    ...(inp.gpOn ? [`조부모: <b>${inp.gpLabel} (허용 ${inp.gpMaxTime}분, 가중 ${inp.gpWeight}%)</b>`] : []),
-  ].map(t=>`<div class="ibadge">${t}</div>`).join('');
-
-  document.getElementById('s_a').textContent = inp.c1+'분 허용';
-  document.getElementById('s_b').textContent = inp.c2+'분 허용';
-  // 조부모 strip 업데이트
-  const gpStripEl = document.getElementById('s_gp');
-  if(gpStripEl) gpStripEl.textContent = inp.gpOn ? inp.gpMaxTime+'분 허용' : '—';
-  document.getElementById('gpLegend').style.display = inp.gpOn ? 'flex' : 'none';
-
-  // 로딩 화면 표시
-  document.getElementById('regionCards').innerHTML = `
-    <div style="grid-column:1/-1;padding:48px;text-align:center">
-      <div style="font-family:'DM Mono',monospace;font-size:13px;color:var(--a);margin-bottom:16px">전국 시군구 실거래가 분석 중...</div>
-      <div style="background:var(--border);height:2px;border-radius:1px;overflow:hidden">
-        <div id="analyzeBar" style="height:100%;background:var(--a);width:0%;transition:width .3s"></div>
-      </div>
-      <div id="analyzeStatus" style="font-size:11px;color:var(--dim);margin-top:8px">0 / 135</div>
-    </div>`;
-
-  // 지역 분석 실행
-  try {
-    REGIONS = await analyzeRegions(inp, (done, total) => {
-      const pct = Math.round(done/total*100);
-      const bar = document.getElementById('analyzeBar');
-      const status = document.getElementById('analyzeStatus');
-      if(bar) bar.style.width = pct+'%';
-      if(status) status.textContent = done+' / '+total+' 지역 완료';
-    });
-  } catch(e) {
-    REGIONS = [];
-  }
-
-  if(REGIONS.length === 0) {
-    document.getElementById('regionCards').innerHTML = `
-      <div style="grid-column:1/-1;padding:48px;text-align:center">
-        <div style="font-size:28px;margin-bottom:12px">😔</div>
-        <div style="color:var(--muted)">전국 ${NATIONAL_GU.length}개 지역 중 예산(${inp.budget}억)과 출퇴근 조건에 맞는 지역이 없어요.</div>
-        <div style="font-size:12px;color:var(--dim);margin-top:8px">예산을 높이거나 출퇴근 허용 시간을 늘려보세요.</div>
-      </div>`;
-    return;
-  }
-
-  // strips 업데이트
-  document.getElementById('s_a').textContent = inp.c1+'분 허용';
-  document.getElementById('s_b').textContent = inp.c2+'분 허용';
-  const s_regions = document.getElementById('s_regions');
-  if(s_regions) s_regions.textContent = NATIONAL_GU.length+'개 → '+REGIONS.length+'개 추천';
-  const s_size = document.getElementById('s_size');
-  if(s_size) s_size.textContent = inp.sizeType || '25~32평';
-
-  // 분석 완료 - 카드 렌더
-  renderRegionCards(inp);
-  renderApts(inp);
-  loadAndRenderMap(inp);
-}
-
-function tClass(t){
-  if(!t) return 'rec';
-  if(t.includes('지하철')||t.includes('대중교통')) return 'sub';
-  if(t.includes('자가용')) return 'car';
-  if(t.includes('셔틀')) return 'sh';
-  return 'wk';
-}
-
-async function renderRegionCards(inp){
-  const rc=document.getElementById('regionCards');
-  // REGIONS는 analyzeRegions()에서 이미 예산 필터 + 소요시간 계산 완료
-  rc.innerHTML=REGIONS.map((r,ri)=>{
-    // analyzeRegions에서 계산된 실제 추정 소요시간 사용
-    let aTime = r.aTime || 30;
-    let bTime = r.bTime || 35;
-
-    // 경로 설명 - 입력 교통수단 기반
-    const aFrom = inp.work1!=='(미입력)' ? inp.work1 : '출근지 A';
-    const bFrom = inp.work2!=='(미입력)' ? inp.work2 : '출근지 B';
-    const aRouteText = buildRouteDesc(inp.work1Coord, r, inp.tr1, aFrom);
-    const bRouteText = buildRouteDesc(inp.work2Coord, r, inp.tr2, bFrom);
-
-    // 조부모 행 - gpOn이고 좌표/주소가 있을 때만
-    const hasGp = inp.gpOn && inp.gpLabel && inp.gpLabel !== '(미입력)';
-    const gpTimeVal = r.gpTime || (hasGp && inp.gpCoord?.lat
-      ? estimateTime(inp.gpCoord, r, '대중교통') : null);
-    const gpMax = inp.gpMaxTime || 30;
-    const gpOverLimit = gpTimeVal && gpTimeVal > gpMax;
-    const gpRow = hasGp ? `<div class="gprow">
-      <span style="font-size:15px">👴</span>
-      <div class="gpi">
-        <div class="gplb">조부모(${inp.gpLabel})까지 · 허용 ${gpMax}분</div>
-        <div class="gpvl" style="color:${gpOverLimit ? 'var(--a3)' : 'var(--a2)'}">
-          🚇 ${gpTimeVal || '—'}분
-          ${gpOverLimit ? '<span style="font-size:10px;margin-left:4px;opacity:.8">초과</span>' : '✓'}
-        </div>
-      </div>
-    </div>` : '';
-    const aBarW = Math.min(95, aTime);
-    const bBarW = Math.min(95, bTime);
-    return `<div class="rcard">
-      <div class="rrank">${r.rank}</div>
-      <div class="rtag">${r.tag}</div>
-      <div class="rarea">${r.city !== '서울' && r.city !== r.area ? r.city+' ' : ''}${r.area}</div>
-      <div class="rsub">${r.sub}</div>
-      <div class="crow">
-        <div class="ctop">
-          <div class="cpill" style="background:rgba(200,169,110,.15);border:1px solid rgba(200,169,110,.3);color:var(--a)">A</div>
-          <div class="cinfo">
-            <div class="ctime" id="rt_a_time_${ri}">${aTime}<span>분 (추정)</span></div>
-            <div class="trow">
-              <span class="tbadge ${tClass(inp.tr1)}">${inp.tr1}</span>
-            </div>
-            <div class="troute" id="rt_a_route_${ri}">${aRouteText}</div>
-            ${inp.tr1.includes('대중교통') ? `<div class="transit-block" id="rt_a_transit_${ri}"><div class="transit-loading">경로 조회 중...</div></div>` : ''}
-          </div>
-        </div>
-        <div class="cbar"><div class="cbar-f" id="rt_a_bar_${ri}" style="width:${aBarW}%;background:var(--a)"></div></div>
-      </div>
-      <div class="crow">
-        <div class="ctop">
-          <div class="cpill" style="background:rgba(127,181,160,.15);border:1px solid rgba(127,181,160,.3);color:var(--a2)">B</div>
-          <div class="cinfo">
-            <div class="ctime" id="rt_b_time_${ri}">${bTime}<span>분 (추정)</span></div>
-            <div class="trow">
-              <span class="tbadge ${tClass(inp.tr2)}">${inp.tr2}</span>
-            </div>
-            <div class="troute" id="rt_b_route_${ri}">${bRouteText}</div>
-            ${inp.tr2.includes('대중교통') ? `<div class="transit-block" id="rt_b_transit_${ri}"><div class="transit-loading">경로 조회 중...</div></div>` : ''}
-          </div>
-        </div>
-        <div class="cbar"><div class="cbar-f" id="rt_b_bar_${ri}" style="width:${bBarW}%;background:var(--a2)"></div></div>
-      </div>
-      ${gpRow}
-      <div class="dthin"></div>
-      ${r.metrics.map(([k,v])=>`<div class="mrow"><span class="mk">${k}</span><span class="mv">${v}</span></div>`).join('')}
-      <div class="rpx">
-        <div>
-          <div class="rplb">30평대 실거래 평균 (3개월)</div>
-          <div class="rplb" style="color:var(--dim);margin-top:2px">예산 ${inp.budget}억 기준</div>
-        </div>
-        <div class="rpv aprice loading" id="rp_${r.lawdCd}">조회 중</div>
-      </div>
-    </div>`;
-  }).join('');
-
-  // -- 자가용/셔틀 경로 API로 실제 소요시간+경로명 업데이트 --
-  REGIONS.forEach(async (r, ri)=>{
-    const rIdx = ri; // 0,1,2
-
-    // A 자가용 경로
-    if(inp.tr1.includes('자가용') && inp.work1Coord?.lat){
-      const route = await fetchCarRoute(inp.work1Coord, {lat:r.lat, lng:r.lng});
-      if(route){
-        const elTime = document.getElementById(`rt_a_time_${ri}`);
-        const elRoute = document.getElementById(`rt_a_route_${ri}`);
-        if(elTime) elTime.textContent = route.duration + '분';
-        if(elRoute) elRoute.textContent =
-          inp.work1Label + ' → ' + route.topRoads.join(' → ') + ' → ' + r.area
-          + ' (' + route.distance + 'km' + (route.toll ? ', 통행료 있음' : '') + ')';
-        const bar = document.getElementById(`rt_a_bar_${ri}`);
-        if(bar) bar.style.width = Math.min(95, route.duration) + '%';
-      }
-    }
-
-    // B 자가용 경로
-    if(inp.tr2.includes('자가용') && inp.work2Coord?.lat){
-      const route = await fetchCarRoute(inp.work2Coord, {lat:r.lat, lng:r.lng});
-      if(route){
-        const elTime = document.getElementById(`rt_b_time_${ri}`);
-        const elRoute = document.getElementById(`rt_b_route_${ri}`);
-        if(elTime) elTime.textContent = route.duration + '분';
-        if(elRoute) elRoute.textContent =
-          inp.work2Label + ' → ' + route.topRoads.join(' → ') + ' → ' + r.area
-          + ' (' + route.distance + 'km' + (route.toll ? ', 통행료 있음' : '') + ')';
-        const bar = document.getElementById(`rt_b_bar_${ri}`);
-        if(bar) bar.style.width = Math.min(95, route.duration) + '%';
-      }
-    }
-  });
-
-  REGIONS.forEach(async r=>{
-    const el=document.getElementById('rp_'+r.lawdCd);
-    if(!el) return;
-    // analyzeRegions에서 이미 계산된 avg 사용
-    if(r.avg){
-      el.classList.remove('loading');
-      el.textContent = Math.floor(r.avg/10000)+'억'+(r.avg%10000 ? ' '+Math.round(r.avg%10000/1000)+'천' : '');
-      el.style.color = 'var(--a2)';
-      const tag=document.createElement('div');
-      tag.style.cssText='font-size:10px;margin-top:3px;font-family:"DM Mono",monospace;color:var(--a2)';
-      tag.textContent='✓ 예산 내';
-      el.parentNode.appendChild(tag);
-      return;
-    }
-    // 최근 3개월 데이터 합산
-    const amounts=[];
-    for(let m=0;m<3;m++){
-      const ym=getYM(m);
-      try{
-        const res=await fetch(`https://apis.data.go.kr/1613000/RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade?serviceKey=${MOLIT_KEY}&LAWD_CD=${r.lawdCd}&DEAL_YMD=${ym}&numOfRows=100&pageNo=1`);
-        const text=await res.text();
-        const xml=new DOMParser().parseFromString(text,'text/xml');
-        xml.querySelectorAll('item').forEach(item=>{
-          const excl=parseFloat(item.querySelector('excluUseAr')?.textContent||0);
-          const amt=parseInt((item.querySelector('dealAmount')?.textContent||'0').replace(/,/g,''));
-          const canceled=(item.querySelector('cdealType')?.textContent||'').trim();
-          if(!canceled && excl>=59&&excl<=135 && amt>0) amounts.push(amt);
-        });
-      }catch(e){}
-    }
-    el.classList.remove('loading');
-    if(amounts.length){
-      const avg = Math.round(amounts.reduce((a,b)=>a+b,0)/amounts.length);
-      const avgOk = Math.floor(avg/10000)+'억'+(avg%10000>0?' '+Math.round(avg%10000/1000)+'천':'');
-      const budgetVal = budgetOk * 10000;
-      const overBudget = avg > budgetVal * 1.1; // 10% 초과시 예산 초과
-
-      el.textContent = avgOk;
-
-      if(overBudget){
-        // 예산 초과 - 카드 완전히 제거
-        el.style.color = 'var(--a3)';
-        const card = el.closest('.rcard');
-        if(card){
-          card.style.display = 'none';
-          // 남은 카드 수 확인해서 없으면 안내 메시지
-          const visible = rc.querySelectorAll('.rcard:not([style*="display: none"])');
-          if(visible.length === 0){
-            rc.innerHTML = `<div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--muted);font-size:14px">
-              <div style="font-size:28px;margin-bottom:12px">😔</div>
-              <div>입력하신 예산(${inp.budget}억) 내 추천 지역이 없어요.</div>
-              <div style="font-size:12px;color:var(--dim);margin-top:8px">예산을 높이거나 조건을 조정해보세요.</div>
-            </div>`;
-          }
-        }
-      } else {
-        el.style.color = avg < budgetVal * 0.9 ? 'var(--a2)' : 'var(--a)';
-        const tag = document.createElement('div');
-        tag.style.cssText = 'font-size:10px;margin-top:3px;font-family:"DM Mono",monospace';
-        tag.style.color = avg < budgetVal * 0.9 ? 'var(--a2)' : 'var(--muted)';
-        tag.textContent = avg < budgetVal * 0.9 ? '✓ 예산 내' : '~ 예산 근접';
-        el.parentNode.appendChild(tag);
-      }
-    } else {
-      el.textContent = '데이터 없음';
-      el.style.fontSize = '12px';
-    }
-  });
-}
-
-function renderApts(inp){
-  const aptListEl = document.getElementById('aptList');
-  const aptTabsEl = document.getElementById('aptTabs');
-  if(!aptListEl) return;
-
-  const budgetOk = parseFloat(inp.budget || '8');
-  const showGp = inp.gpOn && inp.gpLabel && inp.gpLabel !== '(미입력)';
-  const sizeLabel = inp.sizeType || '25~32평';
-  // 타이틀 업데이트
-  const subTitleEl = document.getElementById('aptSubTitle');
-  if(subTitleEl) subTitleEl.textContent = sizeLabel + ' 기준 · 국토부 실거래가 API · 최근 3개월';
-  const aIcon = inp.tr1.includes('셔틀') ? '🚌' : inp.tr1.includes('자가용') ? '🚗' : '🚇';
-  const bIcon = inp.tr2.includes('셔틀') ? '🚌' : inp.tr2.includes('자가용') ? '🚗' : '🚇';
-
-  // REGIONS 기반으로 표시할 구 결정
-  const regionAreas = REGIONS.map(r => r.area);
-
-  // APTS 중 추천 구에 해당하는 것만 필터, 없으면 전체 표시
-  const filteredApts = regionAreas.length > 0
-    ? APTS.filter(a => regionAreas.includes(a.area))
-    : APTS;
-
-  // 탭 동적 생성
-  if(aptTabsEl && regionAreas.length > 0){
-    aptTabsEl.innerHTML = '<button class="atab on" onclick="fApt(this,'all')">전체</button>'
-      + REGIONS.map((r,i) =>
-          `<button class="atab" onclick="fApt(this,'${i+1}')">${r.city !== '서울' ? r.city+' ' : ''}${r.area}</button>`
-        ).join('');
-  }
-
-  if(filteredApts.length === 0){
-    aptListEl.innerHTML = '<div style="padding:24px;text-align:center;color:var(--dim);font-size:13px">해당 지역 아파트 데이터가 없어요</div>';
-    return;
-  }
-
-  aptListEl.innerHTML = filteredApts.map((a, idx) => {
-    const tags = (a.tags || []).map(t => {
-      if(t === 'new') return '<span class="atag new">신축</span>';
-      if(t === 'gtx') return '<span class="atag gtx">GTX-B</span>';
-      if(t.startsWith('etc:')) return `<span class="atag etc">${t.slice(4)}</span>`;
-      return '';
-    }).join('');
-
-    // 탭 필터용 data-r: REGIONS에서 해당 구의 인덱스+1
-    const regionIdx = REGIONS.findIndex(r => r.area === a.area);
-    const dataR = regionIdx >= 0 ? String(regionIdx+1) : '0';
-    const colorClass = regionIdx >= 0 ? `r${regionIdx+1}` : 'r1';
-
-    const gpChip = showGp ? `<span class="achip">👴 ${a.gpT}</span>` : '';
-
-    return `<div class="arow ${colorClass}" data-r="${dataR}" id="apt_row_${idx}">
-      <div class="arnk">${String(idx+1).padStart(2,'0')}</div>
-      <div>
-        <div class="anr">
-          <span class="aname">${a.name}</span>
-          <span class="atag ${colorClass}">${a.area}</span>
-          ${tags}
-          <span class="atag apt-budget-tag" id="apt_btag_${idx}"></span>
-        </div>
-        <div class="aaddr">${a.addr}</div>
-        <div class="achips">
-          <span class="achip">A ${aIcon} ${a.aT}</span>
-          <span class="achip">B ${bIcon} ${a.bT}</span>
-          ${gpChip}
-        </div>
-      </div>
-      <div class="apb">
-        <div class="asz">${a.size}</div>
-        <div class="aprice loading" id="ap_${idx}">조회 중</div>
-        <div class="apdt">국토부 실거래</div>
-      </div>
-    </div>`;
-  }).join('');
-
-  // 비동기 실거래가 조회
-  filteredApts.forEach(async (a, idx) => {
-    const priceEl = document.getElementById('ap_' + idx);
-    const btagEl  = document.getElementById('apt_btag_' + idx);
-    if(!priceEl) return;
-
-    const price = await fetchPrice(a.lawdCd, a.name, a.excl);
-    priceEl.classList.remove('loading');
-
-    if(price){
-      priceEl.textContent = price;
-      const priceNum = parseFloat(price.replace('억','').trim().split(' ')[0]);
-      if(priceNum > budgetOk * 1.15){
-        priceEl.style.color = 'var(--a3)';
-        if(btagEl){ btagEl.textContent='예산초과'; btagEl.style.cssText='background:rgba(212,117,110,.08);border:1px solid rgba(212,117,110,.25);color:var(--a3)'; }
-      } else if(priceNum <= budgetOk){
-        priceEl.style.color = 'var(--a2)';
-        if(btagEl){ btagEl.textContent='예산내'; btagEl.style.cssText='background:rgba(127,181,160,.08);border:1px solid rgba(127,181,160,.25);color:var(--a2)'; }
-      }
-    } else {
-      priceEl.textContent = '데이터 없음';
-      priceEl.style.fontSize = '11px';
-    }
-  });
-}
-
-
-// == 지도 ==
-let naverMap=null;
-function loadAndRenderMap(inp){
-  // DOM 렌더 완료 후 지도 초기화
-  setTimeout(() => {
-    const mapEl = document.getElementById('naverMap');
-    if(!mapEl || mapEl.offsetWidth === 0) {
-      // 아직 DOM 미준비 - 한번 더 대기
-      setTimeout(() => {
-        document.getElementById('mapMsg').classList.remove('hidden');
-        loadNaverSDK(() => renderMap(inp));
-      }, 500);
-      return;
-    }
-    document.getElementById('mapMsg').classList.remove('hidden');
-    loadNaverSDK(() => renderMap(inp));
-  }, 200);
-}
-
-function renderMap(inp){
-  const mapMsgEl = document.getElementById('mapMsg');
-  if(mapMsgEl) mapMsgEl.classList.add('hidden');
-  if(naverMap) {
-    // 이미 생성된 지도 - 마커만 다시 그리기
-    return;
-  }
-  const mapContainer = document.getElementById('naverMap');
-  if(!mapContainer) return;
-  naverMap = new naver.maps.Map('naverMap',{
-    center:new naver.maps.LatLng(37.535,126.985), zoom:12,
-    scaleControl:false,logoControl:true,mapDataControl:false,
-    zoomControl:true,zoomControlOptions:{position:naver.maps.Position.TOP_RIGHT}
-  });
-
-  // 추천 지역 마커
-  const rc=['#c8a96e','#7fb5a0','#d4756e'];
-  REGIONS.forEach((r,i)=>{
-    new naver.maps.Marker({
-      position:new naver.maps.LatLng(r.lat,r.lng),map:naverMap,
-      icon:{content:`<div style="position:relative;white-space:nowrap">
-        <div style="background:${rc[i]};color:#0e0e0e;font-family:'DM Mono',monospace;font-size:11px;font-weight:500;padding:5px 10px;box-shadow:0 2px 8px rgba(0,0,0,.5)">${i+1}위 ${r.area}</div>
-        <div style="position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid ${rc[i]}"></div>
-      </div>`,anchor:new naver.maps.Point(40,34)}
-    });
-  });
-
-  // 출근지 마커 - 좌표 있으면 바로, 없으면 geocoding
-  function placeWorkMarker(coord, label, color){
-    if(coord.lat && coord.lng){
-      addPinMarker(coord.lat, coord.lng, label, coord.label||label, color);
-    } else if(coord.label && coord.label!=='(미입력)'){
-      naver.maps.Service.geocode({query:coord.label},(st,res)=>{
-        const items=res.v2?.addresses;
-        if(!items||!items.length) return;
-        addPinMarker(parseFloat(items[0].y),parseFloat(items[0].x),label,coord.label,color);
-      });
-    }
-  }
-
-  function addPinMarker(lat,lng,label,subLabel,color){
-    const pos=new naver.maps.LatLng(lat,lng);
-    new naver.maps.Marker({
-      position:pos,map:naverMap,
-      icon:{content:`<div style="background:#141414;border:1.5px solid ${color};color:${color};font-family:'DM Mono',monospace;font-size:10px;padding:5px 10px;box-shadow:0 2px 6px rgba(0,0,0,.6);white-space:nowrap">
-        ${label}<br><span style="font-size:9px;opacity:.7">${subLabel}</span>
-      </div>`,anchor:new naver.maps.Point(50,32)}
-    });
-    // 추천 지역들과 연결선
-    if(transport.includes('자가용')){
-      // 자가용 - 카카오 실제 경로 (이미 placeAndRoute에서 처리)
-      REGIONS.slice(1).forEach((rg)=>{
-        new naver.maps.Polyline({
-          path:[pos, new naver.maps.LatLng(rg.lat, rg.lng)],
-          map:naverMap, strokeColor:color,
-          strokeOpacity:0.15, strokeWeight:1, strokeStyle:'dashed'
-        });
-      });
-    } else {
-      // 대중교통 - ODsay 경로 폴리라인 시도
-      const destCoord = {lat:REGIONS[0].lat, lng:REGIONS[0].lng};
-      const fromC = {lat:coord.lat, lng:coord.lng};
-      fetchTransitRoute(fromC, destCoord).then(route => {
-        if(route?.steps?.length){
-          // 경로가 있으면 색상 구분 선
-          REGIONS.forEach((rg, ri)=>{
-            new naver.maps.Polyline({
-              path:[pos, new naver.maps.LatLng(rg.lat, rg.lng)],
-              map:naverMap, strokeColor:color,
-              strokeOpacity: ri===0 ? 0.45 : 0.15,
-              strokeWeight: ri===0 ? 2 : 1,
-              strokeStyle:'dashed'
-            });
-          });
-        } else {
-          REGIONS.forEach((rg, ri)=>{
-            new naver.maps.Polyline({
-              path:[pos, new naver.maps.LatLng(rg.lat, rg.lng)],
-              map:naverMap, strokeColor:color,
-              strokeOpacity: ri===0 ? 0.35 : 0.12,
-              strokeWeight: ri===0 ? 1.5 : 1,
-              strokeStyle:'dashed'
-            });
-          });
-        }
-      });
-    }
-  }
-
-  const rColors=['#c8a96e','#7fb5a0','#d4756e'];
-
-  // 출근지 마커 + 자가용이면 실제 경로 폴리라인
-  async function placeAndRoute(coord, label, color, transport, personKey){
-    if(!coord?.lat) return;
-    // 마커 먼저
-    addPinMarker(coord.lat, coord.lng, label, coord.label||label, color);
-    // 자가용이면 실제 경로
-    if(transport.includes('자가용')){
-      const route = await fetchCarRoute(coord, {lat:REGIONS[0].lat, lng:REGIONS[0].lng});
-      if(route?.pathCoords?.length){
-        drawRouteOnMap(map, route.pathCoords, color, 3);
-        return;
-      }
-    }
-    // 자가용 아니거나 API 실패시 점선
-    REGIONS.forEach((rg,ri)=>{
-      new naver.maps.Polyline({
-        path:[new naver.maps.LatLng(coord.lat,coord.lng), new naver.maps.LatLng(rg.lat,rg.lng)],
-        map, strokeColor:color,
-        strokeOpacity: ri===0 ? 0.5 : 0.2,
-        strokeWeight: ri===0 ? 2 : 1,
-        strokeStyle: ri===0 ? 'solid' : 'dashed'
-      });
-    });
-  }
-
-  placeAndRoute(inp.work1Coord, 'A 출근지', '#7da8e0', inp.tr1, 'A');
-  placeAndRoute(inp.work2Coord, 'B 출근지', '#7fb5a0', inp.tr2, 'B');
-
-  if(inp.gpOn && inp.gpCoord){
-    document.getElementById('gpLegend').style.display='flex';
-    if(inp.gpCoord.lat && inp.gpCoord.lng){
-      new naver.maps.Marker({
-        position:new naver.maps.LatLng(inp.gpCoord.lat,inp.gpCoord.lng),map:naverMap,
-        icon:{content:`<div style="background:#141414;border:1.5px solid #a0a0c8;color:#a0a0c8;font-family:'DM Mono',monospace;font-size:10px;padding:5px 10px;box-shadow:0 2px 6px rgba(0,0,0,.6);white-space:nowrap">
-          👴 조부모 거주지<br><span style="font-size:9px;opacity:.7">${inp.gpLabel}</span>
-        </div>`,anchor:new naver.maps.Point(60,32)}
-      });
-    } else if(inp.gpLabel && inp.gpLabel!=='(미입력)'){
-      naver.maps.Service.geocode({query:inp.gpLabel},(st,res)=>{
-        const items=res.v2?.addresses;
-        if(!items||!items.length) return;
-        new naver.maps.Marker({
-          position:new naver.maps.LatLng(parseFloat(items[0].y),parseFloat(items[0].x)),map:naverMap,
-          icon:{content:`<div style="background:#141414;border:1.5px solid #a0a0c8;color:#a0a0c8;font-family:'DM Mono',monospace;font-size:10px;padding:5px 10px;box-shadow:0 2px 6px rgba(0,0,0,.6);white-space:nowrap">
-            👴 조부모 거주지<br><span style="font-size:9px;opacity:.7">${inp.gpLabel}</span>
-          </div>`,anchor:new naver.maps.Point(60,32)}
-        });
-      });
-    }
-    // 조부모 -> 1순위 추천지역 연결선
-    if(inp.gpCoord?.lat){
-      naver.maps.Service.geocode({query:inp.gpLabel},(st,res)=>{
-        const items=res?.v2?.addresses;
-        const gpLat = inp.gpCoord.lat, gpLng = inp.gpCoord.lng;
-        if(gpLat && REGIONS[0]){
-          new naver.maps.Polyline({
-            path:[new naver.maps.LatLng(gpLat,gpLng), new naver.maps.LatLng(REGIONS[0].lat,REGIONS[0].lng)],
-            map:naverMap,
-            strokeColor:'#a0a0c8',
-            strokeOpacity:.35,
-            strokeWeight:1.5,
-            strokeStyle:'dashed'
-          });
-        }
-      });
-    }
-  }
-}
-
-// == 네비게이션 ==
-let cur=0;
-// 네이버 SDK 로드 상태
-let naverSDKReady = false;
-let naverSDKLoading = false;
-const naverSDKCallbacks = [];
-
-function loadNaverSDK(callback){
-  if(naverSDKReady){
-    // 이미 로드 완료
-    callback && callback(); return;
-  }
-  if(callback) naverSDKCallbacks.push(callback);
-  if(naverSDKLoading) return; // 로딩 중 - callback은 큐에 추가됨
-  naverSDKLoading = true;
-  window._onNaverSDKInit = function(){
-    naverSDKReady = true;
-    naverSDKLoading = false;
-    const cbs = naverSDKCallbacks.splice(0);
-    cbs.forEach(cb=>{ try{ cb(); } catch(e){} });
-  };
-  const s = document.createElement('script');
-  s.src = 'https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=3wwumsfkd2&submodules=geocoder&callback=_onNaverSDKInit';
-  s.onerror = () => {
-    naverSDKLoading = false;
-    document.getElementById('mapMsgText').textContent = '네이버 지도 로드 실패 - 네트워크를 확인해주세요';
-  };
-  document.head.appendChild(s);
-}
-
-function startForm(){
-  document.getElementById('hero').style.display='none';
-  document.getElementById('snav').style.display='block';
-  // SDK 미리 로드 (주소 검색용)
-  loadNaverSDK();
-  go(1);
-  // 검색 컴포넌트 초기화
-  setTimeout(()=>{
-    createAddrSearch('work1','search_work1','예: 강남역, 판교역, 테헤란로');
-    createAddrSearch('work2','search_work2','예: 여의도, 마곡나루역, 상암DMC');
-    createAddrSearch('gpAddr','search_gpAddr','예: 노원구청역, 분당, 인천');
-    createAddrSearch('prefer','search_prefer','예: 마포구, 성동구');
-    createAddrSearch('avoid','search_avoid','예: 강남구');
-    // 셔틀 첫 정류장도 초기화
-    addShuttleStop('shuttle_stops1');
-    addShuttleStop('shuttle_stops2');
-  }, 100);
-}
-
-function go(n){
-  [1,2,3,4].forEach(i=>document.getElementById('step'+i).style.display='none');
-  document.getElementById('result').style.display='none';
-  if(n<=4) document.getElementById('step'+n).style.display='block';
-  [1,2,3,4,5].forEach(i=>{
-    const el=document.getElementById('nav'+i);
-    el.classList.remove('active','done');
-    if(i===n) el.classList.add('active'); else if(i<n) el.classList.add('done');
-  });
-  cur=n;
-  document.getElementById('progress').style.width=((n-1)/4*100)+'%';
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-function tryGo(n){if(n<cur) go(n);}
-function restart(){
-  naverMap=null;
-  Object.keys(LOCS).forEach(k=>LOCS[k]={label:'',lat:null,lng:null});
-  document.getElementById('hero').style.display='flex';
-  document.getElementById('snav').style.display='none';
-  document.getElementById('result').style.display='none';
-  [1,2,3,4].forEach(i=>document.getElementById('step'+i).style.display='none');
-  document.getElementById('progress').style.width='0';
-  window.scrollTo({top:0});
-}
-function pick(el,g){document.querySelectorAll('#'+g+' .chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');}
-function tog(el){el.classList.toggle('on');}
-function toggleEl(id,show){document.getElementById(id).classList.toggle('show',show);}
-function showCond(id,show){document.getElementById(id).classList.toggle('show',show);}
-function updW(v){document.getElementById('wlbl').textContent=v==50?'A와 B 동등 - 50% / 50%':v<50?`배우자 A 우선 - ${v}% / ${100-v}%`:`배우자 B 우선 - ${100-v}% / ${v}%`;}
-function fApt(el,r){document.querySelectorAll('.atab').forEach(t=>t.classList.remove('on'));el.classList.add('on');document.querySelectorAll('.arow').forEach(row=>row.classList.toggle('hidden',r!=='all'&&row.dataset.r!==r));}
-
-// 외부 클릭 시 드롭다운 닫기
-document.addEventListener('click',e=>{
-  Object.keys(LOCS).forEach(key=>{
-    const aw=document.getElementById('aw_'+key);
-    if(aw && !aw.contains(e.target)) hideDrop(key);
-  });
-});
 </script>
 </body>
 </html>
