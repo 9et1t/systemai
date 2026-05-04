@@ -735,12 +735,16 @@ async function analyzeRegions(inp, onProgress){
           addr:apt.dong+(apt.floor?' · '+apt.floor+'층':''),
           size:Math.round(apt.excl/3.3)+'평형', excl:apt.excl,
           price:priceStr, priceNum:apt.amt, bldYear:apt.bldYear,
-          dealDate:apt.dealDate||'', dealCount:r.dealCount||1,
+          dealDate:apt.dealDate||'', dealCount:entry.dealCount||1,
           tags:apt.bldYear&&parseInt(apt.bldYear)>=2020?['new']:[],
           aT:r.aTime+'분', bT:r.bTime+'분', gpT:r.gpTime?r.gpTime+'분':'—'
         });
       });
   });
+  // 예산 초과 아파트 제외 (예산의 105% 초과)
+  const budgetWanFilter = parseFloat(inp.budget||'8') * 10000;
+  APTS = APTS.filter(a => a.priceNum <= budgetWanFilter * 1.05);
+
   APTS.sort((a,b)=>a.priceNum-b.priceNum);
   APTS.forEach((a,i)=>a.rank=i+1);
   return top3;
@@ -1419,9 +1423,19 @@ async function renderRegionCards(inp){
     // 조부모 행 - gpOn이고 좌표/주소가 있을 때만
     const hasGp = inp.gpOn && inp.gpLabel && inp.gpLabel !== '(미입력)';
     const gpTime = hasGp && inp.gpCoord?.lat ? estimateTime(inp.gpCoord,r,'transit') : null;
-    const gpRow = hasGp ? `<div class="gprow"><span style="font-size:15px">👴</span>
-      <div class="gpi"><div class="gplb">조부모(${inp.gpLabel})까지</div>
-      <div class="gpvl">🚇 대중교통 ${gpTime || '-'}분</div></div></div>` : '';
+    const gpMax = inp.gpMaxTime || 30;
+    const gpTimeDisp = r.gpTime || gpTime;
+    const gpOver = gpTimeDisp && gpTimeDisp > gpMax;
+    const gpRow = hasGp ? `<div class="gprow">
+      <span style="font-size:15px">👴</span>
+      <div class="gpi">
+        <div class="gplb">조부모(${inp.gpLabel})까지 · 허용 ${gpMax}분</div>
+        <div class="gpvl" style="color:${gpOver?'var(--a3)':'var(--a2)'}">
+          🚇 ${gpTimeDisp||'—'}분 ${gpOver?'⚠ 허용 초과':'✓'}
+        </div>
+        <div id="gp_transit_${ri}" style="margin-top:6px;font-size:11px"></div>
+      </div>
+    </div>` : '';
     const aBarW = Math.min(95, aTime);
     const bBarW = Math.min(95, bTime);
     return `<div class="rcard">
@@ -1657,67 +1671,92 @@ function renderApts(inp){
   if(!el) return;
   if(!APTS||!APTS.length){
     el.innerHTML='<div style="padding:32px;text-align:center;color:var(--dim)">실거래 아파트 데이터 없음</div>';
+    const t0=document.getElementById('aptTabs');
+    if(t0) t0.innerHTML='<button class="atab on" onclick=\'fApt(this,"all")\'>전체</button>';
     return;
   }
   const budgetOk=parseFloat(inp.budget||'8');
+  const budgetW=budgetOk*10000;
   const showGp=inp.gpOn&&inp.gpLabel&&inp.gpLabel!=='(미입력)';
   const aIcon=inp.tr1.includes('셔틀')?'🚌':inp.tr1.includes('자가용')?'🚗':'🚇';
   const bIcon=inp.tr2.includes('셔틀')?'🚌':inp.tr2.includes('자가용')?'🚗':'🚇';
+
+  const cntEl=document.getElementById('aptCount');
+  if(cntEl) cntEl.textContent=APTS.length;
+
   const tabsEl=document.getElementById('aptTabs');
   if(tabsEl&&REGIONS.length){
-    let tabHtml='<button class="atab on" onclick=\'fApt(this,\"all\")\'>' + '전체</button>';
+    let tabHtml='<button class="atab on" onclick=\'fApt(this,"all")\'>전체</button>';
     REGIONS.forEach((r,i)=>{
-      const dongLabel=(r.dong?r.dong+' ('+r.area+')':((r.city&&r.city!==r.area?r.city+' ':'')+r.area));
-      tabHtml+='<button class="atab" onclick=\'fApt(this,\''+String(i+1)+'\')\'>'+dongLabel+'</button>';
+      const label=(r.dong?r.dong+' ('+r.area+')':((r.city&&r.city!==r.area?r.city+' ':'')+r.area));
+      tabHtml+='<button class="atab" onclick=\'fApt(this,"'+(i+1)+'")\'>'+label+'</button>';
     });
     tabsEl.innerHTML=tabHtml;
   }
+
   el.innerHTML=APTS.map((a,i)=>{
     const tags=(a.tags||[]).map(t=>t==='new'?'<span class="atag new">신축</span>':'').join('');
     const dr=a.r||'1';
-    const gpChip=showGp?'<span class="achip">👴 '+(a.gpT||'—')+'</span>':'';
     const pNum=a.priceNum||0;
-    const pc=pNum>budgetOk*10000*1.15?'var(--a3)':pNum<=budgetOk*10000?'var(--a2)':'var(--a)';
-    const btag=pNum>budgetOk*10000*1.15
-      ?'<span class="atag" style="background:rgba(212,117,110,.08);border:1px solid rgba(212,117,110,.25);color:var(--a3)">예산초과</span>'
-      :pNum<=budgetOk*10000
-      ?'<span class="atag" style="background:rgba(127,181,160,.08);border:1px solid rgba(127,181,160,.25);color:var(--a2)">예산내</span>'
+    // 예산 여유/근접 태그 (초과는 이미 필터됨)
+    const btag=pNum<=budgetW*0.9
+      ?'<span class="atag" style="background:rgba(127,181,160,.08);border:1px solid rgba(127,181,160,.25);color:var(--a2)">예산 여유</span>'
+      :pNum<=budgetW
+      ?'<span class="atag" style="background:rgba(200,169,110,.08);border:1px solid rgba(200,169,110,.25);color:var(--a)">예산 근접</span>'
       :'';
+    const pc=pNum<=budgetW*0.9?'var(--a2)':'var(--a)';
     const yr=a.bldYear?'<span class="atag" style="background:var(--bg3);border:1px solid var(--border);color:var(--dim)">'+a.bldYear+'년</span>':'';
+    const dcBadge=a.dealCount>1?'<span style="font-size:10px;color:var(--dim);margin-left:5px;font-family:\'DM Mono\',monospace">'+a.dealCount+'건</span>':'';
+    const gpChip=showGp?'<span class="achip">👴 '+(a.gpT||'—')+'</span>':'';
+    const dateStr=a.dealDate?'<span style="color:var(--dim);font-size:10px;margin-left:4px">신고 '+a.dealDate+'</span>':'';
     return '<div class="arow r'+dr+'" data-r="'+dr+'">'
       +'<div class="arnk">'+String(i+1).padStart(2,'0')+'</div>'
-      +'<div><div class="anr"><span class="aname">'+a.name+'</span>'
+      +'<div><div class="anr">'
+      +'<span class="aname">'+a.name+'</span>'+dcBadge
       +'<span class="atag r'+dr+'">'+(a.city&&a.city!==a.area?a.city+' ':'')+a.area+'</span>'
       +tags+btag+yr+'</div>'
-      +'<div class="aaddr">'+a.addr+(a.dealDate?' <span style="color:var(--dim);font-size:10px">신고 '+a.dealDate+'</span>':'')+'</div>'
+      +'<div class="aaddr">'+a.addr+dateStr+'</div>'
       +'<div class="achips"><span class="achip">A '+aIcon+' '+a.aT+'</span>'
-      +'<span class="achip">B '+bIcon+' '+a.bT+'</span>'+gpChip+'<span class="achip" id="st_'+i+'">🚇 조회중</span></div></div>'
+      +'<span class="achip">B '+bIcon+' '+a.bT+'</span>'+gpChip
+      +'<span class="achip" id="st_'+i+'">🚇 조회중</span></div></div>'
       +'<div class="apb"><div class="asz">'+a.size+'</div>'
       +'<div class="aprice" style="color:'+pc+'">'+a.price+'</div>'
       +'<div class="apdt">국토부 실거래</div></div></div>';
   }).join('');
+
+  // 인근 지하철역 비동기
   APTS.forEach(async(a,i)=>{
-    const el=document.getElementById('st_'+i);if(!el)return;
+    const el2=document.getElementById('st_'+i);if(!el2)return;
     try{
       const q=encodeURIComponent((a.area||'')+' '+(a.city||'')+' 지하철역');
       const res=await fetch('https://dapi.kakao.com/v2/local/search/keyword.json?query='+q+'&size=1&category_group_code=SW8',{headers:{Authorization:KAKAO_KEY}});
-      if(!res.ok){el.textContent='🚇 —';return;}
+      if(!res.ok){el2.textContent='🚇 —';return;}
       const d=await res.json();
-      if(d.documents&&d.documents.length){const st=d.documents[0];const dist=parseFloat(st.distance);el.textContent='🚇 '+st.place_name+(dist?' '+(dist>=1000?(dist/1000).toFixed(1)+'km':Math.round(dist)+'m'):'');}
-      else el.textContent='🚇 —';
-    }catch(e){el.textContent='🚇 —';}
+      if(d.documents&&d.documents.length){
+        const st=d.documents[0];const dist=parseFloat(st.distance);
+        el2.textContent='🚇 '+st.place_name+(dist?' '+(dist>=1000?(dist/1000).toFixed(1)+'km':Math.round(dist)+'m'):'');
+      }else el2.textContent='🚇 —';
+    }catch(e){el2.textContent='🚇 —';}
   });
 }
-
 
 let aptSortMode='low';
 function sortApts(mode,btn){
   document.querySelectorAll('#sortLow,#sortHigh,#sortPop').forEach(b=>b.classList.remove('on'));
   if(btn)btn.classList.add('on');
   aptSortMode=mode;
+  const budgetW = parseFloat(getInputs().budget||'8') * 10000;
   if(mode==='low')  APTS.sort((a,b)=>a.priceNum-b.priceNum);
   if(mode==='high') APTS.sort((a,b)=>b.priceNum-a.priceNum);
-  if(mode==='pop')  APTS.sort((a,b)=>(b.dealCount||0)-(a.dealCount||0));
+  if(mode==='pop'){
+    // 거래 많은순 - 예산 내 먼저, 그 안에서 건수 내림차순
+    APTS.sort((a,b)=>{
+      const aOver = a.priceNum > budgetW*1.05;
+      const bOver = b.priceNum > budgetW*1.05;
+      if(aOver !== bOver) return aOver ? 1 : -1;
+      return (b.dealCount||0)-(a.dealCount||0);
+    });
+  }
   APTS.forEach((a,i)=>a.rank=i+1);
   renderApts(getInputs());
 }
