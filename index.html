@@ -125,7 +125,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 .strip{background:var(--bg2);padding:16px 18px;}
 .slb{font-size:11px;color:var(--dim);margin-bottom:5px;}
 .svl{font-family:'DM Mono',monospace;font-size:17px;color:var(--text);}
-.rcards{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-bottom:2px;}
+.rcards{display:grid;grid-template-columns:repeat(2,1fr);gap:2px;margin-bottom:2px;}
 @media(max-width:680px){.rcards{grid-template-columns:1fr;}}
 .rcard{background:var(--bg2);border:1px solid var(--border);padding:22px;position:relative;}
 .rrank{position:absolute;top:14px;right:16px;font-family:'DM Mono',monospace;font-size:44px;color:rgba(200,169,110,.08);line-height:1;}
@@ -394,7 +394,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
     <div>
       <div class="field"><label class="flbl">선호 지역 검색 (선택)</label><div id="search_prefer"></div></div>
       <div class="field"><label class="flbl">기피 지역 검색 (선택)</label><div id="search_avoid"></div></div>
-      <div class="field"><label class="flbl">주거 환경 우선순위 <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--a2);border:1px solid rgba(127,181,160,.3);padding:2px 6px;margin-left:6px">카카오 연동</span></label><div class="chips" id="envPriority"><div class="chip" onclick="tog(this)" data-env="역세권">🚉 역세권</div><div class="chip" onclick="tog(this)" data-env="생활편의">🛒 생활편의</div><div class="chip" onclick="tog(this)" data-env="학군">🏫 학군</div></div></div>
+      <div class="field"><label class="flbl">주거 환경 우선순위 <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--a2);border:1px solid rgba(127,181,160,.3);padding:2px 6px;margin-left:6px">카카오 연동</span></label><div class="chips" id="envPriority"><div class="chip" onclick="tog(this)" data-env="역세권">🚉 역세권</div><div class="chip" onclick="tog(this)" data-env="생활편의">🛒 생활편의</div><div class="chip" onclick="tog(this)" data-env="학군">🏫 학군</div><div class="chip" onclick="tog(this)" data-env="공원·자연">🌿 공원·자연</div></div></div>
 
     </div>
   </div>
@@ -688,7 +688,7 @@ async function analyzeRegions(inp, onProgress){
   guResults.sort((a,b)=>a.score-b.score);
 
   // TOP3 확정 후 환경 점수 병렬 조회 (비동기)
-  const top3raw = guResults.slice(0,3);
+  const top3raw = guResults.slice(0,10);
   const envSel = inp.envSel || { edu:[], env:[], all:[] };
   const allEnvTypes = [...new Set([
     ...envSel.env,
@@ -703,7 +703,7 @@ async function analyzeRegions(inp, onProgress){
     }
     // NEIS 학군 점수 (학군 선택시)
     if(envSel.edu.includes('학군') || envSel.env.includes('학군')) {
-      r.neisResult = await fetchNeisScore(r.city, r.area).catch(()=>null);
+      r.neisResult = await fetchNeisScore(r.city, r.area, r.lat, r.lng).catch(()=>null);
     }
   }));
 
@@ -720,7 +720,7 @@ async function analyzeRegions(inp, onProgress){
       ...r,
       sub: r.city+' '+r.area,
       rank: String(i+1).padStart(2,'0'),
-      tag:  i===0?'✦ 1순위 추천':i===1?'2순위':'3순위',
+      tag:  i===0?'✦ 1순위 추천':`${i+1}순위`, tagColor: i===0?'var(--a)':i<3?'var(--a2)':'var(--muted)',
       envTags, neisTag,
       metrics:[
         ['실거래 평균', Math.floor(r.avg/10000)+'억'+(r.avg%10000?' '+Math.round(r.avg%10000/1000)+'천':'')],
@@ -737,7 +737,7 @@ async function analyzeRegions(inp, onProgress){
     Object.values(r.apts)
       .filter(apt => apt.amt <= budgetFilter)
       .sort((a,b)=>a.amt-b.amt)
-      .slice(0,5)
+      .slice(0,3)
       .forEach(apt => {
         const priceStr = Math.floor(apt.amt/10000)+'억'+(apt.amt%10000?' '+Math.round(apt.amt%10000/1000)+'천':'');
         APTS.push({
@@ -1255,46 +1255,70 @@ const NEIS_ATPT = {
   '전남':'Q10','경북':'R10','경남':'S10','제주':'T10'
 };
 
-// 구/시 → NEIS 교육지원청 코드 (주요 지역)
-// 실제 API는 학교 단위 → 구 단위로 집계
-async function fetchNeisScore(city, area) {
-  const ck = city + '_' + area;
+// 좌표 기준 반경 1km 중학교 검색 → 진학률 평균 → 등급화
+async function fetchNeisScore(city, area, lat, lng) {
+  const ck = lat.toFixed(3) + '_' + lng.toFixed(3);
   if(neisCache[ck] !== undefined) return neisCache[ck];
 
   const atpt = NEIS_ATPT[city];
   if(!atpt) { neisCache[ck] = null; return null; }
 
   try {
-    // 1) 학업성취도: 보통학력 이상 비율 (중학교 기준)
+    // 1) 카카오로 반경 1km 중학교 검색
+    const kakaoRes = await fetch(
+      `https://dapi.kakao.com/v2/local/search/keyword.json` +
+      `?query=${encodeURIComponent('중학교')}&x=${lng}&y=${lat}&radius=1000&size=10&sort=distance`,
+      { headers: { Authorization: KAKAO_KEY } }
+    );
+    let schoolNames = [];
+    if(kakaoRes.ok) {
+      const kd = await kakaoRes.json();
+      schoolNames = (kd.documents||[])
+        .filter(d => d.category_name && d.category_name.includes('학교'))
+        .map(d => d.place_name.replace(/\s/g,''));
+    }
+    if(!schoolNames.length) {
+      neisCache[ck] = { score:40, grade:'C', label:'인근 중학교 없음', detail:'반경 1km 내 중학교 없음' };
+      return neisCache[ck];
+    }
+
+    // 2) NEIS schoolInfo로 해당 시도 중학교 목록 조회
     const schoolRes = await fetch(
       `https://open.neis.go.kr/hub/schoolInfo` +
       `?KEY=${NEIS_KEY}&Type=json&pSize=100&pIndex=1` +
-      `&ATPT_OFCDC_SC_CODE=${atpt}&LCTN_SC_NM=${encodeURIComponent(area)}&SCHUL_KND_SC_NM=${encodeURIComponent('중학교')}`
+      `&ATPT_OFCDC_SC_CODE=${atpt}&SCHUL_KND_SC_NM=${encodeURIComponent('중학교')}`,
     );
     if(!schoolRes.ok) { neisCache[ck] = null; return null; }
     const schoolData = await schoolRes.json();
-    const schools = schoolData?.schoolInfo?.[1]?.row || [];
-    if(!schools.length) { neisCache[ck] = {score:50, grade:'C', label:'데이터 없음', detail:''}; return neisCache[ck]; }
+    const allSchools = schoolData?.schoolInfo?.[1]?.row || [];
 
-    // 학교 코드 목록
-    const schoolCodes = schools.slice(0, 5).map(s => s.SD_SCHUL_CODE);
+    // 카카오 검색 결과와 이름 매칭
+    const matched = allSchools.filter(s => {
+      const nm = (s.SCHUL_NM||'').replace(/\s/g,'');
+      return schoolNames.some(kn => nm.includes(kn.slice(0,4)) || kn.includes(nm.slice(0,4)));
+    }).slice(0, 5);
 
-    // 2) 졸업생 진로현황 - 특목고/자사고 진학률
+    if(!matched.length) {
+      neisCache[ck] = { score:40, grade:'C', label:'매칭 학교 없음', detail:`근처 중학교: ${schoolNames.slice(0,3).join(', ')}` };
+      return neisCache[ck];
+    }
+
+    // 3) 매칭된 학교들 진로현황 조회
+    const yr = new Date().getFullYear() - 1;
     let totalGrad = 0, specGrad = 0;
-    for(const code of schoolCodes) {
+    const schoolDetails = [];
+    for(const s of matched) {
       try {
-        const yr = new Date().getFullYear() - 1;
         const gradRes = await fetch(
           `https://open.neis.go.kr/hub/stuCrslCrsTrnsInfo` +
           `?KEY=${NEIS_KEY}&Type=json&pSize=10&pIndex=1` +
-          `&ATPT_OFCDC_SC_CODE=${atpt}&SD_SCHUL_CODE=${code}&AY=${yr}`
+          `&ATPT_OFCDC_SC_CODE=${atpt}&SD_SCHUL_CODE=${s.SD_SCHUL_CODE}&AY=${yr}`
         );
         if(!gradRes.ok) continue;
         const gd = await gradRes.json();
         const rows = gd?.stuCrslCrsTrnsInfo?.[1]?.row || [];
         rows.forEach(r => {
           const tot = parseInt(r.TOT_GRSC_PURPHS_DDLN_CNT || 0);
-          // 과학고, 외국어고, 국제고, 자사고, 예술고 합산
           const spec = parseInt(r.SCIENCE_GRSC_PURPHS_DDLN_CNT || 0)
                      + parseInt(r.FORLANG_GRSC_PURPHS_DDLN_CNT || 0)
                      + parseInt(r.INTL_GRSC_PURPHS_DDLN_CNT || 0)
@@ -1302,25 +1326,27 @@ async function fetchNeisScore(city, area) {
                      + parseInt(r.ART_GRSC_PURPHS_DDLN_CNT || 0);
           totalGrad += tot;
           specGrad += spec;
+          if(tot > 0) schoolDetails.push(s.SCHUL_NM);
         });
       } catch(e) {}
     }
 
     const specRate = totalGrad > 0 ? (specGrad / totalGrad * 100) : 0;
+    const schoolList = [...new Set(schoolDetails)].slice(0,3).join(', ') || matched.map(s=>s.SCHUL_NM).slice(0,3).join(', ');
 
-    // 등급 산정 (특목고·자사고 진학률 기반)
     let grade, score, label;
     if(specRate >= 15)      { grade='S'; score=95; label='최상위 학군'; }
     else if(specRate >= 8)  { grade='A'; score=80; label='상위 학군'; }
     else if(specRate >= 4)  { grade='B'; score=65; label='양호한 학군'; }
     else if(specRate >= 1)  { grade='C'; score=45; label='보통 학군'; }
-    else                    { grade='D'; score=25; label='기초 학군'; }
+    else if(totalGrad > 0)  { grade='D'; score=25; label='기초 학군'; }
+    else                    { grade='C'; score=40; label='진학 데이터 없음'; }
 
     const detail = totalGrad > 0
-      ? `특목고·자사고 진학률 ${specRate.toFixed(1)}% (${specGrad}/${totalGrad}명)`
-      : '진학 데이터 없음';
+      ? `특목고·자사고 진학률 ${specRate.toFixed(1)}% · ${schoolList}`
+      : `인근 중학교: ${schoolList}`;
 
-    const result = { score, grade, label, detail, schools: schools.length };
+    const result = { score, grade, label, detail, schoolCount: matched.length };
     neisCache[ck] = result;
     return result;
   } catch(e) {
@@ -1340,16 +1366,63 @@ async function fetchEnvScore(lat, lng, types) {
   if(envCache[ck]) return envCache[ck];
 
   const categoryMap = {
-    '역세권':    [{code:'SW8', radius:1000, label:'지하철역'}],
-    '생활편의':  [{code:'MT1', radius:1000, label:'대형마트'}, {code:'CS2', radius:500, label:'편의점'}, {code:'HP8', radius:1500, label:'병원'}],
-    '학원가':    [{code:'AC5', radius:1000, label:'학원'}],
-    '어린이집':  [{code:'PS3', radius:1000, label:'어린이집'}],
+    '역세권':   [{code:'SW8', radius:1000, label:'지하철역'}],
+    '생활편의': [{code:'MT1', radius:1500, label:'🏬 쇼핑몰·마트'}, {code:'CS2', radius:500, label:'🏪 편의점'}, {code:'HP8', radius:1500, label:'🏥 병원'}, {code:'CE7', radius:800, label:'☕ 카페'}, {code:'FD6', radius:800, label:'🍽 음식점'}, {code:'AC5', radius:1000, label:'📚 학원'}],
+    '학원가':   [{code:'AC5', radius:1000, label:'학원'}],
+    '어린이집': [{code:'PS3', radius:1000, label:'어린이집'}],
   };
 
   const scores = {};
   for(const type of types) {
-    const cats = categoryMap[type] || [];
+    // 공원: 카카오 키워드 검색 (카테고리코드 없음) - 별도 처리
+    if(type === '공원·자연') {
+      try {
+        // 반경 2km 내 공원 키워드 검색 (size=15 최대)
+        const res = await fetch(
+          `https://dapi.kakao.com/v2/local/search/keyword.json` +
+          `?query=${encodeURIComponent('공원')}&x=${lng}&y=${lat}&radius=2000&size=15&sort=distance`,
+          { headers: { Authorization: KAKAO_KEY } }
+        );
+        if(res.ok) {
+          const d = await res.json();
+          const parks = (d.documents||[]).filter(p =>
+            p.category_name && (
+              p.category_name.includes('공원') ||
+              p.place_name.includes('공원') ||
+              p.place_name.includes('근린') ||
+              p.place_name.includes('체육')
+            )
+          );
+          const count = parks.length;
+          // 가장 가까운 공원 거리 (m)
+          const nearest = parks[0] ? parseInt(parks[0].distance||999) : 2000;
+          // 등급: 수 × 거리 반영
+          // 5개 이상 + 500m 이내 → S, 3~4개 → A, 2개 → B, 1개 → C, 0 → D
+          let grade, score, label, detail;
+          if(count >= 5 && nearest <= 500)      { grade='S'; score=95; label='공원 풍부'; }
+          else if(count >= 4 && nearest <= 800) { grade='A'; score=80; label='공원 양호'; }
+          else if(count >= 3 && nearest <= 1200){ grade='B'; score=65; label='공원 보통'; }
+          else if(count >= 1 && nearest <= 2000){ grade='C'; score=40; label='공원 부족'; }
+          else                                   { grade='D'; score=15; label='공원 거의 없음'; }
+          // 이름이 가장 긴 공원 = 대형공원일 가능성 높음
+          const bigPark = parks.slice().sort((a,b)=>b.place_name.length - a.place_name.length)[0];
+          const bigParkName = bigPark ? bigPark.place_name : '';
+          const bigParkDist = bigPark ? parseInt(bigPark.distance||0) : 0;
+          detail = `반경 2km 내 ${count}개` +
+            (bigParkName ? ` · 대표: ${bigParkName} (${bigParkDist>=1000?(bigParkDist/1000).toFixed(1)+'km':bigParkDist+'m'})` : '') +
+            ` · 최근접 ${nearest >= 1000 ? (nearest/1000).toFixed(1)+'km' : nearest+'m'}`;
+          scores[type] = { count, score, grade, label, detail, nearest, bigParkName };
+        }
+      } catch(e) {
+        scores[type] = { count:0, score:0, grade:'D', label:'조회 실패', detail:'' };
+      }
+      continue;
+    }
+
+    // 나머지: 카테고리 코드 검색
+    const cats = (categoryMap[type]||[]).filter(c => c.code);
     let total = 0;
+    const breakdown = {}; // 카테고리별 상세 (생활편의용)
     for(const cat of cats) {
       try {
         const res = await fetch(
@@ -1359,12 +1432,19 @@ async function fetchEnvScore(lat, lng, types) {
         );
         if(!res.ok) continue;
         const d = await res.json();
-        total += (d.documents||[]).length;
+        const cnt = (d.documents||[]).length;
+        total += cnt;
+        breakdown[cat.label] = cnt;
       } catch(e) {}
     }
-    // 점수화 (0~100)
-    let score = Math.min(100, total * (type==='역세권' ? 20 : type==='학원가' ? 8 : 10));
-    scores[type] = { count: total, score };
+    let score = Math.min(100, total * (type==='역세권' ? 20 : type==='학원가' ? 8 : type==='생활편의' ? 3 : 10));
+    // 생활편의: breakdown 상세 저장
+    if(type === '생활편의') {
+      const detailStr = Object.entries(breakdown).map(([k,v])=>`${k} ${v}개`).join(' · ');
+      scores[type] = { count: total, score, breakdown, detail: detailStr };
+    } else {
+      scores[type] = { count: total, score };
+    }
   }
 
   envCache[ck] = scores;
@@ -1404,7 +1484,7 @@ async function fetchPrice(lawdCd, aptName, excl){
         const canceled=(item.querySelector('cdealType')?.textContent||'').trim();
         if(canceled||!amt) return;
         // 단지명 4자 이상 매칭 or 포함 관계
-        const q=aptName.replace(/[\s\(\)]/g,'').slice(0,5);
+        const q=aptName.replace(/[\s\(\)]/g,'').slice(0,3);
         const nm=name.replace(/[\s\(\)]/g,'');
         const nmatch=nm.includes(q)||q.includes(nm.slice(0,4))||aptName.slice(0,4)===name.slice(0,4);
         if(!nmatch) return;
@@ -1538,7 +1618,7 @@ async function renderRegionCards(inp){
     const bBarW = Math.min(95, bTime);
     return `<div class="rcard">
       <div class="rrank">${r.rank}</div>
-      <div class="rtag">${r.tag}</div>
+      <div class="rtag" style="color:${r.tagColor||'var(--a)'}">${r.tag}</div>
       <div class="rarea">${r.area}${r.dong?' · '+r.dong:''}</div>
       <div class="rsub">${r.sub}</div>
       <div class="crow">
@@ -1585,13 +1665,25 @@ async function renderRegionCards(inp){
         }
         // 카카오 환경 점수
         if(r.envTags && r.envTags.length) {
-          const envColors = {'역세권':'#7da8e0','생활편의':'#7fb5a0','학원가':'#c8a96e','어린이집':'#e09090'};
+          const envColors = {'역세권':'#7da8e0','생활편의':'#7fb5a0','학원가':'#c8a96e','어린이집':'#e09090','공원·자연':'#6abf8a'};
           const bars = r.envTags.map(t=>{
             const col = envColors[t.k]||'#888';
             const w = Math.round(t.score);
+            // 공원은 grade 방식
+            if(t.grade) {
+              return `<div style="margin-bottom:5px">
+                <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">
+                  <span style="font-family:'DM Mono',monospace;font-size:10px;color:${col};border:1px solid ${col}55;padding:1px 6px">${t.grade}등급</span>
+                  <span style="font-size:11px;color:var(--text)">${t.label}</span>
+                  <span style="font-size:10px;color:var(--dim);margin-left:auto">${t.detail||''}</span>
+                </div>
+                <div style="height:2px;background:var(--border)"><div style="height:100%;width:${w}%;background:${col};transition:width 1s"></div></div>
+              </div>`;
+            }
+            const subDetail = t.detail ? t.detail : `${t.count}개`;
             return `<div style="margin-bottom:5px">
               <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--dim);margin-bottom:3px">
-                <span>${t.k}</span><span style="color:${col}">${t.count}개 · ${w}점</span>
+                <span>${t.k}</span><span style="color:${col}">${subDetail}</span>
               </div>
               <div style="height:2px;background:var(--border)"><div style="height:100%;width:${w}%;background:${col};transition:width 1s"></div></div>
             </div>`;
@@ -1688,7 +1780,7 @@ function renderMap(inp){
   });
 
   // 추천 지역 마커
-  const rc=['#c8a96e','#7fb5a0','#d4756e'];
+  const rc=['#c8a96e','#7fb5a0','#d4756e','#7da8e0','#e0a87d','#a0a0c8','#a8c87f','#c87fa8','#7fc8c0','#c8c87f'];
   REGIONS.forEach((r,i)=>{
     new naver.maps.Marker({
       position:new naver.maps.LatLng(r.lat,r.lng),map:naverMap,
@@ -1761,7 +1853,7 @@ function renderMap(inp){
     }
   }
 
-  const rColors=['#c8a96e','#7fb5a0','#d4756e'];
+  const rColors=['#c8a96e','#7fb5a0','#d4756e','#7da8e0','#e0a87d','#a0a0c8','#a8c87f','#c87fa8','#7fc8c0','#c8c87f'];
 
   // 출근지 마커 + 자가용이면 실제 경로 폴리라인
   async function placeAndRoute(coord, label, color, transport, personKey){
