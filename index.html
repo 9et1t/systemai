@@ -419,10 +419,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
     <div class="isum" id="inputSummary"></div>
   </div>
   <div class="strips">
-    <div class="strip"><div class="slb">분석 지역</div><div class="svl">47개 구/동</div></div>
+    <div class="strip"><div class="slb">분석 지역</div><div class="svl" id="s_regions">—</div></div>
     <div class="strip"><div class="slb">A 허용 출퇴근</div><div class="svl" id="s_a">-</div></div>
     <div class="strip"><div class="slb">B 허용 출퇴근</div><div class="svl" id="s_b">-</div></div>
-    <div class="strip"><div class="slb">예산 적합 단지</div><div class="svl">12개</div></div>
+    <div class="strip" style="cursor:pointer" onclick="document.querySelector('.apt-section').scrollIntoView({behavior:'smooth'})"><div class="slb">예산 적합 단지 ↓</div><div class="svl" id="s_budget_apts">—</div></div>
   </div>
   <div class="rcards" id="regionCards"></div>
   <div id="mapWrap">
@@ -443,7 +443,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
       <span style="font-size:11px;color:var(--dim)">정렬:</span>
       <button class="chip on" id="sortLow"  onclick="sortApts('low', this)">가격 낮은순</button>
       <button class="chip"    id="sortHigh" onclick="sortApts('high',this)">가격 높은순</button>
-      <button class="chip"    id="sortNew"  onclick="sortApts('new', this)">최신 신고순</button>
+      <button class="chip"    id="sortPop"  onclick="sortApts('pop', this)">거래 많은순</button>
     </div>
     <div class="atabs"><button class="atab on" onclick="fApt(this,'all')">전체</button><button class="atab" onclick="fApt(this,'1')">마포구</button><button class="atab" onclick="fApt(this,'2')">성동구</button><button class="atab" onclick="fApt(this,'3')">동작구</button></div>
     <div id="aptList"></div>
@@ -698,7 +698,14 @@ async function analyzeRegions(inp, onProgress){
               area:r.area,city:r.city,lawdCd:r.lawdCd,ri:ri+1};
           }
         });
+        // 단지별 거래량 집계
+        const totalCounts = {};
+        xml.querySelectorAll('item').forEach(item=>{
+          const nm=(item.querySelector('aptNm')?.textContent||'').trim();
+          if(nm) totalCounts[nm]=(totalCounts[nm]||0)+1;
+        });
         Object.values(aptMap).sort((a,b)=>a.amt-b.amt).slice(0,5).forEach(apt=>{
+          apt.dealCount = totalCounts[apt.name]||1;
           const priceStr=Math.floor(apt.amt/10000)+'억'+(apt.amt%10000?' '+Math.round(apt.amt%10000/1000)+'천':'');
           APTS.push({
             r:String(apt.ri), rank:APTS.length+1,
@@ -706,6 +713,7 @@ async function analyzeRegions(inp, onProgress){
             addr:apt.dong+(apt.floor?' · '+apt.floor+'층':''),
             size:Math.round(apt.excl/3.3)+'평형', excl:apt.excl,
             price:priceStr, priceNum:apt.amt, bldYear:apt.bldYear,
+            dealCount:apt.dealCount||1,
             tags:apt.bldYear&&parseInt(apt.bldYear)>=2020?['new']:[],
             aT:r.aTime+'분', bT:r.bTime+'분', gpT:r.gpTime?r.gpTime+'분':'—'
           });
@@ -1117,9 +1125,12 @@ function renderTransitSteps(result){
     return '';
   }).join('');
 
+  const xferTxt  = (result.transferCount != null) ? result.transferCount+'회 환승' : '';
+  const walkTxt   = result.totalWalk ? ' · 도보 '+result.totalWalk+'m' : '';
+  const fareTxt   = result.payment   ? ' · '+result.payment+'원'       : '';
   return `<div class="transit-summary">
     <span class="ts-total">${result.totalTime}분</span>
-    <span class="ts-info">환승 ${result.transferCount}회 · 도보 ${result.totalWalk}m · ${result.payment}원</span>
+    <span class="ts-info">${xferTxt}${walkTxt}${fareTxt}</span>
   </div>
   <div class="transit-steps">${stepHtml}</div>`;
 }
@@ -1197,9 +1208,16 @@ function getTransitHint(from, to){
   else if(fLng>126.95 && fLng<127.05 && fLat>37.52) hints.push('5호선·6호선');
   else hints.push('지하철');
   // 목적지 인근 환승 노선
-  if(to.area==='마포구') hints.push('5호선·6호선');
-  else if(to.area==='성동구') hints.push('2호선·5호선');
-  else if(to.area==='동작구') hints.push('9호선');
+  // 목적지 좌표 기반으로 동적 노선 추정
+  if(to.lng && to.lat){
+    const tLng=to.lng, tLat=to.lat;
+    if(tLng>127.05&&tLat>37.52)      hints.push('5호선·2호선');
+    else if(tLng<126.96&&tLat>37.54) hints.push('5호선·6호선');
+    else if(tLat<37.52&&tLng<126.97) hints.push('9호선·7호선');
+    else if(tLng>127.0&&tLat<37.50)  hints.push('2호선·3호선');
+    else if(tLat>37.60)               hints.push('4호선·1호선');
+    else                              hints.push('지하철');
+  }
   return hints.join(' → ') + ' 이용';
 }
 
@@ -1308,6 +1326,8 @@ async function showResult(){
 
   document.getElementById('s_a').textContent=inp.c1+'분 허용';
   document.getElementById('s_b').textContent=inp.c2+'분 허용';
+  const srEl=document.getElementById('s_regions');
+  if(srEl) srEl.textContent=NATIONAL_GU.length+'개 분석';
   document.getElementById('gpLegend').style.display=inp.gpOn?'flex':'none';
 
   document.getElementById('regionCards').innerHTML='<div style="grid-column:1/-1;padding:48px;text-align:center">'+'<div style="font-family:\'DM Mono\',monospace;font-size:13px;color:var(--a);margin-bottom:16px">전국 '+NATIONAL_GU.length+'개 지역 분석 중...</div>'+'<div style="background:var(--border);height:2px;max-width:400px;margin:0 auto;overflow:hidden">'+'<div id="analyzeBar" style="height:100%;background:var(--a);width:0%;transition:width .2s"></div></div>'+'<div id="analyzeStatus" style="font-size:11px;color:var(--dim);margin-top:10px">0 / '+NATIONAL_GU.length+'</div></div>';
@@ -1323,6 +1343,11 @@ async function showResult(){
   renderRegionCards(inp);
   renderApts(inp);
   loadAndRenderMap(inp);
+  // 예산 적합 단지 수 업데이트 (renderApts 완료 후)
+  setTimeout(()=>{
+    const budEl=document.getElementById('s_budget_apts');
+    if(budEl) budEl.textContent=APTS.length+'개';
+  }, 500);
 }
 
 function tClass(t){
@@ -1569,11 +1594,40 @@ async function renderRegionCards(inp){
       const tipsB = buildAllTips(selB, timesB);
       showTips('rt_b_route_'+ri, tipsB, '#7fb5a0');
     }
+
+    // 조부모 대중교통 경로
+    if(inp.gpOn && inp.gpCoord?.lat){
+      const gpEl = document.getElementById('gp_transit_'+ri);
+      if(gpEl){
+        const gpRoute = await fetchTransitRoute(inp.gpCoord, dest).catch(()=>null);
+        if(gpRoute){
+          const xfer = gpRoute.transferCount!=null ? gpRoute.transferCount+'회 환승 · ' : '';
+          gpEl.innerHTML = '<div style="font-size:11px;color:var(--dim);margin-top:2px">'
+            +xfer+'도보 '+(gpRoute.totalWalk||'—')+'m</div>'
+            + renderTransitSteps(gpRoute);
+        } else {
+          gpEl.textContent = '경로 조회 실패';
+          gpEl.style.fontSize = '11px';
+          gpEl.style.color = 'var(--dim)';
+        }
+      }
+    }
   });
   REGIONS.forEach(async r=>{
     const el=document.getElementById('rp_'+r.lawdCd);
     if(!el) return;
-    // 최근 3개월 데이터 합산
+    // analyzeRegions에서 이미 계산된 avg 바로 사용
+    if(r.avg){
+      el.classList.remove('loading');
+      el.textContent=Math.floor(r.avg/10000)+'억'+(r.avg%10000?' '+Math.round(r.avg%10000/1000)+'천':'');
+      el.style.color='var(--a2)';
+      const tag=document.createElement('div');
+      tag.style.cssText='font-size:10px;margin-top:3px;color:var(--a2)';
+      tag.textContent='✓ '+inp.sizeType+' 예산 내';
+      el.parentNode.appendChild(tag);
+      return;
+    }
+    // avg 없으면 직접 조회
     const amounts=[];
     for(let m=0;m<3;m++){
       const ym=getYM(m);
@@ -1701,7 +1755,7 @@ function sortApts(mode,btn){
   aptSortMode=mode;
   if(mode==='low')  APTS.sort((a,b)=>a.priceNum-b.priceNum);
   if(mode==='high') APTS.sort((a,b)=>b.priceNum-a.priceNum);
-  if(mode==='new')  APTS.sort((a,b)=>(b.dealDate||'').localeCompare(a.dealDate||''));
+  if(mode==='pop')  APTS.sort((a,b)=>(b.dealCount||0)-(a.dealCount||0));
   APTS.forEach((a,i)=>a.rank=i+1);
   renderApts(getInputs());
 }
