@@ -199,6 +199,19 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 @media(max-width:540px){.arow{grid-template-columns:30px 1fr;}.apb{grid-column:2;}}
 .brst{background:none;border:1px solid var(--borderL);color:var(--muted);padding:11px 26px;font-size:13px;cursor:pointer;margin-top:44px;}
 .brst:hover{border-color:var(--a);color:var(--a);}
+
+/* transit steps */
+.transit-summary{display:flex;align-items:center;gap:10px;margin-bottom:8px;padding:8px 0;border-bottom:1px solid var(--border);}
+.ts-total{font-family:'DM Mono',monospace;font-size:18px;color:var(--text);}
+.ts-info{font-size:11px;color:var(--dim);}
+.transit-steps{display:flex;flex-direction:column;gap:5px;}
+.transit-step{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.transit-badge{font-family:'DM Mono',monospace;font-size:10px;padding:2px 8px;white-space:nowrap;flex-shrink:0;}
+.bus-badge{background:rgba(200,169,110,.1);border:1px solid rgba(200,169,110,.3);color:var(--a);}
+.transit-detail{font-size:11px;color:var(--muted);}
+.walk-step{opacity:.6;}
+.transit-loading{font-size:11px;color:var(--dim);animation:blink 1.2s infinite;}
+.transit-block{margin-top:10px;padding:12px;background:var(--bg3);border:1px solid var(--border);}
 </style>
 </head>
 <body>
@@ -723,6 +736,119 @@ async function fetchCarRoute(fromCoord, toCoord){
   } catch(e){ return null; }
 }
 
+// == ODsay 대중교통 길찾기 API ==
+const ODSAY_KEY = encodeURIComponent('7pHttv0j/xkYqhr6uY/vug');
+const transitCache = {};
+
+async function fetchTransitRoute(fromCoord, toCoord){
+  if(!fromCoord?.lat || !toCoord?.lat) return null;
+  const ck = `${fromCoord.lat.toFixed(4)},${fromCoord.lng.toFixed(4)}-${toCoord.lat.toFixed(4)},${toCoord.lng.toFixed(4)}`;
+  if(transitCache[ck]) return transitCache[ck];
+
+  try{
+    const url = `https://api.odsay.com/v1/api/searchPubTransPathT`
+      + `?SX=${fromCoord.lng}&SY=${fromCoord.lat}`
+      + `&EX=${toCoord.lng}&EY=${toCoord.lat}`
+      + `&OPT=0&SearchType=0&apiKey=${ODSAY_KEY}`;
+
+    const res = await fetch(url);
+    if(!res.ok) return null;
+    const data = await res.json();
+
+    // 오류 코드 확인
+    if(data.error || !data.result?.path?.length) return null;
+
+    // 최적 경로 (0번 = 추천)
+    const path = data.result.path[0];
+    const info = path.info;
+    const subPaths = path.subPath || [];
+
+    // 구간별 교통수단 파싱
+    const steps = [];
+    subPaths.forEach(sp => {
+      if(sp.trafficType === 1){ // 지하철
+        steps.push({
+          type: 'subway',
+          line: sp.lane?.[0]?.name || '',
+          lineColor: sp.lane?.[0]?.subwayCode ? subwayColor(sp.lane[0].subwayCode) : '#666',
+          from: sp.startName,
+          to: sp.endName,
+          stationCount: sp.stationCount,
+          time: sp.sectionTime
+        });
+      } else if(sp.trafficType === 2){ // 버스
+        const busNos = (sp.lane||[]).map(l=>l.busNo).filter(Boolean).slice(0,3);
+        steps.push({
+          type: 'bus',
+          busNos,
+          busType: sp.lane?.[0]?.type,
+          from: sp.startName,
+          to: sp.endName,
+          stationCount: sp.stationCount,
+          time: sp.sectionTime
+        });
+      } else if(sp.trafficType === 3){ // 도보
+        if(sp.sectionTime > 3){
+          steps.push({ type:'walk', time: sp.sectionTime, distance: sp.distance });
+        }
+      }
+    });
+
+    const result = {
+      totalTime: info.totalTime,
+      totalWalk: info.totalWalk,
+      transferCount: info.transitCount,
+      payment: info.payment,
+      steps
+    };
+    transitCache[ck] = result;
+    return result;
+  } catch(e){ return null; }
+}
+
+// 지하철 호선별 색상
+function subwayColor(code){
+  const colors = {
+    1:'#263c96', 2:'#3a993a', 3:'#ef7c1c', 4:'#00a2d1',
+    5:'#8b50a4', 6:'#c55c1d', 7:'#596547', 8:'#e61e2b',
+    9:'#bdb092', 21:'#77c4a3', 22:'#81a914', 100:'#e60012',
+    101:'#0054a6', 104:'#f5a200'
+  };
+  return colors[code] || '#666';
+}
+
+// ODsay 경로를 HTML 스텝으로 렌더
+function renderTransitSteps(result){
+  if(!result?.steps?.length) return '';
+  const stepHtml = result.steps.map(s => {
+    if(s.type === 'subway'){
+      return `<div class="transit-step">
+        <span class="transit-badge" style="background:${s.lineColor}22;border:1px solid ${s.lineColor}66;color:${s.lineColor}">
+          🚇 ${s.line}
+        </span>
+        <span class="transit-detail">${s.from} → ${s.to} (${s.stationCount}정거장, ${s.time}분)</span>
+      </div>`;
+    } else if(s.type === 'bus'){
+      const nos = s.busNos.join(', ');
+      return `<div class="transit-step">
+        <span class="transit-badge bus-badge">🚌 ${nos}</span>
+        <span class="transit-detail">${s.from} → ${s.to} (${s.stationCount}정거장, ${s.time}분)</span>
+      </div>`;
+    } else if(s.type === 'walk'){
+      return `<div class="transit-step walk-step">
+        <span style="font-size:11px;color:var(--dim)">🚶 도보 ${s.time}분</span>
+      </div>`;
+    }
+    return '';
+  }).join('');
+
+  return `<div class="transit-summary">
+    <span class="ts-total">${result.totalTime}분</span>
+    <span class="ts-info">환승 ${result.transferCount}회 · 도보 ${result.totalWalk}m · ${result.payment}원</span>
+  </div>
+  <div class="transit-steps">${stepHtml}</div>`;
+}
+
 // 지도에 실제 경로 폴리라인 그리기
 function drawRouteOnMap(map, pathCoords, color, weight=4){
   if(!pathCoords?.length) return;
@@ -971,6 +1097,7 @@ async function renderRegionCards(inp){
               <span class="tbadge ${tClass(inp.tr1)}">${inp.tr1}</span>
             </div>
             <div class="troute" id="rt_a_route_${ri}">${aRouteText}</div>
+            ${inp.tr1.includes('대중교통') ? `<div class="transit-block" id="rt_a_transit_${ri}"><div class="transit-loading">경로 조회 중...</div></div>` : ''}
           </div>
         </div>
         <div class="cbar"><div class="cbar-f" id="rt_a_bar_${ri}" style="width:${aBarW}%;background:var(--a)"></div></div>
@@ -984,6 +1111,7 @@ async function renderRegionCards(inp){
               <span class="tbadge ${tClass(inp.tr2)}">${inp.tr2}</span>
             </div>
             <div class="troute" id="rt_b_route_${ri}">${bRouteText}</div>
+            ${inp.tr2.includes('대중교통') ? `<div class="transit-block" id="rt_b_transit_${ri}"><div class="transit-loading">경로 조회 중...</div></div>` : ''}
           </div>
         </div>
         <div class="cbar"><div class="cbar-f" id="rt_b_bar_${ri}" style="width:${bBarW}%;background:var(--a2)"></div></div>
@@ -1057,30 +1185,44 @@ async function renderRegionCards(inp){
     }
     el.classList.remove('loading');
     if(amounts.length){
-      const avg=Math.round(amounts.reduce((a,b)=>a+b,0)/amounts.length);
-      const avgOk=Math.floor(avg/10000)+'억'+(avg%10000>0?' '+Math.round(avg%10000/1000)+'천':'');
-      // 예산 비교
+      const avg = Math.round(amounts.reduce((a,b)=>a+b,0)/amounts.length);
+      const avgOk = Math.floor(avg/10000)+'억'+(avg%10000>0?' '+Math.round(avg%10000/1000)+'천':'');
       const budgetVal = parseFloat(document.getElementById('bud')?.value||'8') * 10000;
-      const overBudget = avg > budgetVal * 1.2; // 20% 초과시 경고
-      const underBudget = avg < budgetVal * 0.8; // 20% 이하면 여유
+      const overBudget = avg > budgetVal * 1.1; // 10% 초과시 예산 초과
+
       el.textContent = avgOk;
+
       if(overBudget){
-        el.style.color='var(--a3)';
-        el.title='예산 초과 가능성';
-        const tag=document.createElement('div');
-        tag.style.cssText='font-size:10px;color:var(--a3);margin-top:2px;font-family:"DM Mono",monospace';
-        tag.textContent='▲ 예산 초과';
-        el.parentNode.appendChild(tag);
-      } else if(underBudget){
-        el.style.color='var(--a2)';
-        const tag=document.createElement('div');
-        tag.style.cssText='font-size:10px;color:var(--a2);margin-top:2px;font-family:"DM Mono",monospace';
-        tag.textContent='✓ 예산 내';
+        // 카드 전체 숨기고 "예산 초과" 배너 표시
+        el.style.color = 'var(--a3)';
+        const card = el.closest('.rcard');
+        if(card){
+          card.style.opacity = '0.4';
+          card.style.pointerEvents = 'none';
+          card.style.position = 'relative';
+          const banner = document.createElement('div');
+          banner.style.cssText = [
+            'position:absolute', 'inset:0', 'display:flex',
+            'align-items:center', 'justify-content:center',
+            'background:rgba(14,14,14,0.7)', 'z-index:10',
+            'font-family:"DM Mono",monospace', 'font-size:13px',
+            'color:var(--a3)', 'letter-spacing:0.1em',
+            'border:1px solid var(--a3)'
+          ].join(';');
+          banner.textContent = '예산 초과 지역';
+          card.appendChild(banner);
+        }
+      } else {
+        el.style.color = avg < budgetVal * 0.9 ? 'var(--a2)' : 'var(--a)';
+        const tag = document.createElement('div');
+        tag.style.cssText = 'font-size:10px;margin-top:3px;font-family:"DM Mono",monospace';
+        tag.style.color = avg < budgetVal * 0.9 ? 'var(--a2)' : 'var(--muted)';
+        tag.textContent = avg < budgetVal * 0.9 ? '✓ 예산 내' : '예산 근접';
         el.parentNode.appendChild(tag);
       }
     } else {
-      el.textContent='데이터 없음';
-      el.style.fontSize='12px';
+      el.textContent = '데이터 없음';
+      el.style.fontSize = '12px';
     }
   });
 }
@@ -1146,15 +1288,8 @@ function renderApts(inp){
 let naverMap=null;
 function loadAndRenderMap(inp){
   document.getElementById('mapMsg').classList.remove('hidden');
-  if(typeof naver!=='undefined'&&naver.maps&&naver.maps.Service){
-    renderMap(inp); return;
-  }
-  window._mapInpCallback=inp;
-  const s=document.createElement('script');
-  s.src='https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=3wwumsfkd2&submodules=geocoder&callback=onNaverSDKReady';
-  document.body.appendChild(s);
+  loadNaverSDK(()=>renderMap(inp));
 }
-window.onNaverSDKReady=()=>renderMap(window._mapInpCallback);
 
 function renderMap(inp){
   document.getElementById('mapMsg').classList.add('hidden');
@@ -1199,17 +1334,44 @@ function renderMap(inp){
       </div>`,anchor:new naver.maps.Point(50,32)}
     });
     // 추천 지역들과 연결선
-    REGIONS.forEach((rg, ri)=>{
-      const dest = new naver.maps.LatLng(rg.lat, rg.lng);
-      new naver.maps.Polyline({
-        path:[pos, dest],
-        map:naverMap,
-        strokeColor:color,
-        strokeOpacity: ri===0 ? 0.5 : 0.2,
-        strokeWeight: ri===0 ? 2 : 1,
-        strokeStyle: ri===0 ? 'solid' : 'dashed'
+    if(transport.includes('자가용')){
+      // 자가용 - 카카오 실제 경로 (이미 placeAndRoute에서 처리)
+      REGIONS.slice(1).forEach((rg)=>{
+        new naver.maps.Polyline({
+          path:[pos, new naver.maps.LatLng(rg.lat, rg.lng)],
+          map:naverMap, strokeColor:color,
+          strokeOpacity:0.15, strokeWeight:1, strokeStyle:'dashed'
+        });
       });
-    });
+    } else {
+      // 대중교통 - ODsay 경로 폴리라인 시도
+      const destCoord = {lat:REGIONS[0].lat, lng:REGIONS[0].lng};
+      const fromC = {lat:coord.lat, lng:coord.lng};
+      fetchTransitRoute(fromC, destCoord).then(route => {
+        if(route?.steps?.length){
+          // 경로가 있으면 색상 구분 선
+          REGIONS.forEach((rg, ri)=>{
+            new naver.maps.Polyline({
+              path:[pos, new naver.maps.LatLng(rg.lat, rg.lng)],
+              map:naverMap, strokeColor:color,
+              strokeOpacity: ri===0 ? 0.45 : 0.15,
+              strokeWeight: ri===0 ? 2 : 1,
+              strokeStyle:'dashed'
+            });
+          });
+        } else {
+          REGIONS.forEach((rg, ri)=>{
+            new naver.maps.Polyline({
+              path:[pos, new naver.maps.LatLng(rg.lat, rg.lng)],
+              map:naverMap, strokeColor:color,
+              strokeOpacity: ri===0 ? 0.35 : 0.12,
+              strokeWeight: ri===0 ? 1.5 : 1,
+              strokeStyle:'dashed'
+            });
+          });
+        }
+      });
+    }
   }
 
   const rColors=['#c8a96e','#7fb5a0','#d4756e'];
@@ -1285,15 +1447,33 @@ function renderMap(inp){
 
 // == 네비게이션 ==
 let cur=0;
+// 네이버 SDK 로드 상태
+let naverSDKReady = false;
+let naverSDKLoading = false;
+const naverSDKCallbacks = [];
+
+function loadNaverSDK(callback){
+  if(naverSDKReady){
+    callback && callback(); return;
+  }
+  if(callback) naverSDKCallbacks.push(callback);
+  if(naverSDKLoading) return;
+  naverSDKLoading = true;
+  window._onNaverSDKInit = function(){
+    naverSDKReady = true;
+    naverSDKCallbacks.forEach(cb=>cb());
+    naverSDKCallbacks.length = 0;
+  };
+  const s = document.createElement('script');
+  s.src = 'https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=3wwumsfkd2&submodules=geocoder&callback=_onNaverSDKInit';
+  document.head.appendChild(s);
+}
+
 function startForm(){
   document.getElementById('hero').style.display='none';
   document.getElementById('snav').style.display='block';
-  // SDK 미리 로드 (geocode 검색을 위해)
-  if(typeof naver==='undefined'){
-    const s=document.createElement('script');
-    s.src='https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=3wwumsfkd2&submodules=geocoder';
-    document.head.appendChild(s);
-  }
+  // SDK 미리 로드 (주소 검색용)
+  loadNaverSDK();
   go(1);
   // 검색 컴포넌트 초기화
   setTimeout(()=>{
