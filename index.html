@@ -2,8 +2,9 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ìš°ë¦¬ì§‘ ì°¾ê¸°</title>
+<title>우리집 찾기</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;700&family=DM+Mono:wght@400;500&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -63,7 +64,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 .chip:hover{border-color:var(--borderL);color:var(--text);}
 .chip.on{border-color:var(--a);background:rgba(200,169,110,.12);color:var(--a);}
 
-/* â”€â”€ ì£¼ì†Œ ê²€ìƒ‰ ìž…ë ¥ â”€â”€ */
+/* -- 주소 검색 입력 -- */
 .addr-wrap{position:relative;}
 .addr-input-row{display:flex;gap:0;}
 .addr-input{flex:1;background:var(--bg3);border:1px solid var(--border);border-right:none;color:var(--text);font-size:13px;font-weight:300;padding:10px 13px;outline:none;transition:border-color .2s;}
@@ -76,7 +77,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 .addr-confirmed-text{font-size:11px;color:var(--a2);flex:1;}
 .addr-confirmed-clear{background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;padding:0;}
 .addr-confirmed-clear:hover{color:var(--a3);}
-/* ë“œë¡­ë‹¤ìš´ */
+/* 드롭다운 */
 .addr-dropdown{position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--borderL);border-top:none;z-index:200;max-height:240px;overflow-y:auto;display:none;}
 .addr-dropdown.show{display:block;}
 .addr-item{padding:10px 13px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s;}
@@ -207,15 +208,15 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 <section id="hero">
   <div class="hgrid"></div>
   <div style="position:relative">
-    <div class="hbadge">COUPLE HOME FINDER Â· ìš°ë¦¬ì§‘ ì°¾ê¸°</div>
-    <h1 class="htitle">ë‘ ì‚¬ëžŒì˜ ì‚¶ì´<br>ë§Œë‚˜ëŠ” <em>ì§‘</em></h1>
-    <p class="hsub">ê°ìžì˜ ì§ìž¥Â·ì´ë™ ë°©ì‹Â·ê°€ì¡± ìƒí™©ì„ ìž…ë ¥í•˜ë©´<br>ìµœì ì˜ ì£¼ê±° ì§€ì—­ê³¼ êµ­í† ë¶€ ì‹¤ê±°ëž˜ê°€ë¥¼ ë¶„ì„í•´ë“œë¦½ë‹ˆë‹¤</p>
-    <button onclick="startForm()" style="background:var(--a);color:#0e0e0e;border:none;padding:15px 42px;font-size:15px;font-weight:500;cursor:pointer;">ì‹œìž‘í•˜ê¸° â†’</button>
+    <div class="hbadge">COUPLE HOME FINDER · 우리집 찾기</div>
+    <h1 class="htitle">두 사람의 삶이<br>만나는 <em>집</em></h1>
+    <p class="hsub">각자의 직장·이동 방식·가족 상황을 입력하면<br>최적의 주거 지역과 국토부 실거래가를 분석해드립니다</p>
+    <button onclick="startForm()" style="background:var(--a);color:#0e0e0e;border:none;padding:15px 42px;font-size:15px;font-weight:500;cursor:pointer;">시작하기 →</button>
     <div style="display:flex;gap:24px;justify-content:center;flex-wrap:wrap;margin-top:28px;">
-      <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim)">âœ¦ ë„¤ì´ë²„ ì§€ë„ ìž¥ì†Œ ê²€ìƒ‰</span>
-      <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim)">âœ¦ ì¶œí‡´ê·¼ ë™ì„  ë¶„ì„</span>
-      <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim)">âœ¦ ì¡°ë¶€ëª¨ ë™ì„  ë°˜ì˜</span>
-      <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim)">âœ¦ êµ­í† ë¶€ ì‹¤ê±°ëž˜ê°€ ì—°ë™</span>
+      <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim)">✦ 네이버 지도 장소 검색</span>
+      <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim)">✦ 출퇴근 동선 분석</span>
+      <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim)">✦ 조부모 동선 반영</span>
+      <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--dim)">✦ 국토부 실거래가 연동</span>
     </div>
   </div>
 </section>
@@ -223,205 +224,205 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 <!-- STEP NAV -->
 <nav id="snav">
   <div class="ni">
-    <div class="si active" id="nav1" onclick="tryGo(1)"><div class="sn">1</div><div class="sl">ì¶œê·¼ ì •ë³´</div></div><div class="ss"></div>
-    <div class="si" id="nav2" onclick="tryGo(2)"><div class="sn">2</div><div class="sl">ì´ë™ ìˆ˜ë‹¨</div></div><div class="ss"></div>
-    <div class="si" id="nav3" onclick="tryGo(3)"><div class="sn">3</div><div class="sl">ìžë…€Â·ì¡°ë¶€ëª¨</div></div><div class="ss"></div>
-    <div class="si" id="nav4" onclick="tryGo(4)"><div class="sn">4</div><div class="sl">ì¡°ê±´Â·ì˜ˆì‚°</div></div><div class="ss"></div>
-    <div class="si" id="nav5" onclick="tryGo(5)"><div class="sn">5</div><div class="sl">ê²°ê³¼</div></div>
+    <div class="si active" id="nav1" onclick="tryGo(1)"><div class="sn">1</div><div class="sl">출근 정보</div></div><div class="ss"></div>
+    <div class="si" id="nav2" onclick="tryGo(2)"><div class="sn">2</div><div class="sl">이동 수단</div></div><div class="ss"></div>
+    <div class="si" id="nav3" onclick="tryGo(3)"><div class="sn">3</div><div class="sl">자녀·조부모</div></div><div class="ss"></div>
+    <div class="si" id="nav4" onclick="tryGo(4)"><div class="sn">4</div><div class="sl">조건·예산</div></div><div class="ss"></div>
+    <div class="si" id="nav5" onclick="tryGo(5)"><div class="sn">5</div><div class="sl">결과</div></div>
   </div>
 </nav>
 
 <!-- STEP 1 -->
 <div id="step1" class="fw" style="display:none">
-  <div class="stag">Step 01 Â· Commute</div>
-  <div class="stitle">ë‘ ë¶„ì˜ ì¶œê·¼ì§€ë¥¼ ì•Œë ¤ì£¼ì„¸ìš”</div>
-  <div class="sdesc">ìž¥ì†Œëª…, ì£¼ì†Œ, ì—­ëª… ë“±ìœ¼ë¡œ ê²€ìƒ‰í•˜ë©´ ìžë™ì™„ì„± ëª©ë¡ì´ ë‚˜íƒ€ë‚©ë‹ˆë‹¤.</div>
+  <div class="stag">Step 01 · Commute</div>
+  <div class="stitle">두 분의 출근지를 알려주세요</div>
+  <div class="sdesc">장소명, 주소, 역명 등으로 검색하면 자동완성 목록이 나타납니다.</div>
   <div class="pgrid">
     <div class="pcard a">
-      <div class="plbl"><div class="pdot" style="background:var(--a)"></div>ë°°ìš°ìž A</div>
+      <div class="plbl"><div class="pdot" style="background:var(--a)"></div>배우자 A</div>
       <div class="field">
-        <label class="flbl">ì¶œê·¼ì§€ ê²€ìƒ‰</label>
+        <label class="flbl">출근지 검색</label>
         <div id="search_work1"></div>
       </div>
       <div class="field">
-        <label class="flbl" id="c1lbl">ì¶œí‡´ê·¼ í—ˆìš© ì‹œê°„ (íŽ¸ë„) â€” 45ë¶„</label>
-        <input type="range" id="c1" min="10" max="120" value="45" step="5" oninput="document.getElementById('c1lbl').textContent='ì¶œí‡´ê·¼ í—ˆìš© ì‹œê°„ (íŽ¸ë„) â€” '+this.value+'ë¶„'">
-        <div class="rll"><span>10ë¶„</span><span>120ë¶„</span></div>
+        <label class="flbl" id="c1lbl">출퇴근 허용 시간 (편도) - 45분</label>
+        <input type="range" id="c1" min="10" max="120" value="45" step="5" oninput="document.getElementById('c1lbl').textContent='출퇴근 허용 시간 (편도) - '+this.value+'분'">
+        <div class="rll"><span>10분</span><span>120분</span></div>
       </div>
-      <div class="field"><label class="flbl">ìž¬íƒê·¼ë¬´ ë¹ˆë„</label>
-        <div class="chips" id="r1"><div class="chip on" onclick="pick(this,'r1')">ì—†ìŒ</div><div class="chip" onclick="pick(this,'r1')">ì£¼ 1ì¼</div><div class="chip" onclick="pick(this,'r1')">ì£¼ 2~3ì¼</div><div class="chip" onclick="pick(this,'r1')">ê±°ì˜ ìž¬íƒ</div></div>
+      <div class="field"><label class="flbl">재택근무 빈도</label>
+        <div class="chips" id="r1"><div class="chip on" onclick="pick(this,'r1')">없음</div><div class="chip" onclick="pick(this,'r1')">주 1일</div><div class="chip" onclick="pick(this,'r1')">주 2~3일</div><div class="chip" onclick="pick(this,'r1')">거의 재택</div></div>
       </div>
     </div>
     <div class="pcard b">
-      <div class="plbl"><div class="pdot" style="background:var(--a2)"></div>ë°°ìš°ìž B</div>
+      <div class="plbl"><div class="pdot" style="background:var(--a2)"></div>배우자 B</div>
       <div class="field">
-        <label class="flbl">ì¶œê·¼ì§€ ê²€ìƒ‰</label>
+        <label class="flbl">출근지 검색</label>
         <div id="search_work2"></div>
       </div>
       <div class="field">
-        <label class="flbl" id="c2lbl">ì¶œí‡´ê·¼ í—ˆìš© ì‹œê°„ (íŽ¸ë„) â€” 45ë¶„</label>
-        <input type="range" id="c2" min="10" max="120" value="45" step="5" oninput="document.getElementById('c2lbl').textContent='ì¶œí‡´ê·¼ í—ˆìš© ì‹œê°„ (íŽ¸ë„) â€” '+this.value+'ë¶„'">
-        <div class="rll"><span>10ë¶„</span><span>120ë¶„</span></div>
+        <label class="flbl" id="c2lbl">출퇴근 허용 시간 (편도) - 45분</label>
+        <input type="range" id="c2" min="10" max="120" value="45" step="5" oninput="document.getElementById('c2lbl').textContent='출퇴근 허용 시간 (편도) - '+this.value+'분'">
+        <div class="rll"><span>10분</span><span>120분</span></div>
       </div>
-      <div class="field"><label class="flbl">ìž¬íƒê·¼ë¬´ ë¹ˆë„</label>
-        <div class="chips" id="r2"><div class="chip on" onclick="pick(this,'r2')">ì—†ìŒ</div><div class="chip" onclick="pick(this,'r2')">ì£¼ 1ì¼</div><div class="chip" onclick="pick(this,'r2')">ì£¼ 2~3ì¼</div><div class="chip" onclick="pick(this,'r2')">ê±°ì˜ ìž¬íƒ</div></div>
+      <div class="field"><label class="flbl">재택근무 빈도</label>
+        <div class="chips" id="r2"><div class="chip on" onclick="pick(this,'r2')">없음</div><div class="chip" onclick="pick(this,'r2')">주 1일</div><div class="chip" onclick="pick(this,'r2')">주 2~3일</div><div class="chip" onclick="pick(this,'r2')">거의 재택</div></div>
       </div>
     </div>
   </div>
-  <div class="divr"><div class="dl"></div><div class="dt">ìš°ì„ ìˆœìœ„ ê°€ì¤‘ì¹˜</div><div class="dl"></div></div>
+  <div class="divr"><div class="dl"></div><div class="dt">우선순위 가중치</div><div class="dl"></div></div>
   <div style="background:var(--bg2);border:1px solid var(--border);padding:22px">
-    <div class="flbl" id="wlbl">Aì™€ B ë™ë“± â€” 50% / 50%</div>
+    <div class="flbl" id="wlbl">A와 B 동등 - 50% / 50%</div>
     <input type="range" id="wt" min="0" max="100" value="50" step="10" oninput="updW(this.value)">
-    <div class="rll"><span>A ìš°ì„ </span><span>ë™ë“±</span><span>B ìš°ì„ </span></div>
+    <div class="rll"><span>A 우선</span><span>동등</span><span>B 우선</span></div>
   </div>
-  <div class="fnav" style="justify-content:flex-end"><button class="bnext" onclick="go(2)">ë‹¤ìŒ: ì´ë™ ìˆ˜ë‹¨ â†’</button></div>
+  <div class="fnav" style="justify-content:flex-end"><button class="bnext" onclick="go(2)">다음: 이동 수단 →</button></div>
 </div>
 
 <!-- STEP 2 -->
 <div id="step2" class="fw" style="display:none">
-  <div class="stag">Step 02 Â· Transport</div>
-  <div class="stitle">ì–´ë–»ê²Œ ì¶œê·¼í•˜ì‹œë‚˜ìš”?</div>
-  <div class="sdesc">ì…”í‹€ ì´ìš© ì‹œ íƒ‘ìŠ¹ ì •ë¥˜ìž¥ì´ ì¶œê·¼ ê¸°ì ì´ ë©ë‹ˆë‹¤.</div>
+  <div class="stag">Step 02 · Transport</div>
+  <div class="stitle">어떻게 출근하시나요?</div>
+  <div class="sdesc">셔틀 이용 시 탑승 정류장이 출근 기점이 됩니다.</div>
   <div class="pgrid">
     <div class="pcard a">
-      <div class="plbl"><div class="pdot" style="background:var(--a)"></div>ë°°ìš°ìž A</div>
-      <div class="field"><label class="flbl">ì£¼ ì´ë™ ìˆ˜ë‹¨</label>
-        <div class="chips" id="tr1"><div class="chip on" onclick="pick(this,'tr1')">ðŸš‡ ëŒ€ì¤‘êµí†µ</div><div class="chip" onclick="pick(this,'tr1')">ðŸš— ìžê°€ìš©</div><div class="chip" onclick="pick(this,'tr1')">ðŸšŒ ì…”í‹€ë²„ìŠ¤</div><div class="chip" onclick="pick(this,'tr1')">ðŸš¶ ë„ë³´</div></div>
+      <div class="plbl"><div class="pdot" style="background:var(--a)"></div>배우자 A</div>
+      <div class="field"><label class="flbl">주 이동 수단</label>
+        <div class="chips" id="tr1"><div class="chip on" onclick="pick(this,'tr1')">🚇 대중교통</div><div class="chip" onclick="pick(this,'tr1')">🚗 자가용</div><div class="chip" onclick="pick(this,'tr1')">🚌 셔틀버스</div><div class="chip" onclick="pick(this,'tr1')">🚶 도보</div></div>
       </div>
-      <div class="field"><label class="flbl">ì°¨ëŸ‰ ë³´ìœ </label>
-        <div class="chips" id="ca1"><div class="chip on" onclick="pick(this,'ca1')">ìžˆìŒ</div><div class="chip" onclick="pick(this,'ca1')">ì—†ìŒ</div></div>
+      <div class="field"><label class="flbl">차량 보유</label>
+        <div class="chips" id="ca1"><div class="chip on" onclick="pick(this,'ca1')">있음</div><div class="chip" onclick="pick(this,'ca1')">없음</div></div>
       </div>
-      <div class="field"><label class="flbl">ì…”í‹€ë²„ìŠ¤ ì´ìš©</label>
-        <div class="chips" id="sh1"><div class="chip on" onclick="pick(this,'sh1');toggleEl('sb1',false)">ì—†ìŒ</div><div class="chip" onclick="pick(this,'sh1');toggleEl('sb1',true)">ì´ìš©í•¨</div></div>
+      <div class="field"><label class="flbl">셔틀버스 이용</label>
+        <div class="chips" id="sh1"><div class="chip on" onclick="pick(this,'sh1');toggleEl('sb1',false)">없음</div><div class="chip" onclick="pick(this,'sh1');toggleEl('sb1',true)">이용함</div></div>
         <div class="sblock" id="sb1">
-          <div class="flbl" style="margin-bottom:9px">íƒ‘ìŠ¹ ì •ë¥˜ìž¥ ê²€ìƒ‰</div>
+          <div class="flbl" style="margin-bottom:9px">탑승 정류장 검색</div>
           <div id="shuttle_stops1"></div>
-          <button class="badd" onclick="addShuttleStop('shuttle_stops1')">+ ì •ë¥˜ìž¥ ì¶”ê°€</button>
-          <div class="field"><label class="flbl">ì •ë¥˜ìž¥ê¹Œì§€</label><div class="chips" id="st1"><div class="chip on" onclick="pick(this,'st1')">ë„ë³´</div><div class="chip" onclick="pick(this,'st1')">ì°¨ëŸ‰</div><div class="chip" onclick="pick(this,'st1')">ëŒ€ì¤‘êµí†µ</div></div></div>
-          <div class="field"><label class="flbl">ì…”í‹€ ì²«ì°¨</label><input type="time" class="fi" value="07:30" style="width:auto"></div>
+          <button class="badd" onclick="addShuttleStop('shuttle_stops1')">+ 정류장 추가</button>
+          <div class="field"><label class="flbl">정류장까지</label><div class="chips" id="st1"><div class="chip on" onclick="pick(this,'st1')">도보</div><div class="chip" onclick="pick(this,'st1')">차량</div><div class="chip" onclick="pick(this,'st1')">대중교통</div></div></div>
+          <div class="field"><label class="flbl">셔틀 첫차</label><input type="time" class="fi" value="07:30" style="width:auto"></div>
         </div>
       </div>
     </div>
     <div class="pcard b">
-      <div class="plbl"><div class="pdot" style="background:var(--a2)"></div>ë°°ìš°ìž B</div>
-      <div class="field"><label class="flbl">ì£¼ ì´ë™ ìˆ˜ë‹¨</label>
-        <div class="chips" id="tr2"><div class="chip on" onclick="pick(this,'tr2')">ðŸš‡ ëŒ€ì¤‘êµí†µ</div><div class="chip" onclick="pick(this,'tr2')">ðŸš— ìžê°€ìš©</div><div class="chip" onclick="pick(this,'tr2')">ðŸšŒ ì…”í‹€ë²„ìŠ¤</div><div class="chip" onclick="pick(this,'tr2')">ðŸš¶ ë„ë³´</div></div>
+      <div class="plbl"><div class="pdot" style="background:var(--a2)"></div>배우자 B</div>
+      <div class="field"><label class="flbl">주 이동 수단</label>
+        <div class="chips" id="tr2"><div class="chip on" onclick="pick(this,'tr2')">🚇 대중교통</div><div class="chip" onclick="pick(this,'tr2')">🚗 자가용</div><div class="chip" onclick="pick(this,'tr2')">🚌 셔틀버스</div><div class="chip" onclick="pick(this,'tr2')">🚶 도보</div></div>
       </div>
-      <div class="field"><label class="flbl">ì°¨ëŸ‰ ë³´ìœ </label>
-        <div class="chips" id="ca2"><div class="chip on" onclick="pick(this,'ca2')">ìžˆìŒ</div><div class="chip" onclick="pick(this,'ca2')">ì—†ìŒ</div></div>
+      <div class="field"><label class="flbl">차량 보유</label>
+        <div class="chips" id="ca2"><div class="chip on" onclick="pick(this,'ca2')">있음</div><div class="chip" onclick="pick(this,'ca2')">없음</div></div>
       </div>
-      <div class="field"><label class="flbl">ì…”í‹€ë²„ìŠ¤ ì´ìš©</label>
-        <div class="chips" id="sh2"><div class="chip on" onclick="pick(this,'sh2');toggleEl('sb2',false)">ì—†ìŒ</div><div class="chip" onclick="pick(this,'sh2');toggleEl('sb2',true)">ì´ìš©í•¨</div></div>
+      <div class="field"><label class="flbl">셔틀버스 이용</label>
+        <div class="chips" id="sh2"><div class="chip on" onclick="pick(this,'sh2');toggleEl('sb2',false)">없음</div><div class="chip" onclick="pick(this,'sh2');toggleEl('sb2',true)">이용함</div></div>
         <div class="sblock" id="sb2">
-          <div class="flbl" style="margin-bottom:9px">íƒ‘ìŠ¹ ì •ë¥˜ìž¥ ê²€ìƒ‰</div>
+          <div class="flbl" style="margin-bottom:9px">탑승 정류장 검색</div>
           <div id="shuttle_stops2"></div>
-          <button class="badd" onclick="addShuttleStop('shuttle_stops2')">+ ì •ë¥˜ìž¥ ì¶”ê°€</button>
-          <div class="field"><label class="flbl">ì •ë¥˜ìž¥ê¹Œì§€</label><div class="chips" id="st2"><div class="chip on" onclick="pick(this,'st2')">ë„ë³´</div><div class="chip" onclick="pick(this,'st2')">ì°¨ëŸ‰</div><div class="chip" onclick="pick(this,'st2')">ëŒ€ì¤‘êµí†µ</div></div></div>
-          <div class="field"><label class="flbl">ì…”í‹€ ì²«ì°¨</label><input type="time" class="fi" value="07:30" style="width:auto"></div>
+          <button class="badd" onclick="addShuttleStop('shuttle_stops2')">+ 정류장 추가</button>
+          <div class="field"><label class="flbl">정류장까지</label><div class="chips" id="st2"><div class="chip on" onclick="pick(this,'st2')">도보</div><div class="chip" onclick="pick(this,'st2')">차량</div><div class="chip" onclick="pick(this,'st2')">대중교통</div></div></div>
+          <div class="field"><label class="flbl">셔틀 첫차</label><input type="time" class="fi" value="07:30" style="width:auto"></div>
         </div>
       </div>
     </div>
   </div>
-  <div class="fnav"><button class="bprev" onclick="go(1)">â† ì´ì „</button><button class="bnext" onclick="go(3)">ë‹¤ìŒ: ìžë…€Â·ì¡°ë¶€ëª¨ â†’</button></div>
+  <div class="fnav"><button class="bprev" onclick="go(1)">← 이전</button><button class="bnext" onclick="go(3)">다음: 자녀·조부모 →</button></div>
 </div>
 
 <!-- STEP 3 -->
 <div id="step3" class="fw" style="display:none">
-  <div class="stag">Step 03 Â· Family</div>
-  <div class="stitle">ê°€ì¡± êµ¬ì„±ì„ ì•Œë ¤ì£¼ì„¸ìš”</div>
-  <div class="sdesc">ì¡°ë¶€ëª¨ ê±°ì£¼ì§€ì™€ ëŒë´„ ê°€ëŠ¥ ì—¬ë¶€ëŠ” í”½ì—… ë™ì„  ê³„ì‚°ì— ë°˜ì˜ë©ë‹ˆë‹¤.</div>
-  <div class="field"><label class="flbl">ìžë…€ ìœ ë¬´</label>
-    <div class="chips" id="ch"><div class="chip on" onclick="pick(this,'ch');showCond('childBlock',false)">ìžë…€ ì—†ìŒ</div><div class="chip" onclick="pick(this,'ch');showCond('childBlock',true)">ê³„íš ì¤‘</div><div class="chip" onclick="pick(this,'ch');showCond('childBlock',true)">ìžë…€ ìžˆìŒ</div></div>
+  <div class="stag">Step 03 · Family</div>
+  <div class="stitle">가족 구성을 알려주세요</div>
+  <div class="sdesc">조부모 거주지와 돌봄 가능 여부는 픽업 동선 계산에 반영됩니다.</div>
+  <div class="field"><label class="flbl">자녀 유무</label>
+    <div class="chips" id="ch"><div class="chip on" onclick="pick(this,'ch');showCond('childBlock',false)">자녀 없음</div><div class="chip" onclick="pick(this,'ch');showCond('childBlock',true)">계획 중</div><div class="chip" onclick="pick(this,'ch');showCond('childBlock',true)">자녀 있음</div></div>
   </div>
   <div class="cond" id="childBlock">
     <div class="pgrid" style="margin-top:22px">
       <div style="background:var(--bg2);border:1px solid var(--border);padding:22px">
-        <div class="plbl">ðŸ‘¶ ìžë…€ ì •ë³´</div>
-        <div class="field"><label class="flbl">ë‚˜ì´ëŒ€ (ë³µìˆ˜ ì„ íƒ)</label><div class="chips"><div class="chip" onclick="tog(this)">ì˜ìœ ì•„(0~3ì„¸)</div><div class="chip" onclick="tog(this)">ìœ ì¹˜ì›(4~7ì„¸)</div><div class="chip" onclick="tog(this)">ì´ˆë“± ì €í•™ë…„</div><div class="chip" onclick="tog(this)">ì´ˆë“± ê³ í•™ë…„+</div></div></div>
-        <div class="field"><label class="flbl">êµìœ¡ í™˜ê²½ ìš°ì„ ìˆœìœ„</label><div class="chips"><div class="chip" onclick="tog(this)">í•™êµ°</div><div class="chip" onclick="tog(this)">ì–´ë¦°ì´ì§‘ ì ‘ê·¼ì„±</div><div class="chip" onclick="tog(this)">í•™ì›ê°€</div><div class="chip" onclick="tog(this)">ìžì—°Â·ê³µì›</div></div></div>
+        <div class="plbl">👶 자녀 정보</div>
+        <div class="field"><label class="flbl">나이대 (복수 선택)</label><div class="chips"><div class="chip" onclick="tog(this)">영유아(0~3세)</div><div class="chip" onclick="tog(this)">유치원(4~7세)</div><div class="chip" onclick="tog(this)">초등 저학년</div><div class="chip" onclick="tog(this)">초등 고학년+</div></div></div>
+        <div class="field"><label class="flbl">교육 환경 우선순위</label><div class="chips"><div class="chip" onclick="tog(this)">학군</div><div class="chip" onclick="tog(this)">어린이집 접근성</div><div class="chip" onclick="tog(this)">학원가</div><div class="chip" onclick="tog(this)">자연·공원</div></div></div>
       </div>
       <div style="background:var(--bg2);border:1px solid var(--border);padding:22px">
-        <div class="plbl">ðŸ‘´ ì¡°ë¶€ëª¨ ëŒë´„</div>
-        <div class="field"><label class="flbl">ì¡°ë¶€ëª¨ ëŒë´„ ê°€ëŠ¥ ì—¬ë¶€</label>
-          <div class="chips" id="gp"><div class="chip on" onclick="pick(this,'gp');showCond('gpBlock',false)">ë¶ˆê°€/í•´ë‹¹ì—†ìŒ</div><div class="chip" onclick="pick(this,'gp');showCond('gpBlock',true)">ê°€ëŠ¥</div></div>
+        <div class="plbl">👴 조부모 돌봄</div>
+        <div class="field"><label class="flbl">조부모 돌봄 가능 여부</label>
+          <div class="chips" id="gp"><div class="chip on" onclick="pick(this,'gp');showCond('gpBlock',false)">불가/해당없음</div><div class="chip" onclick="pick(this,'gp');showCond('gpBlock',true)">가능</div></div>
         </div>
         <div class="cond" id="gpBlock">
           <div class="field">
-            <label class="flbl">ì¡°ë¶€ëª¨ ê±°ì£¼ì§€ ê²€ìƒ‰</label>
+            <label class="flbl">조부모 거주지 검색</label>
             <div id="search_gpAddr"></div>
           </div>
-          <div class="field"><label class="flbl">ì¡°ë¶€ëª¨ ì°¨ëŸ‰</label><div class="chips" id="gpc"><div class="chip on" onclick="pick(this,'gpc')">ìžˆìŒ</div><div class="chip" onclick="pick(this,'gpc')">ì—†ìŒ</div></div></div>
-          <div class="field"><label class="flbl">í”½ì—… ìœ í˜•</label><div class="chips" id="pu"><div class="chip on" onclick="pick(this,'pu')">ìš°ë¦¬ì§‘ì—ì„œ ëŒë´„</div><div class="chip" onclick="pick(this,'pu')">ì¡°ë¶€ëª¨ì§‘ì—ì„œ ëŒë´„</div><div class="chip" onclick="pick(this,'pu')">ì–´ë¦°ì´ì§‘ í”½ì—…</div></div></div>
+          <div class="field"><label class="flbl">조부모 차량</label><div class="chips" id="gpc"><div class="chip on" onclick="pick(this,'gpc')">있음</div><div class="chip" onclick="pick(this,'gpc')">없음</div></div></div>
+          <div class="field"><label class="flbl">픽업 유형</label><div class="chips" id="pu"><div class="chip on" onclick="pick(this,'pu')">우리집에서 돌봄</div><div class="chip" onclick="pick(this,'pu')">조부모집에서 돌봄</div><div class="chip" onclick="pick(this,'pu')">어린이집 픽업</div></div></div>
         </div>
       </div>
     </div>
   </div>
-  <div class="fnav"><button class="bprev" onclick="go(2)">â† ì´ì „</button><button class="bnext" onclick="go(4)">ë‹¤ìŒ: ì¡°ê±´Â·ì˜ˆì‚° â†’</button></div>
+  <div class="fnav"><button class="bprev" onclick="go(2)">← 이전</button><button class="bnext" onclick="go(4)">다음: 조건·예산 →</button></div>
 </div>
 
 <!-- STEP 4 -->
 <div id="step4" class="fw" style="display:none">
-  <div class="stag">Step 04 Â· Conditions</div>
-  <div class="stitle">ì£¼ê±° ì¡°ê±´ê³¼ ì˜ˆì‚°ì„ ì„¤ì •í•´ì£¼ì„¸ìš”</div>
-  <div class="sdesc">ì˜ˆì‚°Â·í‰í˜•Â·ì„ í˜¸ í™˜ê²½ì„ ì„¤ì •í•˜ë©´ ë” ì •í™•í•œ ê²°ê³¼ê°€ ë‚˜ì™€ìš”.</div>
+  <div class="stag">Step 04 · Conditions</div>
+  <div class="stitle">주거 조건과 예산을 설정해주세요</div>
+  <div class="sdesc">예산·평형·선호 환경을 설정하면 더 정확한 결과가 나와요.</div>
   <div class="pgrid">
     <div>
-      <div class="field"><label class="flbl">ì£¼ê±° í˜•íƒœ (ë³µìˆ˜ ì„ íƒ)</label><div class="chips"><div class="chip on" onclick="tog(this)">ðŸ¢ ì•„íŒŒíŠ¸</div><div class="chip" onclick="tog(this)">ðŸ  ë¹Œë¼/ë‹¤ì„¸ëŒ€</div><div class="chip" onclick="tog(this)">ðŸ™ ì˜¤í”¼ìŠ¤í…”</div><div class="chip" onclick="tog(this)">ðŸ¡ ë‹¨ë…ì£¼íƒ</div></div></div>
-      <div class="field"><label class="flbl">ê±°ëž˜ ë°©ì‹</label><div class="chips" id="dt"><div class="chip on" onclick="pick(this,'dt')">ë§¤ë§¤</div><div class="chip" onclick="pick(this,'dt')">ì „ì„¸</div><div class="chip" onclick="pick(this,'dt')">ì›”ì„¸</div></div></div>
+      <div class="field"><label class="flbl">주거 형태 (복수 선택)</label><div class="chips"><div class="chip on" onclick="tog(this)">🏢 아파트</div><div class="chip" onclick="tog(this)">🏠 빌라/다세대</div><div class="chip" onclick="tog(this)">🏙 오피스텔</div><div class="chip" onclick="tog(this)">🏡 단독주택</div></div></div>
+      <div class="field"><label class="flbl">거래 방식</label><div class="chips" id="dt"><div class="chip on" onclick="pick(this,'dt')">매매</div><div class="chip" onclick="pick(this,'dt')">전세</div><div class="chip" onclick="pick(this,'dt')">월세</div></div></div>
       <div class="field">
-        <label class="flbl" id="budlbl">ì˜ˆì‚° â€” 8ì–µ</label>
-        <input type="range" id="bud" min="1" max="30" value="8" step="0.5" oninput="document.getElementById('budlbl').textContent='ì˜ˆì‚° â€” '+this.value+'ì–µ'">
-        <div class="rll"><span>1ì–µ</span><span>30ì–µ+</span></div>
+        <label class="flbl" id="budlbl">예산 - 8억</label>
+        <input type="range" id="bud" min="1" max="30" value="8" step="0.5" oninput="document.getElementById('budlbl').textContent='예산 - '+this.value+'억'">
+        <div class="rll"><span>1억</span><span>30억+</span></div>
       </div>
-      <div class="field"><label class="flbl">í¬ë§ í‰í˜•</label><div class="chips" id="sz"><div class="chip" onclick="pick(this,'sz')">~20í‰</div><div class="chip on" onclick="pick(this,'sz')">25~32í‰</div><div class="chip" onclick="pick(this,'sz')">33~42í‰</div><div class="chip" onclick="pick(this,'sz')">43í‰+</div></div></div>
+      <div class="field"><label class="flbl">희망 평형</label><div class="chips" id="sz"><div class="chip" onclick="pick(this,'sz')">~20평</div><div class="chip on" onclick="pick(this,'sz')">25~32평</div><div class="chip" onclick="pick(this,'sz')">33~42평</div><div class="chip" onclick="pick(this,'sz')">43평+</div></div></div>
     </div>
     <div>
-      <div class="field"><label class="flbl">ì„ í˜¸ ì§€ì—­ ê²€ìƒ‰ (ì„ íƒ)</label><div id="search_prefer"></div></div>
-      <div class="field"><label class="flbl">ê¸°í”¼ ì§€ì—­ ê²€ìƒ‰ (ì„ íƒ)</label><div id="search_avoid"></div></div>
-      <div class="field"><label class="flbl">ì£¼ê±° í™˜ê²½ ìš°ì„ ìˆœìœ„</label><div class="chips"><div class="chip" onclick="tog(this)">ðŸŒ¿ ê³µì›Â·ìžì—°</div><div class="chip" onclick="tog(this)">ðŸ« í•™êµ°</div><div class="chip" onclick="tog(this)">ðŸ›’ ìƒí™œíŽ¸ì˜</div><div class="chip" onclick="tog(this)">ðŸ”‡ ì¡°ìš©í•¨</div><div class="chip" onclick="tog(this)">ðŸ“ˆ ê°œë°œí˜¸ìž¬</div><div class="chip" onclick="tog(this)">ðŸš‰ ì—­ì„¸ê¶Œ</div></div></div>
-      <div class="field"><label class="flbl">ë¯¸ëž˜ êµí†µ í˜¸ìž¬</label><div class="chips" id="ft"><div class="chip on" onclick="pick(this,'ft')">ë°˜ì˜ (GTXÂ·ì‹ ê·œë…¸ì„  í¬í•¨)</div><div class="chip" onclick="pick(this,'ft')">í˜„ìž¬ ê¸°ì¤€ë§Œ</div></div></div>
+      <div class="field"><label class="flbl">선호 지역 검색 (선택)</label><div id="search_prefer"></div></div>
+      <div class="field"><label class="flbl">기피 지역 검색 (선택)</label><div id="search_avoid"></div></div>
+      <div class="field"><label class="flbl">주거 환경 우선순위</label><div class="chips"><div class="chip" onclick="tog(this)">🌿 공원·자연</div><div class="chip" onclick="tog(this)">🏫 학군</div><div class="chip" onclick="tog(this)">🛒 생활편의</div><div class="chip" onclick="tog(this)">🔇 조용함</div><div class="chip" onclick="tog(this)">📈 개발호재</div><div class="chip" onclick="tog(this)">🚉 역세권</div></div></div>
+      <div class="field"><label class="flbl">미래 교통 호재</label><div class="chips" id="ft"><div class="chip on" onclick="pick(this,'ft')">반영 (GTX·신규노선 포함)</div><div class="chip" onclick="pick(this,'ft')">현재 기준만</div></div></div>
     </div>
   </div>
-  <div class="fnav"><button class="bprev" onclick="go(3)">â† ì´ì „</button><button class="bnext big" onclick="showResult()">âœ¦ ìµœì  ì§€ì—­ ë¶„ì„í•˜ê¸°</button></div>
+  <div class="fnav"><button class="bprev" onclick="go(3)">← 이전</button><button class="bnext big" onclick="showResult()">✦ 최적 지역 분석하기</button></div>
 </div>
 
 <!-- RESULT -->
 <div id="result">
   <div class="rh">
-    <div class="sring"><div class="snum">87</div><div class="slbll">ì í•©ë„</div></div>
-    <div class="rtitle">ë¶„ì„ì´ ì™„ë£Œë˜ì—ˆìŠµë‹ˆë‹¤</div>
-    <p style="font-size:13px;color:var(--muted)">ë‘ ë¶„ì˜ ì¡°ê±´ì„ ì¢…í•©í•œ ìµœì  ì£¼ê±° ì§€ì—­ TOP 3</p>
+    <div class="sring"><div class="snum">87</div><div class="slbll">적합도</div></div>
+    <div class="rtitle">분석이 완료되었습니다</div>
+    <p style="font-size:13px;color:var(--muted)">두 분의 조건을 종합한 최적 주거 지역 TOP 3</p>
     <div class="isum" id="inputSummary"></div>
   </div>
   <div class="strips">
-    <div class="strip"><div class="slb">ë¶„ì„ ì§€ì—­</div><div class="svl">47ê°œ êµ¬/ë™</div></div>
-    <div class="strip"><div class="slb">A í—ˆìš© ì¶œí‡´ê·¼</div><div class="svl" id="s_a">â€”</div></div>
-    <div class="strip"><div class="slb">B í—ˆìš© ì¶œí‡´ê·¼</div><div class="svl" id="s_b">â€”</div></div>
-    <div class="strip"><div class="slb">ì˜ˆì‚° ì í•© ë‹¨ì§€</div><div class="svl">12ê°œ</div></div>
+    <div class="strip"><div class="slb">분석 지역</div><div class="svl">47개 구/동</div></div>
+    <div class="strip"><div class="slb">A 허용 출퇴근</div><div class="svl" id="s_a">-</div></div>
+    <div class="strip"><div class="slb">B 허용 출퇴근</div><div class="svl" id="s_b">-</div></div>
+    <div class="strip"><div class="slb">예산 적합 단지</div><div class="svl">12개</div></div>
   </div>
   <div class="rcards" id="regionCards"></div>
   <div id="mapWrap">
     <div id="naverMap"></div>
-    <div id="mapMsg"><div style="font-size:28px">ðŸ—º</div><div style="font-size:13px;color:var(--muted)" id="mapMsgText">ì§€ë„ë¥¼ ë¶ˆëŸ¬ì˜¤ëŠ” ì¤‘...</div></div>
+    <div id="mapMsg"><div style="font-size:28px">🗺</div><div style="font-size:13px;color:var(--muted)" id="mapMsgText">지도를 불러오는 중...</div></div>
     <div class="mleg">
-      <div class="mli"><div class="mld" style="background:var(--a)"></div>ì¶”ì²œ ì£¼ê±°ì§€</div>
-      <div class="mli"><div class="mld" style="background:#7da8e0"></div>A ì¶œê·¼ì§€</div>
-      <div class="mli"><div class="mld" style="background:var(--a2)"></div>B ì¶œê·¼ì§€</div>
-      <div class="mli" id="gpLegend" style="display:none"><div class="mld" style="background:#a0a0c8"></div>ì¡°ë¶€ëª¨ ê±°ì£¼ì§€</div>
+      <div class="mli"><div class="mld" style="background:var(--a)"></div>추천 주거지</div>
+      <div class="mli"><div class="mld" style="background:#7da8e0"></div>A 출근지</div>
+      <div class="mli"><div class="mld" style="background:var(--a2)"></div>B 출근지</div>
+      <div class="mli" id="gpLegend" style="display:none"><div class="mld" style="background:#a0a0c8"></div>조부모 거주지</div>
     </div>
   </div>
   <div class="apt-section">
-    <div class="stag" style="margin-top:44px">Apartment List Â· êµ­í† ë¶€ ì‹¤ê±°ëž˜ê°€</div>
-    <div class="stitle">ì¶”ì²œ ì•„íŒŒíŠ¸ <span style="color:var(--a)">10ì„ </span></div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.7">êµ­í† êµí†µë¶€ ì‹¤ê±°ëž˜ê°€ API ê¸°ì¤€ â€” ìµœê·¼ 3ê°œì›” ê±°ëž˜ ë°ì´í„°</p>
-    <div class="atabs"><button class="atab on" onclick="fApt(this,'all')">ì „ì²´</button><button class="atab" onclick="fApt(this,'1')">ë§ˆí¬êµ¬</button><button class="atab" onclick="fApt(this,'2')">ì„±ë™êµ¬</button><button class="atab" onclick="fApt(this,'3')">ë™ìž‘êµ¬</button></div>
+    <div class="stag" style="margin-top:44px">Apartment List · 국토부 실거래가</div>
+    <div class="stitle">추천 아파트 <span style="color:var(--a)">10선</span></div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.7">국토교통부 실거래가 API 기준 - 최근 3개월 거래 데이터</p>
+    <div class="atabs"><button class="atab on" onclick="fApt(this,'all')">전체</button><button class="atab" onclick="fApt(this,'1')">마포구</button><button class="atab" onclick="fApt(this,'2')">성동구</button><button class="atab" onclick="fApt(this,'3')">동작구</button></div>
     <div id="aptList"></div>
   </div>
-  <div style="text-align:center"><button class="brst" onclick="restart()">â†º ì¡°ê±´ ë‹¤ì‹œ ì„¤ì •í•˜ê¸°</button></div>
+  <div style="text-align:center"><button class="brst" onclick="restart()">↺ 조건 다시 설정하기</button></div>
 </div>
 
 <script>
-// â•â• ì €ìž¥ì†Œ â•â•
+// == 저장소 ==
 const LOCS = {
   work1:  { label:'', lat:null, lng:null },
   work2:  { label:'', lat:null, lng:null },
@@ -430,15 +431,15 @@ const LOCS = {
   avoid:  { label:'', lat:null, lng:null },
 };
 
-// â•â• ì¹´ì¹´ì˜¤ ë¡œì»¬ API (REST) â€” ì—­ëª…Â·ê±´ë¬¼ëª…Â·POI ê²€ìƒ‰ ì§€ì› â•â•
-// ì¹´ì¹´ì˜¤ REST APIëŠ” ë¸Œë¼ìš°ì €ì—ì„œ CORS í—ˆìš©ë¨
-const KAKAO_KEY = 'KakaoAK ë°œê¸‰í•„ìš”'; // ì¹´ì¹´ì˜¤ ê°œë°œìžì„¼í„° ì•± í‚¤ (REST API í‚¤)
+// == 카카오 로컬 API (REST) - 역명.건물명.POI 검색 지원 ==
+// 카카오 REST API는 브라우저에서 CORS 허용됨
+const KAKAO_KEY = 'KakaoAK 발급필요'; // 카카오 개발자센터 앱 키 (REST API 키)
 
-// ë„¤ì´ë²„ geocode (ì£¼ì†Œ ì •í™•ë„ ë†’ìŒ) + ì¹´ì¹´ì˜¤ keyword (POI ê²€ìƒ‰) ë³‘í•©
+// 네이버 geocode (주소 정확도 높음) + 카카오 keyword (POI 검색) 병합
 async function searchPlace(q){
   const results = [];
 
-  // â‘  ë„¤ì´ë²„ geocode â€” ì£¼ì†Œ ê¸°ë°˜
+  // 1. 네이버 geocode - 주소 기반
   if(typeof naver !== 'undefined' && naver.maps?.Service){
     await new Promise(resolve=>{
       naver.maps.Service.geocode({query:q, count:5}, (st, res)=>{
@@ -447,7 +448,7 @@ async function searchPlace(q){
           if(label) results.push({
             label, sub: item.jibunAddress||'',
             lat: parseFloat(item.y), lng: parseFloat(item.x),
-            type:'ì£¼ì†Œ'
+            type:'주소'
           });
         });
         resolve();
@@ -455,17 +456,17 @@ async function searchPlace(q){
     });
   }
 
-  // â‘¡ ì¹´ì¹´ì˜¤ í‚¤ì›Œë“œ ê²€ìƒ‰ â€” ì—­ëª…Â·ê±´ë¬¼ëª…Â·ìž¥ì†Œëª… ì§€ì›
-  // ì°¸ê³ : ì¹´ì¹´ì˜¤ REST APIëŠ” ë¸Œë¼ìš°ì € CORS í—ˆìš© (Origin ë¬´ê´€)
+  // 2. 카카오 키워드 검색 - 역명.건물명.장소명 지원
+  // 참고: 카카오 REST API는 브라우저 CORS 허용 (Origin 무관)
   try{
     const url = `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(q)}&size=7&rect=126.7,37.4,127.2,37.7`;
     const res = await fetch(url, {headers:{'Authorization':'KakaoAK c5e2d54c8c2f8f17b9a1e3b7f4d6a9c2'}});
-    // ìœ„ í‚¤ëŠ” ì˜ˆì‹œ â€” ì‹¤ì œë¡  ë³¸ì¸ í‚¤ ì‚¬ìš© í•„ìš”. ì—¬ê¸°ì„  naver geocodeë§Œ ì‚¬ìš©
+    // 위 키는 예시 - 실제론 본인 키 사용 필요. 여기선 naver geocode만 사용
   } catch(e){}
 
-  // â‘¢ naver geocodeì— ì§€ì—­ëª… ë³´ì™„ ì‹œë„ (ì—­ëª… â†’ "OOì—­ ì„œìš¸" í˜•íƒœë¡œ ìž¬ì‹œë„)
+  // 3. naver geocode에 지역명 보완 시도 (역명 -> "OO역 서울" 형태로 재시도)
   if(results.length === 0 && typeof naver !== 'undefined' && naver.maps?.Service){
-    const queries = [q + ' ì„œìš¸', q + ' ì—­', 'ì„œìš¸ ' + q];
+    const queries = [q + ' 서울', q + ' 역', '서울 ' + q];
     for(const altQ of queries){
       if(results.length > 0) break;
       await new Promise(resolve=>{
@@ -475,7 +476,7 @@ async function searchPlace(q){
             if(label) results.push({
               label, sub: item.jibunAddress||'',
               lat: parseFloat(item.y), lng: parseFloat(item.x),
-              type:'ìž¥ì†Œ'
+              type:'장소'
             });
           });
           resolve();
@@ -484,7 +485,7 @@ async function searchPlace(q){
     }
   }
 
-  // ì¤‘ë³µ ì œê±°
+  // 중복 제거
   const seen = new Set();
   return results.filter(r=>{
     const k = `${r.lat.toFixed(4)},${r.lng.toFixed(4)}`;
@@ -493,7 +494,7 @@ async function searchPlace(q){
   });
 }
 
-// â•â• ì£¼ì†Œ ê²€ìƒ‰ ì»´í¬ë„ŒíŠ¸ â•â•
+// == 주소 검색 컴포넌트 ==
 function createAddrSearch(key, containerId, placeholder, accentColor='#c8a96e'){
   const wrap = document.getElementById(containerId);
   if(!wrap) return;
@@ -502,13 +503,13 @@ function createAddrSearch(key, containerId, placeholder, accentColor='#c8a96e'){
       <div class="addr-input-row">
         <input class="addr-input" id="ai_${key}" placeholder="${placeholder}" autocomplete="off"
           oninput="onAddrInput('${key}')" onkeydown="onAddrKey(event,'${key}')" onfocus="showDrop('${key}')">
-        <button class="addr-btn" onclick="clearAddr('${key}')" title="ì´ˆê¸°í™”">âœ•</button>
+        <button class="addr-btn" onclick="clearAddr('${key}')" title="초기화">✕</button>
       </div>
       <div class="addr-dropdown" id="ad_${key}"></div>
       <div id="ac_${key}" style="display:none" class="addr-confirmed">
-        <span style="font-size:13px">ðŸ“</span>
+        <span style="font-size:13px">📍</span>
         <span class="addr-confirmed-text" id="act_${key}"></span>
-        <button class="addr-confirmed-clear" onclick="clearAddr('${key}')">âœ•</button>
+        <button class="addr-confirmed-clear" onclick="clearAddr('${key}')">✕</button>
       </div>
     </div>`;
   const inp = document.getElementById('ai_'+key);
@@ -521,7 +522,7 @@ const searchTimers={}, dropFocusIdx={};
 function onAddrInput(key){
   clearTimeout(searchTimers[key]);
   const q = document.getElementById('ai_'+key).value.trim();
-  // ì„ íƒ í™•ì •ëœ ìƒíƒœì—ì„œ ë‹¤ì‹œ íƒ€ì´í•‘í•˜ë©´ ì´ˆê¸°í™”
+  // 선택 확정된 상태에서 다시 타이핑하면 초기화
   if(LOCS[key].label && q !== LOCS[key].label){
     LOCS[key]={label:'',lat:null,lng:null};
     document.getElementById('ac_'+key).style.display='none';
@@ -539,16 +540,16 @@ function renderDropdown(key, items, q){
   const dd = document.getElementById('ad_'+key);
   dropFocusIdx[key] = -1;
   if(!items.length){
-    // ìž…ë ¥ê°’ ê·¸ëŒ€ë¡œ ì €ìž¥ (ì¢Œí‘œ ì—†ì´) â€” ì§€ë„ì—” geocodingìœ¼ë¡œ ë‚˜ì¤‘ì— ì²˜ë¦¬
+    // 입력값 그대로 저장 (좌표 없이) - 지도엔 geocoding으로 나중에 처리
     LOCS[key] = { label: document.getElementById('ai_'+key).value.trim(), lat:null, lng:null };
     dd.innerHTML=`<div class="addr-empty">
-      <div style="margin-bottom:6px">ê²€ìƒ‰ ê²°ê³¼ê°€ ì—†ì–´ìš”</div>
+      <div style="margin-bottom:6px">검색 결과가 없어요</div>
       <div style="font-size:10px;color:var(--dim);line-height:1.6">
-        Â· ì—­ëª…: "ê°•ë‚¨ì—­", "íŒêµì—­" ì²˜ëŸ¼ ì—­ í¬í•¨<br>
-        Â· ê±´ë¬¼: "ì‚¼ì„±ì „ìž ìˆ˜ì›", "ì¹´ì¹´ì˜¤ íŒêµ"<br>
-        Â· ì£¼ì†Œ: "ì„±ë‚¨ì‹œ ë¶„ë‹¹êµ¬ íŒêµì—­ë¡œ"
+        · 역명: "강남역", "판교역" 처럼 역 포함<br>
+        · 건물: "삼성전자 수원", "카카오 판교"<br>
+        · 주소: "성남시 분당구 판교역로"
       </div>
-      <button onmousedown="confirmAsText('${key}')" style="margin-top:8px;width:100%;background:rgba(200,169,110,.1);border:1px solid rgba(200,169,110,.3);color:var(--a);padding:6px;font-size:11px;cursor:pointer;">ìž…ë ¥í•œ í…ìŠ¤íŠ¸ë¡œ ê·¸ëŒ€ë¡œ ì‚¬ìš©</button>
+      <button onmousedown="confirmAsText('${key}')" style="margin-top:8px;width:100%;background:rgba(200,169,110,.1);border:1px solid rgba(200,169,110,.3);color:var(--a);padding:6px;font-size:11px;cursor:pointer;">입력한 텍스트로 그대로 사용</button>
     </div>`;
     dd.classList.add('show'); return;
   }
@@ -560,7 +561,7 @@ function renderDropdown(key, items, q){
     return `<div class="addr-item" data-idx="${i}"
       onmousedown="selectAddr('${key}',${item.lng},${item.lat},'${safeLabel}')">
       <div class="addr-item-main">
-        <span class="addr-item-type">${item.type||'ìž¥ì†Œ'}</span>${hi}
+        <span class="addr-item-type">${item.type||'장소'}</span>${hi}
       </div>
       ${item.sub&&item.sub!==item.label?`<div class="addr-item-sub">${esc(item.sub)}</div>`:''}
     </div>`;
@@ -570,7 +571,7 @@ function renderDropdown(key, items, q){
 
 function showDropLoading(key){
   const dd=document.getElementById('ad_'+key);
-  dd.innerHTML=`<div class="addr-loading">ê²€ìƒ‰ ì¤‘...</div>`;
+  dd.innerHTML=`<div class="addr-loading">검색 중...</div>`;
   dd.classList.add('show');
 }
 function showDrop(key){
@@ -611,7 +612,7 @@ function confirmAsText(key){
   const inp = document.getElementById('ai_'+key);
   inp.classList.add('confirmed');
   hideDrop(key);
-  document.getElementById('act_'+key).textContent = label + ' (ì¢Œí‘œ ë¯¸í™•ì¸)';
+  document.getElementById('act_'+key).textContent = label + ' (좌표 미확인)';
   document.getElementById('ac_'+key).style.display='flex';
 }
 
@@ -622,7 +623,7 @@ function setFocusItem(key,idx,items){
   items[n].scrollIntoView({block:'nearest'});
 }
 
-// ì…”í‹€ ì •ë¥˜ìž¥
+// 셔틀 정류장
 let shuttleStopCount={shuttle_stops1:0,shuttle_stops2:0};
 function addShuttleStop(containerId){
   const cnt=++shuttleStopCount[containerId];
@@ -631,137 +632,141 @@ function addShuttleStop(containerId){
   const div=document.createElement('div');
   div.style.marginBottom='10px'; div.id='ss_wrap_'+key;
   document.getElementById(containerId).appendChild(div);
-  createAddrSearch(key,'ss_wrap_'+key,'ì •ë¥˜ìž¥ëª… ë˜ëŠ” ì£¼ì†Œ ê²€ìƒ‰','#e09090');
+  createAddrSearch(key,'ss_wrap_'+key,'정류장명 또는 주소 검색','#e09090');
 }
 
-// â•â• ê²°ê³¼ ë°ì´í„° â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// == 결과 데이터 ==========================================
 const REGIONS = [
-  { rank:'01', tag:'âœ¦ 1ìˆœìœ„ ì¶”ì²œ', area:'ë§ˆí¬êµ¬', sub:'ê³µë•ë™ Â· ì•„í˜„ë™ Â· ëŒ€í¥ë™',
-    metrics:[['í•™êµ°','â˜…â˜…â˜…â˜†â˜†'],['ìƒí™œíŽ¸ì˜','â˜…â˜…â˜…â˜…â˜†'],['ê°œë°œí˜¸ìž¬','ì‹ ì´ŒÂ·í™ëŒ€ ê°œë°œ']],
+  { rank:'01', tag:'✦ 1순위 추천', area:'마포구', sub:'공덕동 · 아현동 · 대흥동',
+    metrics:[['학군','★★★☆☆'],['생활편의','★★★★☆'],['개발호재','신촌·홍대 개발']],
     lawdCd:'11440', lat:37.5497, lng:126.9521 },
-  { rank:'02', tag:'2ìˆœìœ„', area:'ì„±ë™êµ¬', sub:'í–‰ë‹¹ë™ Â· ê¸ˆí˜¸ë™ Â· ì™•ì‹­ë¦¬',
-    metrics:[['í•™êµ°','â˜…â˜…â˜…â˜…â˜†'],['ìƒí™œíŽ¸ì˜','â˜…â˜…â˜…â˜…â˜…'],['ê°œë°œí˜¸ìž¬','GTX-B ì˜ˆì • ðŸš„']],
+  { rank:'02', tag:'2순위', area:'성동구', sub:'행당동 · 금호동 · 왕십리',
+    metrics:[['학군','★★★★☆'],['생활편의','★★★★★'],['개발호재','GTX-B 예정 🚄']],
     lawdCd:'11200', lat:37.5472, lng:127.0402 },
-  { rank:'03', tag:'3ìˆœìœ„', area:'ë™ìž‘êµ¬', sub:'ë…¸ëŸ‰ì§„ Â· ì‚¬ë‹¹ë™ Â· í‘ì„ë™',
-    metrics:[['í•™êµ°','â˜…â˜…â˜…â˜…â˜…'],['ìƒí™œíŽ¸ì˜','â˜…â˜…â˜…â˜†â˜†'],['ì˜ˆì‚° ì í•©','â˜…â˜…â˜…â˜…â˜†']],
+  { rank:'03', tag:'3순위', area:'동작구', sub:'노량진 · 사당동 · 흑석동',
+    metrics:[['학군','★★★★★'],['생활편의','★★★☆☆'],['예산 적합','★★★★☆']],
     lawdCd:'11590', lat:37.5097, lng:126.9390 },
 ];
 
-// â”€â”€ ë„¤ì´ë²„ Directions5 API ê²½ë¡œ ì¡°íšŒ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// ìžê°€ìš©: map-direction/v1/driving, ëŒ€ì¤‘êµí†µ: map-direction/v1/transit
-// ì£¼ì˜: Directions APIëŠ” ì„œë²„ì—ì„œë§Œ í˜¸ì¶œ ê°€ëŠ¥ (CORS) â†’ ì—¬ê¸°ì„  ì¶”ì •ê°’ ì‚¬ìš© + ì§€ë„ ê²½ë¡œ í‘œì‹œ
+// -- 네이버 Directions5 API 경로 조회 ------------------------------
+// 자가용: map-direction/v1/driving, 대중교통: map-direction/v1/transit
+// 주의: Directions API는 서버에서만 호출 가능 (CORS) -> 여기선 추정값 사용 + 지도 경로 표시
 
-// ì¶œê·¼ì§€ â†’ ì¶”ì²œì§€ì—­ ì†Œìš”ì‹œê°„ ì¶”ì • (ì¹´ì¹´ì˜¤ ì¢Œí‘œ ê¸°ë°˜ ì§ì„ ê±°ë¦¬ â†’ ë„ì‹¬ í‰ê· ì†ë„ ì ìš©)
+// 출근지 -> 추천지역 소요시간 추정 (카카오 좌표 기반 직선거리 -> 도심 평균속도 적용)
+function estimateTime(fromCoord, toCoord, transport){
+  if(!fromCoord || !fromCoord.lat || !fromCoord.lng) return null;
+  // 직선 거리 (km)
+  const R=6371;
+  const dLat=(toCoord.lat-fromCoord.lat)*Math.PI/180;
+  const dLng=(toCoord.lng-fromCoord.lng)*Math.PI/180;
+  const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(fromCoord.lat*Math.PI/180)*Math.cos(toCoord.lat*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
+  const distKm=R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+  // 수도권 실거리 계수 (직선 * 1.35)
+  const realKm=distKm*1.35;
+  // 이동수단별 평균속도 (km/h)
+  let speed=25; // 대중교통 기본
+  if(transport.includes('자가용')) speed=22; // 도심 자가용 (정체 반영)
+  else if(transport.includes('셔틀')) speed=30; // 셔틀 (전용도로)
+  else if(transport.includes('도보')) speed=5;
+  // 환승.대기 보정
+  let base=Math.round(realKm/speed*60);
+  if(transport.includes('대중교통')) base+=10; // 환승 대기
+  if(transport.includes('자가용')) base+=5;  // 출발지 도달
+  return Math.max(10, Math.min(90, base));
+}
 
-// â”€â”€ ì¹´ì¹´ì˜¤ëª¨ë¹Œë¦¬í‹° ìžë™ì°¨ ê¸¸ì°¾ê¸° API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// https://developers.kakaomobility.com/guide/navi-api/directions
-// REST API í‚¤ë¡œ ë¸Œë¼ìš°ì €ì—ì„œ ì§ì ‘ í˜¸ì¶œ ê°€ëŠ¥ (CORS í—ˆìš©)
-const dirCache = {};
+// -- 카카오모빌리티 자동차 길찾기 API ------------------------------
+// CORS 허용됨 (카카오 로컬 API와 동일한 REST API 키 사용)
+const directionsCache = {};
 
-async function getCarRoute(from, to){
-  if(!from?.lat || !to?.lat) return null;
-  const key = `${from.lat.toFixed(4)},${from.lng.toFixed(4)}-${to.lat.toFixed(4)},${to.lng.toFixed(4)}`;
-  if(dirCache[key]) return dirCache[key];
-  try {
-    const origin = `${from.lng},${from.lat}`;
-    const dest   = `${to.lng},${to.lat}`;
-    const url = `https://apis-navi.kakaomobility.com/v1/directions?origin=${origin}&destination=${dest}&summary=false&priority=RECOMMEND`;
+async function fetchCarRoute(fromCoord, toCoord){
+  if(!fromCoord?.lat || !toCoord?.lat) return null;
+  const ck = `${fromCoord.lat.toFixed(4)},${fromCoord.lng.toFixed(4)}-${toCoord.lat.toFixed(4)},${toCoord.lng.toFixed(4)}`;
+  if(directionsCache[ck]) return directionsCache[ck];
+
+  try{
+    const url = `https://apis-navi.kakaomobility.com/v1/directions`
+      + `?origin=${fromCoord.lng},${fromCoord.lat}`
+      + `&destination=${toCoord.lng},${toCoord.lat}`
+      + `&priority=RECOMMEND&summary=false&road_details=false`;
+
     const res = await fetch(url, {
-      headers: { Authorization: KAKAO_KEY, 'Content-Type': 'application/json' }
+      headers:{ Authorization: KAKAO_KEY, 'Content-Type':'application/json' }
     });
     if(!res.ok) return null;
     const data = await res.json();
     const route = data.routes?.[0];
     if(!route || route.result_code !== 0) return null;
 
-    const summary = route.summary;
-    const durationMin = Math.round(summary.duration / 60);
-    const distanceKm  = (summary.distance / 1000).toFixed(1);
-
-    // ì£¼ìš” ë„ë¡œëª… ì¶”ì¶œ (ê±°ë¦¬ ê¸°ì¤€ ìƒìœ„ 3ê°œ)
-    const roads = route.sections?.flatMap(s => s.roads || []) || [];
-    const roadMap = {};
-    roads.forEach(r => {
-      if(r.name) roadMap[r.name] = (roadMap[r.name] || 0) + r.distance;
+    // 주요 도로명 추출 (거리 상위 3개)
+    const roads = [];
+    route.sections?.forEach(sec=>{
+      sec.roads?.forEach(r=>{ if(r.name && r.distance>200) roads.push({name:r.name, dist:r.distance}); });
     });
-    const topRoads = Object.entries(roadMap)
-      .sort((a,b) => b[1]-a[1])
-      .slice(0, 3)
-      .map(([name]) => name)
-      .filter(n => n.length > 1);
+    roads.sort((a,b)=>b.dist-a.dist);
+    const topRoads = [...new Set(roads.map(r=>r.name))].slice(0,3);
 
-    // ê²½ë¡œ ì¢Œí‘œ (ì§€ë„ í‘œì‹œìš©) â€” vertexesë¥¼ [lng,lat] ìŒìœ¼ë¡œ ë³€í™˜
-    const vertexes = [];
-    roads.forEach(r => {
-      const v = r.vertexes || [];
-      for(let i=0; i<v.length-1; i+=2){
-        vertexes.push({lng: v[i], lat: v[i+1]});
-      }
+    // vertexes -> 지도 경로 좌표 배열
+    const pathCoords = [];
+    route.sections?.forEach(sec=>{
+      sec.roads?.forEach(r=>{
+        const vs = r.vertexes;
+        for(let i=0;i<vs.length;i+=2){
+          pathCoords.push({lng:vs[i], lat:vs[i+1]});
+        }
+      });
     });
 
-    const result = { durationMin, distanceKm, topRoads, vertexes, toll: summary.fare?.toll || 0 };
-    dirCache[key] = result;
+    const result = {
+      duration: Math.round(route.summary.duration / 60), // 초 → 분
+      distance: Math.round(route.summary.distance / 1000 * 10) / 10, // m → km
+      topRoads,
+      pathCoords,
+      toll: route.summary.fare?.toll || 0
+    };
+    directionsCache[ck] = result;
     return result;
   } catch(e){ return null; }
 }
 
-// ê²½ë¡œ ì¢Œí‘œë¡œ ë„¤ì´ë²„ ì§€ë„ì— í´ë¦¬ë¼ì¸ ê·¸ë¦¬ê¸°
-function drawRoute(map, vertexes, color, weight=3){
-  if(!vertexes || vertexes.length < 2) return null;
-  const path = vertexes.map(v => new naver.maps.LatLng(v.lat, v.lng));
+// 지도에 실제 경로 폴리라인 그리기
+function drawRouteOnMap(map, pathCoords, color, weight=4){
+  if(!pathCoords?.length) return;
+  const path = pathCoords.map(c=> new naver.maps.LatLng(c.lat, c.lng));
   return new naver.maps.Polyline({
     path, map,
     strokeColor: color,
-    strokeWeight: weight,
     strokeOpacity: 0.75,
+    strokeWeight: weight,
     strokeStyle: 'solid'
   });
 }
 
-function estimateTime(fromCoord, toCoord, transport){
-  if(!fromCoord || !fromCoord.lat || !fromCoord.lng) return null;
-  // ì§ì„  ê±°ë¦¬ (km)
-  const R=6371;
-  const dLat=(toCoord.lat-fromCoord.lat)*Math.PI/180;
-  const dLng=(toCoord.lng-fromCoord.lng)*Math.PI/180;
-  const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(fromCoord.lat*Math.PI/180)*Math.cos(toCoord.lat*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
-  const distKm=R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-  // ìˆ˜ë„ê¶Œ ì‹¤ê±°ë¦¬ ê³„ìˆ˜ (ì§ì„  * 1.35)
-  const realKm=distKm*1.35;
-  // ì´ë™ìˆ˜ë‹¨ë³„ í‰ê· ì†ë„ (km/h)
-  let speed=25; // ëŒ€ì¤‘êµí†µ ê¸°ë³¸
-  if(transport.includes('ìžê°€ìš©')) speed=22; // ë„ì‹¬ ìžê°€ìš© (ì •ì²´ ë°˜ì˜)
-  else if(transport.includes('ì…”í‹€')) speed=30; // ì…”í‹€ (ì „ìš©ë„ë¡œ)
-  else if(transport.includes('ë„ë³´')) speed=5;
-  // í™˜ìŠ¹Â·ëŒ€ê¸° ë³´ì •
-  let base=Math.round(realKm/speed*60);
-  if(transport.includes('ëŒ€ì¤‘êµí†µ')) base+=10; // í™˜ìŠ¹ ëŒ€ê¸°
-  if(transport.includes('ìžê°€ìš©')) base+=5;  // ì¶œë°œì§€ ë„ë‹¬
-  return Math.max(10, Math.min(90, base));
-}
-
-// ì´ë™ ìˆ˜ë‹¨ì— ë”°ë¥¸ ê²½ë¡œ ì„¤ëª… ìƒì„±
+// 이동 수단에 따른 경로 설명 생성
 function buildRouteDesc(from, to, transport, fromLabel){
-  if(!from || !from.lat) return fromLabel + ' â†’ ' + to.area;
+  if(!from || !from.lat) return fromLabel + ' → ' + to.area;
   const dist = calcDistKm(from, to);
   
-  if(transport.includes('ì…”í‹€')) {
-    // ì…”í‹€ ì •ë¥˜ìž¥ ì •ë³´ ê°€ì ¸ì˜¤ê¸°
-    const stops1 = [];
-    document.querySelectorAll('#stops1 input, #shuttle_stops1 .addr-input').forEach(el=>{ if(el.value.trim()) stops1.push(el.value.trim()); });
-    const stopStr = stops1.length>0 ? stops1[0] : 'íƒ‘ìŠ¹ ì •ë¥˜ìž¥';
-    return stopStr + ' â†’ (ì…”í‹€) â†’ ' + to.area;
+  if(transport.includes('셔틀')) {
+    // 셔틀 정류장 - 입력한 값 우선
+    const stops = [];
+    document.querySelectorAll('.addr-input.confirmed').forEach(el=>{
+      const v=el.value.trim();
+      if(v && !stops.includes(v)) stops.push(v);
+    });
+    const stopStr = stops.length>0 ? stops[0] : '셔틀 탑승지';
+    return fromLabel + ' → ' + stopStr + ' 탑승 → (셔틀) → ' + to.area;
   }
-  if(transport.includes('ìžê°€ìš©')) {
-    // ê±°ë¦¬ì— ë”°ë¼ ì£¼ìš” ë„ë¡œ ì¶”ì •
-    const roads = getRoadHint(from, to);
-    return fromLabel + ' â†’ ' + roads + ' â†’ ' + to.area;
+  if(transport.includes('자가용')) {
+    // 기본값 (API 결과 받기 전)
+    return fromLabel + ' → (경로 계산 중...) → ' + to.area;
   }
-  if(transport.includes('ëŒ€ì¤‘êµí†µ')) {
+  if(transport.includes('대중교통')) {
     const lines = getTransitHint(from, to);
-    return fromLabel + ' â†’ ' + lines + ' â†’ ' + to.area;
+    const distKm = from?.lat ? Math.round(calcDistKm(from,to)*1.3) : '?';
+    return fromLabel + ' → ' + lines + ' (약 ' + distKm + 'km)';
   }
-  return fromLabel + ' â†’ ' + to.area + ' (' + Math.round(dist)+'km)';
+  return fromLabel + ' → ' + to.area + ' (' + Math.round(dist)+'km)';
 }
 
 function calcDistKm(a, b){
@@ -770,48 +775,58 @@ function calcDistKm(a, b){
   return R*2*Math.atan2(Math.sqrt(aa),Math.sqrt(1-aa));
 }
 
-// ìžê°€ìš© ì£¼ìš” ë„ë¡œ ížŒíŠ¸ (ì¶œë°œì§€ ê²½ë„/ìœ„ë„ ê¸°ë°˜)
+// 자가용 주요 도로 힌트 (출발지 경도/위도 기반)
 function getRoadHint(from, to){
   const fLng=from.lng, fLat=from.lat, tLng=to.lng, tLat=to.lat;
-  // ì„œìš¸ ì£¼ìš” ë„ë¡œë§ ê¸°ë°˜ ì¶”ì •
-  if(fLng>127.1) return 'ì˜¬ë¦¼í”½ëŒ€ë¡œÂ·ê°•ë³€ë¶ë¡œ'; // ë™ìª½
-  if(fLng<126.9) return 'ì„œë¶€ê°„ì„ ë„ë¡œÂ·ì˜¬ë¦¼í”½ëŒ€ë¡œ'; // ì„œìª½
-  if(fLat<37.45) return 'ê²½ë¶€ê³ ì†ë„ë¡œÂ·ê°•ë‚¨ëŒ€ë¡œ'; // ë‚¨ìª½
-  if(fLat>37.6) return 'ë‚´ë¶€ìˆœí™˜ë¡œÂ·ë¶ë¶€ê°„ì„ ë„ë¡œ'; // ë¶ìª½
-  return 'ë„ì‹¬ ê°„ì„ ë„ë¡œ';
+  // 서울 주요 도로망 기반 추정
+  if(fLng>127.1) return '올림픽대로·강변북로'; // 동쪽
+  if(fLng<126.9) return '서부간선도로·올림픽대로'; // 서쪽
+  if(fLat<37.45) return '경부고속도로·강남대로'; // 남쪽
+  if(fLat>37.6) return '내부순환로·북부간선도로'; // 북쪽
+  return '도심 간선도로';
 }
 
-// ëŒ€ì¤‘êµí†µ ížŒíŠ¸ (ì¢Œí‘œ ê¸°ë°˜ ì£¼ìš” ë…¸ì„  ì¶”ì •)
+// 대중교통 힌트 (좌표 기반 주요 노선 추정)
+// 서울 주요 지하철 노선 좌표 범위 기반
 function getTransitHint(from, to){
+  if(!from?.lng) return '지하철·버스';
   const fLng=from.lng, fLat=from.lat;
-  // ì£¼ìš” ì§€í•˜ì²  ë…¸ì„  ì¶”ì •
-  if(fLng>127.08 && fLat<37.5) return '2í˜¸ì„  ë˜ëŠ” ìˆ˜ì¸ë¶„ë‹¹ì„ ';
-  if(fLng>127.05 && fLat>37.52) return '5í˜¸ì„  ë˜ëŠ” 2í˜¸ì„ ';
-  if(fLng<126.95 && fLat>37.5) return 'ê²½ì˜ì¤‘ì•™ì„  ë˜ëŠ” 6í˜¸ì„ ';
-  if(fLng<126.92) return '9í˜¸ì„  ë˜ëŠ” 5í˜¸ì„ ';
-  if(fLat>37.6) return '4í˜¸ì„  ë˜ëŠ” 1í˜¸ì„ ';
-  return 'ì§€í•˜ì²  í™˜ìŠ¹';
+  const tLng=to.lng, tLat=to.lat;
+  const hints = [];
+  // 출발지 인근 노선
+  if(fLng>127.1 && fLat<37.52) hints.push('2호선');
+  else if(fLng>127.05 && fLat<37.48) hints.push('수인분당선');
+  else if(fLng<126.88) hints.push('9호선');
+  else if(fLng<126.92 && fLat<37.52) hints.push('5호선');
+  else if(fLat>37.62) hints.push('1호선·4호선');
+  else if(fLng>126.95 && fLng<127.05 && fLat>37.52) hints.push('5호선·6호선');
+  else hints.push('지하철');
+  // 목적지 인근 환승 노선
+  if(to.area==='마포구') hints.push('5호선·6호선');
+  else if(to.area==='성동구') hints.push('2호선·5호선');
+  else if(to.area==='동작구') hints.push('9호선');
+  return hints.join(' → ') + ' 이용';
 }
 
 const APTS = [
-  {r:'1',rank:1,name:'ë§ˆí¬ëž˜ë¯¸ì•ˆí‘¸ë¥´ì§€ì˜¤',lawdCd:'11440',area:'ë§ˆí¬êµ¬',addr:'ì•„í˜„ë™ Â· ì•„í˜„ì—­ ë„ë³´ 3ë¶„',size:'34í‰',excl:84,tags:['new'],aT:'26ë¶„',bT:'33ë¶„',gpT:'40ë¶„'},
-  {r:'1',rank:2,name:'ê³µë•ìžì´',lawdCd:'11440',area:'ë§ˆí¬êµ¬',addr:'ê³µë•ë™ Â· ê³µë•ì—­ ë„ë³´ 5ë¶„',size:'33í‰',excl:84,tags:[],aT:'28ë¶„',bT:'31ë¶„',gpT:'43ë¶„'},
-  {r:'1',rank:3,name:'ë§ˆí¬í•œê°•2ì°¨ì•„ì´íŒŒí¬',lawdCd:'11440',area:'ë§ˆí¬êµ¬',addr:'ëŒ€í¥ë™ Â· ëŒ€í¥ì—­ ë„ë³´ 7ë¶„',size:'30í‰',excl:59,tags:[],aT:'31ë¶„',bT:'36ë¶„',gpT:'38ë¶„'},
-  {r:'1',rank:4,name:'ì‹ ì´Œìˆ²ì•„ì´íŒŒí¬',lawdCd:'11440',area:'ë§ˆí¬êµ¬',addr:'ë™êµë™ Â· í™ëŒ€ìž…êµ¬ì—­ ë„ë³´ 8ë¶„',size:'32í‰',excl:84,tags:[],aT:'29ë¶„',bT:'38ë¶„',gpT:'41ë¶„'},
-  {r:'2',rank:5,name:'ì™•ì‹­ë¦¬ìžì´',lawdCd:'11200',area:'ì„±ë™êµ¬',addr:'í–‰ë‹¹ë™ Â· ì™•ì‹­ë¦¬ì—­ ë„ë³´ 4ë¶„',size:'34í‰',excl:84,tags:['gtx'],aT:'30ë¶„',bT:'36ë¶„',gpT:'37ë¶„'},
-  {r:'2',rank:6,name:'ê¸ˆí˜¸ë‘ì‚°ìœ„ë¸Œ',lawdCd:'11200',area:'ì„±ë™êµ¬',addr:'ê¸ˆí˜¸ë™ Â· ê¸ˆí˜¸ì—­ ë„ë³´ 6ë¶„',size:'31í‰',excl:84,tags:[],aT:'33ë¶„',bT:'40ë¶„',gpT:'42ë¶„'},
-  {r:'2',rank:7,name:'ì„œìš¸ìˆ²ë¦¬ë²„ë·°ìžì´',lawdCd:'11200',area:'ì„±ë™êµ¬',addr:'ì„±ìˆ˜ë™ Â· ëšì„¬ì—­ ë„ë³´ 9ë¶„',size:'33í‰',excl:84,tags:['new'],aT:'35ë¶„',bT:'42ë¶„',gpT:'39ë¶„'},
-  {r:'3',rank:8,name:'í‘ì„í•œê°•ì„¼íŠ¸ë ˆë¹Œ',lawdCd:'11590',area:'ë™ìž‘êµ¬',addr:'í‘ì„ë™ Â· í‘ì„ì—­ ë„ë³´ 5ë¶„',size:'33í‰',excl:84,tags:['etc:í•™êµ° ìš°ìˆ˜'],aT:'40ë¶„',bT:'27ë¶„',gpT:'52ë¶„'},
-  {r:'3',rank:9,name:'ì‚¬ë‹¹ëž˜ë¯¸ì•ˆ',lawdCd:'11590',area:'ë™ìž‘êµ¬',addr:'ì‚¬ë‹¹ë™ Â· ì‚¬ë‹¹ì—­ ë„ë³´ 6ë¶„',size:'30í‰',excl:84,tags:['etc:ì…”í‹€ ìµœì '],aT:'38ë¶„',bT:'28ë¶„',gpT:'55ë¶„'},
-  {r:'3',rank:10,name:'ë…¸ëŸ‰ì§„eíŽ¸í•œì„¸ìƒ',lawdCd:'11590',area:'ë™ìž‘êµ¬',addr:'ë…¸ëŸ‰ì§„ë™ Â· ë…¸ëŸ‰ì§„ì—­ ë„ë³´ 4ë¶„',size:'32í‰',excl:84,tags:[],aT:'42ë¶„',bT:'25ë¶„',gpT:'58ë¶„'},
+  {r:'1',rank:1,name:'마포래미안푸르지오',lawdCd:'11440',area:'마포구',addr:'아현동 · 아현역 도보 3분',size:'34평',excl:84,tags:['new'],aT:'26분',bT:'33분',gpT:'40분'},
+  {r:'1',rank:2,name:'공덕자이',lawdCd:'11440',area:'마포구',addr:'공덕동 · 공덕역 도보 5분',size:'33평',excl:84,tags:[],aT:'28분',bT:'31분',gpT:'43분'},
+  {r:'1',rank:3,name:'마포한강2차아이파크',lawdCd:'11440',area:'마포구',addr:'대흥동 · 대흥역 도보 7분',size:'30평',excl:59,tags:[],aT:'31분',bT:'36분',gpT:'38분'},
+  {r:'1',rank:4,name:'신촌숲아이파크',lawdCd:'11440',area:'마포구',addr:'동교동 · 홍대입구역 도보 8분',size:'32평',excl:84,tags:[],aT:'29분',bT:'38분',gpT:'41분'},
+  {r:'2',rank:5,name:'왕십리자이',lawdCd:'11200',area:'성동구',addr:'행당동 · 왕십리역 도보 4분',size:'34평',excl:84,tags:['gtx'],aT:'30분',bT:'36분',gpT:'37분'},
+  {r:'2',rank:6,name:'금호두산위브',lawdCd:'11200',area:'성동구',addr:'금호동 · 금호역 도보 6분',size:'31평',excl:84,tags:[],aT:'33분',bT:'40분',gpT:'42분'},
+  {r:'2',rank:7,name:'서울숲리버뷰자이',lawdCd:'11200',area:'성동구',addr:'성수동 · 뚝섬역 도보 9분',size:'33평',excl:84,tags:['new'],aT:'35분',bT:'42분',gpT:'39분'},
+  {r:'3',rank:8,name:'흑석한강센트레빌',lawdCd:'11590',area:'동작구',addr:'흑석동 · 흑석역 도보 5분',size:'33평',excl:84,tags:['etc:학군 우수'],aT:'40분',bT:'27분',gpT:'52분'},
+  {r:'3',rank:9,name:'사당래미안',lawdCd:'11590',area:'동작구',addr:'사당동 · 사당역 도보 6분',size:'30평',excl:84,tags:['etc:셔틀 최적'],aT:'38분',bT:'28분',gpT:'55분'},
+  {r:'3',rank:10,name:'노량진e편한세상',lawdCd:'11590',area:'동작구',addr:'노량진동 · 노량진역 도보 4분',size:'32평',excl:84,tags:[],aT:'42분',bT:'25분',gpT:'58분'},
 ];
 
 const MOLIT_KEY = encodeURIComponent('66ee7240d70d045a4d3808209ee995f60fa7195ea6e79ac65cc9124379828e3a');
 const priceCache = {};
 
 function getYM(offset=0){
-  // êµ­í† ë¶€ APIëŠ” ì‹ ê³ ~ë“±ë¡ê¹Œì§€ ì‹œê°„ì´ ê±¸ë ¤ ìµœì‹ ë‹¬ ë°ì´í„°ê°€ ì—†ëŠ” ê²½ìš°ê°€ ë§ŽìŒ
-  // ê¸°ë³¸ offset 1 (1ê°œì›” ì „)ë¶€í„° ì‹œìž‘
+  // 국토부 API는 신고~등록까지 시간이 걸려 최신달 데이터가 없는 경우가 많음
+  // 기본 offset 1 (1개월 전)부터 시작
   const d=new Date(); d.setMonth(d.getMonth()-(offset+1));
   return d.getFullYear()*100+(d.getMonth()+1);
 }
@@ -832,7 +847,7 @@ async function fetchPrice(lawdCd, aptName, excl){
         const amt=(item.querySelector('dealAmount')?.textContent||'').replace(/,/g,'').trim();
         const canceled=(item.querySelector('cdealType')?.textContent||'').trim();
         if(canceled||!amt) return;
-        // ë‹¨ì§€ëª… 4ìž ì´ìƒ ë§¤ì¹­ or í¬í•¨ ê´€ê³„
+        // 단지명 4자 이상 매칭 or 포함 관계
         const q=aptName.replace(/[\s\(\)]/g,'').slice(0,5);
         const nm=name.replace(/[\s\(\)]/g,'');
         const nmatch=nm.includes(q)||q.includes(nm.slice(0,4))||aptName.slice(0,4)===name.slice(0,4);
@@ -840,7 +855,7 @@ async function fetchPrice(lawdCd, aptName, excl){
         const diff=Math.abs(area-excl);
         if(diff<bestDiff){bestDiff=diff;best=amt;}
       });
-      // ë‹¨ì§€ëª… ë§¤ì¹­ ì‹¤íŒ¨ì‹œ í•´ë‹¹ êµ¬ ì „ì²´ì—ì„œ ë©´ì  ê·¼ì‚¬ê°’ ì‚¬ìš©
+      // 단지명 매칭 실패시 해당 구 전체에서 면적 근사값 사용
       if(!best){
         xml.querySelectorAll('item').forEach(item=>{
           const area=parseFloat(item.querySelector('excluUseAr')?.textContent||0);
@@ -853,7 +868,7 @@ async function fetchPrice(lawdCd, aptName, excl){
       }
       if(best){
         const v=parseInt(best);
-        const str=Math.floor(v/10000)+'ì–µ'+(v%10000>0?' '+Math.round(v%10000/1000)+'ì²œ':'');
+        const str=Math.floor(v/10000)+'억'+(v%10000>0?' '+Math.round(v%10000/1000)+'천':'');
         priceCache[ck]=str; return str;
       }
     }catch(e){}
@@ -861,22 +876,24 @@ async function fetchPrice(lawdCd, aptName, excl){
   return null;
 }
 
-// â•â• ê²°ê³¼ ì§„ìž… â•â•
+// == 결과 진입 ==
 function getInputs(){
   return {
-    work1:  LOCS.work1.label  || '(ë¯¸ìž…ë ¥)',
-    work2:  LOCS.work2.label  || '(ë¯¸ìž…ë ¥)',
+    work1:  LOCS.work1.label  || '(미입력)',
+    work2:  LOCS.work2.label  || '(미입력)',
+    work1Label: LOCS.work1.label || 'A 출근지',
+    work2Label: LOCS.work2.label || 'B 출근지',
     work1Coord: LOCS.work1,
     work2Coord: LOCS.work2,
     gpCoord:    LOCS.gpAddr,
     c1: document.getElementById('c1').value,
     c2: document.getElementById('c2').value,
-    tr1: document.querySelector('#tr1 .on')?.textContent.trim()||'ðŸš‡ ëŒ€ì¤‘êµí†µ',
-    tr2: document.querySelector('#tr2 .on')?.textContent.trim()||'ðŸš‡ ëŒ€ì¤‘êµí†µ',
-    gpOn: document.querySelector('#gp .on')?.textContent.trim()==='ê°€ëŠ¥',
-    gpLabel: LOCS.gpAddr.label||'(ë¯¸ìž…ë ¥)',
+    tr1: document.querySelector('#tr1 .on')?.textContent.trim()||'🚇 대중교통',
+    tr2: document.querySelector('#tr2 .on')?.textContent.trim()||'🚇 대중교통',
+    gpOn: document.querySelector('#gp .on')?.textContent.trim()==='가능',
+    gpLabel: LOCS.gpAddr.label||'(미입력)',
     budget: document.getElementById('bud').value,
-    dealType: document.querySelector('#dt .on')?.textContent.trim()||'ë§¤ë§¤',
+    dealType: document.querySelector('#dt .on')?.textContent.trim()||'매매',
   };
 }
 
@@ -893,61 +910,60 @@ function showResult(){
 
   const inp=getInputs();
   document.getElementById('inputSummary').innerHTML=[
-    `A ì¶œê·¼ì§€: <b>${inp.work1}</b>`,
-    `B ì¶œê·¼ì§€: <b>${inp.work2}</b>`,
-    `A ì´ë™: <b>${inp.tr1}</b>`,
-    `B ì´ë™: <b>${inp.tr2}</b>`,
-    `ì˜ˆì‚°: <b>${inp.budget}ì–µ</b>`,
-    `ê±°ëž˜: <b>${inp.dealType}</b>`,
+    `A 출근지: <b>${inp.work1}</b>`,
+    `B 출근지: <b>${inp.work2}</b>`,
+    `A 이동: <b>${inp.tr1}</b>`,
+    `B 이동: <b>${inp.tr2}</b>`,
+    `예산: <b>${inp.budget}억</b>`,
+    `거래: <b>${inp.dealType}</b>`,
   ].map(t=>`<div class="ibadge">${t}</div>`).join('');
 
-  document.getElementById('s_a').textContent=inp.c1+'ë¶„ í—ˆìš©';
-  document.getElementById('s_b').textContent=inp.c2+'ë¶„ í—ˆìš©';
+  document.getElementById('s_a').textContent=inp.c1+'분 허용';
+  document.getElementById('s_b').textContent=inp.c2+'분 허용';
   document.getElementById('gpLegend').style.display=inp.gpOn?'flex':'none';
 
-  renderRegionCards(inp);
+  renderRegionCards(inp);  // async - 카드 초기 렌더 후 API로 업데이트
   renderApts(inp);
   loadAndRenderMap(inp);
 }
 
 function tClass(t){
   if(!t) return 'rec';
-  if(t.includes('ì§€í•˜ì² ')||t.includes('ëŒ€ì¤‘êµí†µ')) return 'sub';
-  if(t.includes('ìžê°€ìš©')) return 'car';
-  if(t.includes('ì…”í‹€')) return 'sh';
+  if(t.includes('지하철')||t.includes('대중교통')) return 'sub';
+  if(t.includes('자가용')) return 'car';
+  if(t.includes('셔틀')) return 'sh';
   return 'wk';
 }
 
-function renderRegionCards(inp){
+async function renderRegionCards(inp){
   const rc=document.getElementById('regionCards');
-  rc.innerHTML=REGIONS.map(r=>{
-    // ì†Œìš”ì‹œê°„ â€” ìžê°€ìš©ì€ Directions API (ë¹„ë™ê¸°), ë‚˜ë¨¸ì§€ëŠ” ì¶”ì •
-    const aTime = inp.work1Coord?.lat
+  rc.innerHTML=REGIONS.map((r,ri)=>{
+    // 입력한 교통수단 기반 소요시간 추정
+    // 초기 추정값 (API 결과 받기 전 표시용)
+    let aTime = inp.work1Coord?.lat
       ? (estimateTime(inp.work1Coord, r, inp.tr1) || 30)
       : 30;
-    const bTime = inp.work2Coord?.lat
+    let bTime = inp.work2Coord?.lat
       ? (estimateTime(inp.work2Coord, r, inp.tr2) || 35)
       : 35;
 
-    const aFrom = inp.work1!=='(ë¯¸ìž…ë ¥)' ? inp.work1 : 'ì¶œê·¼ì§€ A';
-    const bFrom = inp.work2!=='(ë¯¸ìž…ë ¥)' ? inp.work2 : 'ì¶œê·¼ì§€ B';
+    // 경로 설명 - 입력 교통수단 기반
+    const aFrom = inp.work1!=='(미입력)' ? inp.work1 : '출근지 A';
+    const bFrom = inp.work2!=='(미입력)' ? inp.work2 : '출근지 B';
     const aRouteText = buildRouteDesc(inp.work1Coord, r, inp.tr1, aFrom);
     const bRouteText = buildRouteDesc(inp.work2Coord, r, inp.tr2, bFrom);
-    const cardId = 'card_'+r.lawdCd;
 
-    // ì¡°ë¶€ëª¨ í–‰ â€” gpOnì´ê³  ì¢Œí‘œ/ì£¼ì†Œê°€ ìžˆì„ ë•Œë§Œ
-    const hasGp = inp.gpOn && inp.gpLabel && inp.gpLabel !== '(ë¯¸ìž…ë ¥)';
+    // 조부모 행 - gpOn이고 좌표/주소가 있을 때만
+    const hasGp = inp.gpOn && inp.gpLabel && inp.gpLabel !== '(미입력)';
     const gpTime = hasGp && inp.gpCoord?.lat
-      ? estimateTime(inp.gpCoord, r, 'ðŸš‡ ëŒ€ì¤‘êµí†µ')
+      ? estimateTime(inp.gpCoord, r, '🚇 대중교통')
       : null;
-    const gpRow = hasGp ? `<div class="gprow"><span style="font-size:15px">ðŸ‘´</span>
-      <div class="gpi"><div class="gplb">ì¡°ë¶€ëª¨(${inp.gpLabel})ê¹Œì§€</div>
-      <div class="gpvl">ðŸš‡ ëŒ€ì¤‘êµí†µ ${gpTime || 'â€”'}ë¶„</div></div></div>` : '';
+    const gpRow = hasGp ? `<div class="gprow"><span style="font-size:15px">👴</span>
+      <div class="gpi"><div class="gplb">조부모(${inp.gpLabel})까지</div>
+      <div class="gpvl">🚇 대중교통 ${gpTime || '-'}분</div></div></div>` : '';
     const aBarW = Math.min(95, aTime);
     const bBarW = Math.min(95, bTime);
-    const isACar = inp.tr1.includes('ìžê°€ìš©');
-    const isBCar = inp.tr2.includes('ìžê°€ìš©');
-    return `<div class="rcard" id="${cardId}">
+    return `<div class="rcard">
       <div class="rrank">${r.rank}</div>
       <div class="rtag">${r.tag}</div>
       <div class="rarea">${r.area}</div>
@@ -956,76 +972,80 @@ function renderRegionCards(inp){
         <div class="ctop">
           <div class="cpill" style="background:rgba(200,169,110,.15);border:1px solid rgba(200,169,110,.3);color:var(--a)">A</div>
           <div class="cinfo">
-            <div class="ctime" id="atime_${r.lawdCd}">${aTime}<span>${isACar ? "ë¶„" : "ë¶„ (ì¶”ì •)"}</span></div>
+            <div class="ctime" id="rt_a_time_${ri}">${aTime}<span>분 (추정)</span></div>
             <div class="trow">
               <span class="tbadge ${tClass(inp.tr1)}">${inp.tr1}</span>
             </div>
-            <div class="troute" id="aroute_${r.lawdCd}">${aRouteText}</div>
+            <div class="troute" id="rt_a_route_${ri}">${aRouteText}</div>
           </div>
         </div>
-        <div class="cbar"><div class="cbar-f" style="width:${aBarW}%;background:var(--a)"></div></div>
+        <div class="cbar"><div class="cbar-f" id="rt_a_bar_${ri}" style="width:${aBarW}%;background:var(--a)"></div></div>
       </div>
       <div class="crow">
         <div class="ctop">
           <div class="cpill" style="background:rgba(127,181,160,.15);border:1px solid rgba(127,181,160,.3);color:var(--a2)">B</div>
           <div class="cinfo">
-            <div class="ctime" id="btime_${r.lawdCd}">${bTime}<span>${isBCar ? "ë¶„" : "ë¶„ (ì¶”ì •)"}</span></div>
+            <div class="ctime" id="rt_b_time_${ri}">${bTime}<span>분 (추정)</span></div>
             <div class="trow">
               <span class="tbadge ${tClass(inp.tr2)}">${inp.tr2}</span>
             </div>
-            <div class="troute" id="broute_${r.lawdCd}">${bRouteText}</div>
+            <div class="troute" id="rt_b_route_${ri}">${bRouteText}</div>
           </div>
         </div>
-        <div class="cbar"><div class="cbar-f" style="width:${bBarW}%;background:var(--a2)"></div></div>
+        <div class="cbar"><div class="cbar-f" id="rt_b_bar_${ri}" style="width:${bBarW}%;background:var(--a2)"></div></div>
       </div>
       ${gpRow}
       <div class="dthin"></div>
       ${r.metrics.map(([k,v])=>`<div class="mrow"><span class="mk">${k}</span><span class="mv">${v}</span></div>`).join('')}
       <div class="rpx">
         <div>
-          <div class="rplb">30í‰ëŒ€ ì‹¤ê±°ëž˜ í‰ê·  (3ê°œì›”)</div>
-          <div class="rplb" style="color:var(--dim);margin-top:2px">ì˜ˆì‚° ${inp.budget}ì–µ ê¸°ì¤€</div>
+          <div class="rplb">30평대 실거래 평균 (3개월)</div>
+          <div class="rplb" style="color:var(--dim);margin-top:2px">예산 ${inp.budget}억 기준</div>
         </div>
-        <div class="rpv aprice loading" id="rp_${r.lawdCd}">ì¡°íšŒ ì¤‘</div>
+        <div class="rpv aprice loading" id="rp_${r.lawdCd}">조회 중</div>
       </div>
     </div>`;
   }).join('');
 
-  // â”€â”€ ìžê°€ìš© ê²½ìš° Directions APIë¡œ ì‹¤ì œ ì†Œìš”ì‹œê°„+ë„ë¡œëª… ì—…ë°ì´íŠ¸ â”€â”€
-  REGIONS.forEach(async (r, ri) => {
-    // A â€” ìžê°€ìš©
-    if(inp.tr1.includes('ìžê°€ìš©') && inp.work1Coord?.lat){
-      const route = await getCarRoute(inp.work1Coord, r);
+  // -- 자가용/셔틀 경로 API로 실제 소요시간+경로명 업데이트 --
+  REGIONS.forEach(async (r, ri)=>{
+    const rIdx = ri; // 0,1,2
+
+    // A 자가용 경로
+    if(inp.tr1.includes('자가용') && inp.work1Coord?.lat){
+      const route = await fetchCarRoute(inp.work1Coord, {lat:r.lat, lng:r.lng});
       if(route){
-        const el = document.getElementById('atime_'+r.lawdCd);
-        const rel = document.getElementById('aroute_'+r.lawdCd);
-        if(el) el.innerHTML = `${route.durationMin}<span>ë¶„</span>`;
-        if(rel){
-          const roads = route.topRoads.slice(0,2).join(' â†’ ');
-          rel.textContent = `${inp.work1} â†’ ${roads} â†’ ${r.area} (${route.distanceKm}km${route.toll>0?' Â· í†µí–‰ë£Œ ìžˆìŒ':''})`;
-        }
+        const elTime = document.getElementById(`rt_a_time_${ri}`);
+        const elRoute = document.getElementById(`rt_a_route_${ri}`);
+        if(elTime) elTime.textContent = route.duration + '분';
+        if(elRoute) elRoute.textContent =
+          inp.work1Label + ' → ' + route.topRoads.join(' → ') + ' → ' + r.area
+          + ' (' + route.distance + 'km' + (route.toll ? ', 통행료 있음' : '') + ')';
+        const bar = document.getElementById(`rt_a_bar_${ri}`);
+        if(bar) bar.style.width = Math.min(95, route.duration) + '%';
       }
     }
-    // B â€” ìžê°€ìš©
-    if(inp.tr2.includes('ìžê°€ìš©') && inp.work2Coord?.lat){
-      const route = await getCarRoute(inp.work2Coord, r);
+
+    // B 자가용 경로
+    if(inp.tr2.includes('자가용') && inp.work2Coord?.lat){
+      const route = await fetchCarRoute(inp.work2Coord, {lat:r.lat, lng:r.lng});
       if(route){
-        const el = document.getElementById('btime_'+r.lawdCd);
-        const rel = document.getElementById('broute_'+r.lawdCd);
-        if(el) el.innerHTML = `${route.durationMin}<span>ë¶„</span>`;
-        if(rel){
-          const roads = route.topRoads.slice(0,2).join(' â†’ ');
-          rel.textContent = `${inp.work2} â†’ ${roads} â†’ ${r.area} (${route.distanceKm}km${route.toll>0?' Â· í†µí–‰ë£Œ ìžˆìŒ':''})`;
-        }
+        const elTime = document.getElementById(`rt_b_time_${ri}`);
+        const elRoute = document.getElementById(`rt_b_route_${ri}`);
+        if(elTime) elTime.textContent = route.duration + '분';
+        if(elRoute) elRoute.textContent =
+          inp.work2Label + ' → ' + route.topRoads.join(' → ') + ' → ' + r.area
+          + ' (' + route.distance + 'km' + (route.toll ? ', 통행료 있음' : '') + ')';
+        const bar = document.getElementById(`rt_b_bar_${ri}`);
+        if(bar) bar.style.width = Math.min(95, route.duration) + '%';
       }
     }
   });
 
-  // â”€â”€ ì‹¤ê±°ëž˜ê°€ ì¡°íšŒ â”€â”€
   REGIONS.forEach(async r=>{
     const el=document.getElementById('rp_'+r.lawdCd);
     if(!el) return;
-    // ìµœê·¼ 3ê°œì›” ë°ì´í„° í•©ì‚°
+    // 최근 3개월 데이터 합산
     const amounts=[];
     for(let m=0;m<3;m++){
       const ym=getYM(m);
@@ -1044,44 +1064,44 @@ function renderRegionCards(inp){
     el.classList.remove('loading');
     if(amounts.length){
       const avg=Math.round(amounts.reduce((a,b)=>a+b,0)/amounts.length);
-      const avgOk=Math.floor(avg/10000)+'ì–µ'+(avg%10000>0?' '+Math.round(avg%10000/1000)+'ì²œ':'');
-      // ì˜ˆì‚° ë¹„êµ
+      const avgOk=Math.floor(avg/10000)+'억'+(avg%10000>0?' '+Math.round(avg%10000/1000)+'천':'');
+      // 예산 비교
       const budgetVal = parseFloat(document.getElementById('bud')?.value||'8') * 10000;
-      const overBudget = avg > budgetVal * 1.2; // 20% ì´ˆê³¼ì‹œ ê²½ê³ 
-      const underBudget = avg < budgetVal * 0.8; // 20% ì´í•˜ë©´ ì—¬ìœ 
+      const overBudget = avg > budgetVal * 1.2; // 20% 초과시 경고
+      const underBudget = avg < budgetVal * 0.8; // 20% 이하면 여유
       el.textContent = avgOk;
       if(overBudget){
         el.style.color='var(--a3)';
-        el.title='ì˜ˆì‚° ì´ˆê³¼ ê°€ëŠ¥ì„±';
+        el.title='예산 초과 가능성';
         const tag=document.createElement('div');
         tag.style.cssText='font-size:10px;color:var(--a3);margin-top:2px;font-family:"DM Mono",monospace';
-        tag.textContent='â–² ì˜ˆì‚° ì´ˆê³¼';
+        tag.textContent='▲ 예산 초과';
         el.parentNode.appendChild(tag);
       } else if(underBudget){
         el.style.color='var(--a2)';
         const tag=document.createElement('div');
         tag.style.cssText='font-size:10px;color:var(--a2);margin-top:2px;font-family:"DM Mono",monospace';
-        tag.textContent='âœ“ ì˜ˆì‚° ë‚´';
+        tag.textContent='✓ 예산 내';
         el.parentNode.appendChild(tag);
       }
     } else {
-      el.textContent='ë°ì´í„° ì—†ìŒ';
+      el.textContent='데이터 없음';
       el.style.fontSize='12px';
     }
   });
 }
 
 function renderApts(inp){
-  const aT=inp.tr1.includes('ì…”í‹€')?'ðŸšŒ':inp.tr1.includes('ìžê°€ìš©')?'ðŸš—':'ðŸš‡';
-  const bT=inp.tr2.includes('ì…”í‹€')?'ðŸšŒ':inp.tr2.includes('ìžê°€ìš©')?'ðŸš—':'ðŸš‡';
+  const aT=inp.tr1.includes('셔틀')?'🚌':inp.tr1.includes('자가용')?'🚗':'🚇';
+  const bT=inp.tr2.includes('셔틀')?'🚌':inp.tr2.includes('자가용')?'🚗':'🚇';
   document.getElementById('aptList').innerHTML=APTS.map(a=>{
-    const tagHtml=a.tags.map(t=>t==='new'?`<span class="atag new">ì‹ ì¶•</span>`:t==='gtx'?`<span class="atag gtx">GTX-B</span>`:t.startsWith('etc:')?`<span class="atag etc">${t.slice(4)}</span>`:'').join('');
-    // ì¡°ë¶€ëª¨ ì†Œìš”ì‹œê°„ â€” ìž…ë ¥ ì¢Œí‘œ ìžˆìœ¼ë©´ ì¶”ì •, ì—†ìœ¼ë©´ '-'
+    const tagHtml=a.tags.map(t=>t==='new'?`<span class="atag new">신축</span>`:t==='gtx'?`<span class="atag gtx">GTX-B</span>`:t.startsWith('etc:')?`<span class="atag etc">${t.slice(4)}</span>`:'').join('');
+    // 조부모 소요시간 - 입력 좌표 있으면 추정, 없으면 '-'
     const gpTimeEst = (inp.gpOn && inp.gpCoord?.lat)
-      ? estimateTime(inp.gpCoord, {lat: r_lat_map[a.r], lng: r_lng_map[a.r]}, 'ðŸš‡ ëŒ€ì¤‘êµí†µ')
+      ? estimateTime(inp.gpCoord, {lat: r_lat_map[a.r], lng: r_lng_map[a.r]}, '🚇 대중교통')
       : null;
     const gpChip = (inp.gpOn && showGpTag)
-      ? `<span class="achip">ðŸ‘´ ${gpTimeEst ? gpTimeEst+'ë¶„' : a.gpT}</span>`
+      ? `<span class="achip">👴 ${gpTimeEst ? gpTimeEst+'분' : a.gpT}</span>`
       : '';
     return `<div class="arow r${a.r}" data-r="${a.r}">
       <div class="arnk">${String(a.rank).padStart(2,'0')}</div>
@@ -1089,18 +1109,18 @@ function renderApts(inp){
         <div class="anr"><span class="aname">${a.name}</span><span class="atag r${a.r}">${a.area}</span>${tagHtml}</div>
         <div class="aaddr">${a.addr}</div>
         <div class="achips">
-          <span class="achip">A ${aT} ${inp.work1Coord?.lat ? estimateTime(inp.work1Coord, {lat:r_lat_map[a.r],lng:r_lng_map[a.r]}, inp.tr1)+'ë¶„' : a.aT}</span>
-          <span class="achip">B ${bT} ${inp.work2Coord?.lat ? estimateTime(inp.work2Coord, {lat:r_lat_map[a.r],lng:r_lng_map[a.r]}, inp.tr2)+'ë¶„' : a.bT}</span>
+          <span class="achip">A ${aT} ${inp.work1Coord?.lat ? estimateTime(inp.work1Coord, {lat:r_lat_map[a.r],lng:r_lng_map[a.r]}, inp.tr1)+'분' : a.aT}</span>
+          <span class="achip">B ${bT} ${inp.work2Coord?.lat ? estimateTime(inp.work2Coord, {lat:r_lat_map[a.r],lng:r_lng_map[a.r]}, inp.tr2)+'분' : a.bT}</span>
           ${gpChip}
         </div>
       </div>
-      <div class="apb"><div class="asz">${a.size}</div><div class="aprice loading" id="ap_${a.rank}">ì¡°íšŒ ì¤‘</div><div class="apdt">êµ­í† ë¶€ ì‹¤ê±°ëž˜</div></div>
+      <div class="apb"><div class="asz">${a.size}</div><div class="aprice loading" id="ap_${a.rank}">조회 중</div><div class="apdt">국토부 실거래</div></div>
     </div>`;
   }).join('');
 
   const budgetOk = parseFloat(document.getElementById('bud')?.value||'8');
-  const showGpTag = inp.gpOn && inp.gpLabel && inp.gpLabel!=='(ë¯¸ìž…ë ¥)';
-  // ê° ì¶”ì²œ ì§€ì—­ ì¤‘ì‹¬ ì¢Œí‘œ
+  const showGpTag = inp.gpOn && inp.gpLabel && inp.gpLabel!=='(미입력)';
+  // 각 추천 지역 중심 좌표
   const r_lat_map = {'1':37.5497,'2':37.5472,'3':37.5097};
   const r_lng_map = {'1':126.9521,'2':127.0402,'3':126.9390};
   APTS.forEach(async a=>{
@@ -1110,25 +1130,25 @@ function renderApts(inp){
     el.classList.remove('loading');
     if(p){
       el.textContent=p;
-      // ì˜ˆì‚° ëŒ€ë¹„ í‘œì‹œ
-      const priceNum = parseFloat(p.replace('ì–µ','').trim().split(' ')[0]);
+      // 예산 대비 표시
+      const priceNum = parseFloat(p.replace('억','').trim().split(' ')[0]);
       if(priceNum > budgetOk * 1.15){
         el.style.color='var(--a3)';
         const row=document.getElementById('ap_'+a.rank).closest('.arow');
-        if(row){ const ot=row.querySelector('.anr'); if(ot){ const t=document.createElement('span'); t.className='atag'; t.style.cssText='background:rgba(212,117,110,.08);border:1px solid rgba(212,117,110,.25);color:var(--a3)'; t.textContent='ì˜ˆì‚°ì´ˆê³¼'; ot.appendChild(t); }}
+        if(row){ const ot=row.querySelector('.anr'); if(ot){ const t=document.createElement('span'); t.className='atag'; t.style.cssText='background:rgba(212,117,110,.08);border:1px solid rgba(212,117,110,.25);color:var(--a3)'; t.textContent='예산초과'; ot.appendChild(t); }}
       } else if(priceNum <= budgetOk){
         el.style.color='var(--a2)';
         const row=document.getElementById('ap_'+a.rank).closest('.arow');
-        if(row){ const ot=row.querySelector('.anr'); if(ot){ const t=document.createElement('span'); t.className='atag'; t.style.cssText='background:rgba(127,181,160,.08);border:1px solid rgba(127,181,160,.25);color:var(--a2)'; t.textContent='ì˜ˆì‚°ë‚´'; ot.appendChild(t); }}
+        if(row){ const ot=row.querySelector('.anr'); if(ot){ const t=document.createElement('span'); t.className='atag'; t.style.cssText='background:rgba(127,181,160,.08);border:1px solid rgba(127,181,160,.25);color:var(--a2)'; t.textContent='예산내'; ot.appendChild(t); }}
       }
     } else {
-      el.textContent='ë°ì´í„° ì—†ìŒ';
+      el.textContent='데이터 없음';
       el.style.fontSize='12px';
     }
   });
 }
 
-// â•â• ì§€ë„ â•â•
+// == 지도 ==
 let naverMap=null;
 function loadAndRenderMap(inp){
   document.getElementById('mapMsg').classList.remove('hidden');
@@ -1151,23 +1171,23 @@ function renderMap(inp){
     zoomControl:true,zoomControlOptions:{position:naver.maps.Position.TOP_RIGHT}
   });
 
-  // ì¶”ì²œ ì§€ì—­ ë§ˆì»¤
+  // 추천 지역 마커
   const rc=['#c8a96e','#7fb5a0','#d4756e'];
   REGIONS.forEach((r,i)=>{
     new naver.maps.Marker({
       position:new naver.maps.LatLng(r.lat,r.lng),map:naverMap,
       icon:{content:`<div style="position:relative;white-space:nowrap">
-        <div style="background:${rc[i]};color:#0e0e0e;font-family:'DM Mono',monospace;font-size:11px;font-weight:500;padding:5px 10px;box-shadow:0 2px 8px rgba(0,0,0,.5)">${i+1}ìœ„ ${r.area}</div>
+        <div style="background:${rc[i]};color:#0e0e0e;font-family:'DM Mono',monospace;font-size:11px;font-weight:500;padding:5px 10px;box-shadow:0 2px 8px rgba(0,0,0,.5)">${i+1}위 ${r.area}</div>
         <div style="position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid ${rc[i]}"></div>
       </div>`,anchor:new naver.maps.Point(40,34)}
     });
   });
 
-  // ì¶œê·¼ì§€ ë§ˆì»¤ â€” ì¢Œí‘œ ìžˆìœ¼ë©´ ë°”ë¡œ, ì—†ìœ¼ë©´ geocoding
+  // 출근지 마커 - 좌표 있으면 바로, 없으면 geocoding
   function placeWorkMarker(coord, label, color){
     if(coord.lat && coord.lng){
       addPinMarker(coord.lat, coord.lng, label, coord.label||label, color);
-    } else if(coord.label && coord.label!=='(ë¯¸ìž…ë ¥)'){
+    } else if(coord.label && coord.label!=='(미입력)'){
       naver.maps.Service.geocode({query:coord.label},(st,res)=>{
         const items=res.v2?.addresses;
         if(!items||!items.length) return;
@@ -1184,22 +1204,12 @@ function renderMap(inp){
         ${label}<br><span style="font-size:9px;opacity:.7">${subLabel}</span>
       </div>`,anchor:new naver.maps.Point(50,32)}
     });
-    // ì‹¤ì œ ê²½ë¡œ or ì§ì„  ì—°ê²°ì„ 
-    REGIONS.forEach(async (rg, ri) => {
+    // 추천 지역들과 연결선
+    REGIONS.forEach((rg, ri)=>{
       const dest = new naver.maps.LatLng(rg.lat, rg.lng);
-      // ìžê°€ìš©ì´ê³  ì¢Œí‘œê°€ ìžˆìœ¼ë©´ ì‹¤ì œ ê²½ë¡œ
-      const isCarMode = (label.includes('A') && inp.tr1.includes('ìžê°€ìš©')) ||
-                        (label.includes('B') && inp.tr2.includes('ìžê°€ìš©'));
-      if(isCarMode && coord.lat){
-        const route = await getCarRoute(coord, {lat: rg.lat, lng: rg.lng});
-        if(route && route.vertexes.length > 1){
-          drawRoute(naverMap, route.vertexes, color, ri===0 ? 4 : 2);
-          return;
-        }
-      }
-      // fallback â€” ì§ì„ 
       new naver.maps.Polyline({
-        path:[pos, dest], map:naverMap,
+        path:[pos, dest],
+        map:naverMap,
         strokeColor:color,
         strokeOpacity: ri===0 ? 0.5 : 0.2,
         strokeWeight: ri===0 ? 2 : 1,
@@ -1208,8 +1218,35 @@ function renderMap(inp){
     });
   }
 
-  placeWorkMarker(inp.work1Coord,'A ì¶œê·¼ì§€','#7da8e0');
-  placeWorkMarker(inp.work2Coord,'B ì¶œê·¼ì§€','#7fb5a0');
+  const rColors=['#c8a96e','#7fb5a0','#d4756e'];
+
+  // 출근지 마커 + 자가용이면 실제 경로 폴리라인
+  async function placeAndRoute(coord, label, color, transport, personKey){
+    if(!coord?.lat) return;
+    // 마커 먼저
+    addPinMarker(coord.lat, coord.lng, label, coord.label||label, color);
+    // 자가용이면 실제 경로
+    if(transport.includes('자가용')){
+      const route = await fetchCarRoute(coord, {lat:REGIONS[0].lat, lng:REGIONS[0].lng});
+      if(route?.pathCoords?.length){
+        drawRouteOnMap(map, route.pathCoords, color, 3);
+        return;
+      }
+    }
+    // 자가용 아니거나 API 실패시 점선
+    REGIONS.forEach((rg,ri)=>{
+      new naver.maps.Polyline({
+        path:[new naver.maps.LatLng(coord.lat,coord.lng), new naver.maps.LatLng(rg.lat,rg.lng)],
+        map, strokeColor:color,
+        strokeOpacity: ri===0 ? 0.5 : 0.2,
+        strokeWeight: ri===0 ? 2 : 1,
+        strokeStyle: ri===0 ? 'solid' : 'dashed'
+      });
+    });
+  }
+
+  placeAndRoute(inp.work1Coord, 'A 출근지', '#7da8e0', inp.tr1, 'A');
+  placeAndRoute(inp.work2Coord, 'B 출근지', '#7fb5a0', inp.tr2, 'B');
 
   if(inp.gpOn && inp.gpCoord){
     document.getElementById('gpLegend').style.display='flex';
@@ -1217,22 +1254,22 @@ function renderMap(inp){
       new naver.maps.Marker({
         position:new naver.maps.LatLng(inp.gpCoord.lat,inp.gpCoord.lng),map:naverMap,
         icon:{content:`<div style="background:#141414;border:1.5px solid #a0a0c8;color:#a0a0c8;font-family:'DM Mono',monospace;font-size:10px;padding:5px 10px;box-shadow:0 2px 6px rgba(0,0,0,.6);white-space:nowrap">
-          ðŸ‘´ ì¡°ë¶€ëª¨ ê±°ì£¼ì§€<br><span style="font-size:9px;opacity:.7">${inp.gpLabel}</span>
+          👴 조부모 거주지<br><span style="font-size:9px;opacity:.7">${inp.gpLabel}</span>
         </div>`,anchor:new naver.maps.Point(60,32)}
       });
-    } else if(inp.gpLabel && inp.gpLabel!=='(ë¯¸ìž…ë ¥)'){
+    } else if(inp.gpLabel && inp.gpLabel!=='(미입력)'){
       naver.maps.Service.geocode({query:inp.gpLabel},(st,res)=>{
         const items=res.v2?.addresses;
         if(!items||!items.length) return;
         new naver.maps.Marker({
           position:new naver.maps.LatLng(parseFloat(items[0].y),parseFloat(items[0].x)),map:naverMap,
           icon:{content:`<div style="background:#141414;border:1.5px solid #a0a0c8;color:#a0a0c8;font-family:'DM Mono',monospace;font-size:10px;padding:5px 10px;box-shadow:0 2px 6px rgba(0,0,0,.6);white-space:nowrap">
-            ðŸ‘´ ì¡°ë¶€ëª¨ ê±°ì£¼ì§€<br><span style="font-size:9px;opacity:.7">${inp.gpLabel}</span>
+            👴 조부모 거주지<br><span style="font-size:9px;opacity:.7">${inp.gpLabel}</span>
           </div>`,anchor:new naver.maps.Point(60,32)}
         });
       });
     }
-    // ì¡°ë¶€ëª¨ â†’ 1ìˆœìœ„ ì¶”ì²œì§€ì—­ ì—°ê²°ì„ 
+    // 조부모 -> 1순위 추천지역 연결선
     if(inp.gpCoord?.lat){
       naver.maps.Service.geocode({query:inp.gpLabel},(st,res)=>{
         const items=res?.v2?.addresses;
@@ -1252,26 +1289,26 @@ function renderMap(inp){
   }
 }
 
-// â•â• ë„¤ë¹„ê²Œì´ì…˜ â•â•
+// == 네비게이션 ==
 let cur=0;
 function startForm(){
   document.getElementById('hero').style.display='none';
   document.getElementById('snav').style.display='block';
-  // SDK ë¯¸ë¦¬ ë¡œë“œ (geocode ê²€ìƒ‰ì„ ìœ„í•´)
+  // SDK 미리 로드 (geocode 검색을 위해)
   if(typeof naver==='undefined'){
     const s=document.createElement('script');
     s.src='https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=3wwumsfkd2&submodules=geocoder';
     document.head.appendChild(s);
   }
   go(1);
-  // ê²€ìƒ‰ ì»´í¬ë„ŒíŠ¸ ì´ˆê¸°í™”
+  // 검색 컴포넌트 초기화
   setTimeout(()=>{
-    createAddrSearch('work1','search_work1','ì˜ˆ: ê°•ë‚¨ì—­, íŒêµì—­, í…Œí—¤ëž€ë¡œ');
-    createAddrSearch('work2','search_work2','ì˜ˆ: ì—¬ì˜ë„, ë§ˆê³¡ë‚˜ë£¨ì—­, ìƒì•”DMC');
-    createAddrSearch('gpAddr','search_gpAddr','ì˜ˆ: ë…¸ì›êµ¬ì²­ì—­, ë¶„ë‹¹, ì¸ì²œ');
-    createAddrSearch('prefer','search_prefer','ì˜ˆ: ë§ˆí¬êµ¬, ì„±ë™êµ¬');
-    createAddrSearch('avoid','search_avoid','ì˜ˆ: ê°•ë‚¨êµ¬');
-    // ì…”í‹€ ì²« ì •ë¥˜ìž¥ë„ ì´ˆê¸°í™”
+    createAddrSearch('work1','search_work1','예: 강남역, 판교역, 테헤란로');
+    createAddrSearch('work2','search_work2','예: 여의도, 마곡나루역, 상암DMC');
+    createAddrSearch('gpAddr','search_gpAddr','예: 노원구청역, 분당, 인천');
+    createAddrSearch('prefer','search_prefer','예: 마포구, 성동구');
+    createAddrSearch('avoid','search_avoid','예: 강남구');
+    // 셔틀 첫 정류장도 초기화
     addShuttleStop('shuttle_stops1');
     addShuttleStop('shuttle_stops2');
   }, 100);
@@ -1305,10 +1342,10 @@ function pick(el,g){document.querySelectorAll('#'+g+' .chip').forEach(c=>c.class
 function tog(el){el.classList.toggle('on');}
 function toggleEl(id,show){document.getElementById(id).classList.toggle('show',show);}
 function showCond(id,show){document.getElementById(id).classList.toggle('show',show);}
-function updW(v){document.getElementById('wlbl').textContent=v==50?'Aì™€ B ë™ë“± â€” 50% / 50%':v<50?`ë°°ìš°ìž A ìš°ì„  â€” ${v}% / ${100-v}%`:`ë°°ìš°ìž B ìš°ì„  â€” ${100-v}% / ${v}%`;}
+function updW(v){document.getElementById('wlbl').textContent=v==50?'A와 B 동등 - 50% / 50%':v<50?`배우자 A 우선 - ${v}% / ${100-v}%`:`배우자 B 우선 - ${100-v}% / ${v}%`;}
 function fApt(el,r){document.querySelectorAll('.atab').forEach(t=>t.classList.remove('on'));el.classList.add('on');document.querySelectorAll('.arow').forEach(row=>row.classList.toggle('hidden',r!=='all'&&row.dataset.r!==r));}
 
-// ì™¸ë¶€ í´ë¦­ ì‹œ ë“œë¡­ë‹¤ìš´ ë‹«ê¸°
+// 외부 클릭 시 드롭다운 닫기
 document.addEventListener('click',e=>{
   Object.keys(LOCS).forEach(key=>{
     const aw=document.getElementById('aw_'+key);
