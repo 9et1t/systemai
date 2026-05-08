@@ -747,7 +747,7 @@ async function analyzeRegions(inp, onProgress){
   guResults.sort((a,b)=>a.score-b.score);
 
   // TOP3 확정 후 환경 점수 병렬 조회 (비동기)
-  const top3raw = guResults.slice(0,10);
+  const top3raw = guResults.slice(0,5);
   const envSel = inp.envSel || { edu:[], env:[], all:[] };
   const allEnvTypes = [...new Set([
     ...envSel.env,
@@ -779,7 +779,7 @@ async function analyzeRegions(inp, onProgress){
       ...r,
       sub: r.city+' '+r.area,
       rank: String(i+1).padStart(2,'0'),
-      tag:  i===0?'✦ 1순위 추천':`${i+1}순위`, tagColor: i===0?'var(--a)':i<3?'var(--a2)':'var(--muted)',
+      tag:  i===0?'✦ 1순위 추천':`${i+1}순위`, tagColor: i===0?'var(--a)':i<5?'var(--a2)':'var(--muted)',
       envTags, neisTag,
       metrics:[
         ['실거래 평균', Math.floor(r.avg/10000)+'억'+(r.avg%10000?' '+Math.round(r.avg%10000/1000)+'천':'')],
