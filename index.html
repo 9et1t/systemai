@@ -293,12 +293,13 @@ main{padding:78px 16px 60px;max-width:1080px;margin:0 auto;}
       </div>
     </div>
     <div class="map-legend" id="mapLegend">
-      <div class="leg"><div class="leg-line" style="background:#f59e0b"></div>코스1 금정역</div>
-      <div class="leg"><div class="leg-line" style="background:#f97316"></div>코스2 정자역</div>
-      <div class="leg"><div class="leg-line" style="background:#ec4899"></div>코스3 사당역</div>
-      <div class="leg"><div class="leg-line" style="background:#a78bfa"></div>코스4 평촌</div>
-      <div class="leg"><div class="leg-line" style="background:#34d399"></div>코스5 판교역</div>
-      <div class="leg"><div class="leg-line" style="background:#60a5fa"></div>순환 인덕원</div>
+      <span id="legendMsg" style="color:var(--muted);font-size:11px">위치 검색 후 해당 셔틀 노선이 표시됩니다</span>
+      <div class="leg hidden" id="leg1"><div class="leg-line" style="background:#f59e0b"></div>코스1 금정역</div>
+      <div class="leg hidden" id="leg2"><div class="leg-line" style="background:#f97316"></div>코스2 정자역</div>
+      <div class="leg hidden" id="leg3"><div class="leg-line" style="background:#ec4899"></div>코스3 사당역</div>
+      <div class="leg hidden" id="leg4"><div class="leg-line" style="background:#a78bfa"></div>코스4 평촌</div>
+      <div class="leg hidden" id="leg5"><div class="leg-line" style="background:#34d399"></div>코스5 판교역</div>
+      <div class="leg hidden" id="leg6"><div class="leg-line" style="background:#60a5fa"></div>순환 인덕원</div>
     </div>
   </div>
 
@@ -492,14 +493,12 @@ function buildMap(){
 }
 
 // ════════════════════════════════
-//  셔틀 노선 — 카카오 네비 API로 실제 도로 경로 그리기
+//  셔틀 노선 — 선택된 코스만 그리기
 // ════════════════════════════════
 const COURSE_COLORS={
   "코스1 금정역":"#f59e0b","코스2 정자역":"#f97316","코스3 사당역":"#ec4899",
   "코스4 평촌":"#a78bfa","코스5 판교역":"#34d399","순환 인덕원역":"#60a5fa"
 };
-
-// 코스별 경유 정류장 순서 (회사 출발 → 마지막 정류장)
 const COURSE_WAYPOINTS = {
   "코스1 금정역":  [{lat:37.3635,lng:126.9654},{lat:37.4013,lng:126.9549},{lat:37.4004,lng:126.9531},{lat:37.3985,lng:126.9488},{lat:37.3960,lng:126.9450},{lat:37.3940,lng:126.9520},{lat:37.3615,lng:126.9320}],
   "코스2 정자역":  [{lat:37.3635,lng:126.9654},{lat:37.3731,lng:127.1122},{lat:37.3604,lng:127.1116}],
@@ -509,14 +508,16 @@ const COURSE_WAYPOINTS = {
   "순환 인덕원역": [{lat:37.3635,lng:126.9654},{lat:37.4013,lng:126.9549}],
 };
 
-async function drawShuttleRoutes(){
+// 선택된 코스 이름들만 지도에 표시
+async function drawShuttleRoutes(courseNames){
   if(!mapObj) return;
   shuttlePolylines.forEach(p=>p.setMap(null));
   shuttlePolylines=[];
+  if(!courseNames?.length) return;
 
-  for(const [course, wpts] of Object.entries(COURSE_WAYPOINTS)){
-    const color = COURSE_COLORS[course]||"#f59e0b";
-    // 구간별로 카카오 네비 경로 요청 (origin→destination 2점씩)
+  for(const course of courseNames){
+    const wpts=COURSE_WAYPOINTS[course]; if(!wpts) continue;
+    const color=COURSE_COLORS[course]||"#f59e0b";
     for(let i=0;i<wpts.length-1;i++){
       const o=wpts[i], d=wpts[i+1];
       try{
@@ -525,28 +526,14 @@ async function drawShuttleRoutes(){
         const data=await res.json();
         const vx=data?.routes?.[0]?.sections?.[0]?.roads?.flatMap(r=>r.vertexes||[])||[];
         if(vx.length>=2){
-          // vertexes: [lng1,lat1,lng2,lat2,...]
           const path=[];
           for(let j=0;j<vx.length-1;j+=2) path.push(new kakao.maps.LatLng(vx[j+1],vx[j]));
-          const poly=new kakao.maps.Polyline({
-            path, strokeWeight:5, strokeColor:color, strokeOpacity:.85,
-            strokeStyle:"solid", map:mapObj
-          });
-          shuttlePolylines.push(poly);
+          shuttlePolylines.push(new kakao.maps.Polyline({path,strokeWeight:5,strokeColor:color,strokeOpacity:.85,strokeStyle:"solid",map:mapObj}));
         } else {
-          // fallback: 직선
-          const poly=new kakao.maps.Polyline({
-            path:[new kakao.maps.LatLng(o.lat,o.lng),new kakao.maps.LatLng(d.lat,d.lng)],
-            strokeWeight:4,strokeColor:color,strokeOpacity:.6,strokeStyle:"dashed",map:mapObj
-          });
-          shuttlePolylines.push(poly);
+          shuttlePolylines.push(new kakao.maps.Polyline({path:[new kakao.maps.LatLng(o.lat,o.lng),new kakao.maps.LatLng(d.lat,d.lng)],strokeWeight:4,strokeColor:color,strokeOpacity:.6,strokeStyle:"dashed",map:mapObj}));
         }
       }catch{
-        const poly=new kakao.maps.Polyline({
-          path:[new kakao.maps.LatLng(o.lat,o.lng),new kakao.maps.LatLng(d.lat,d.lng)],
-          strokeWeight:4,strokeColor:color,strokeOpacity:.5,strokeStyle:"dashed",map:mapObj
-        });
-        shuttlePolylines.push(poly);
+        shuttlePolylines.push(new kakao.maps.Polyline({path:[new kakao.maps.LatLng(o.lat,o.lng),new kakao.maps.LatLng(d.lat,d.lng)],strokeWeight:4,strokeColor:color,strokeOpacity:.5,strokeStyle:"dashed",map:mapObj}));
       }
     }
   }
@@ -555,6 +542,20 @@ async function drawShuttleRoutes(){
 // ════════════════════════════════
 //  대중교통 경로 — 지도 표시 없음, 텍스트만
 // ════════════════════════════════
+function updateLegend(courses){
+  const courseToLeg={"코스1 금정역":"leg1","코스2 정자역":"leg2","코스3 사당역":"leg3","코스4 평촌":"leg4","코스5 판교역":"leg5","순환 인덕원역":"leg6"};
+  const msg=document.getElementById("legendMsg");
+  if(msg) msg.style.display="none";
+  ["leg1","leg2","leg3","leg4","leg5","leg6"].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.classList.add("hidden");
+  });
+  courses.forEach(c=>{
+    const id=courseToLeg[c];
+    if(id) document.getElementById(id)?.classList.remove("hidden");
+  });
+}
+
 function clearRoutes(){
   routePolylines.forEach(p=>p.setMap(null));
   routeMarkers.forEach(m=>m.setMap(null));
@@ -742,6 +743,12 @@ function doSearchByCoords(lat,lng,skipMap){
   const ranked=stops.filter(s=>s[key]?.length)
     .map(s=>({...s,dist:haversine(lat,lng,s.lat||company.lat,s.lng||company.lng)}))
     .sort((a,b)=>a.dist-b.dist);
+
+  // 상위 4개 정류장의 코스만 추출해서 지도에 표시
+  const topCourses=[...new Set(ranked.slice(0,4).map(s=>s.course))];
+  drawShuttleRoutes(topCourses);
+  updateLegend(topCourses);
+
   renderResults(ranked,lat,lng);
 }
 
@@ -814,15 +821,16 @@ function renderResults(ranked,uLat,uLng){
           <span class="time-row-label">탑승 후 회사 도착</span>
           <span class="time-row-val">계산중...</span>
         </div>
-        <button class="btn-route" id="rbtn_${s.id}" onclick="showTransitRoute(${s.lat},${s.lng},${uLat},${uLng},'${s.name}','${s.id}')">
-          🚇 집→정류장 대중교통 탑승 안내 보기
-        </button>
-        <div class="transit-detail" id="td_${s.id}"><div style="color:var(--muted);font-size:12px;text-align:center;padding:8px">경로 불러오는 중...</div></div>
+        <div class="transit-detail open" id="td_${s.id}">
+          <div style="color:var(--muted);font-size:11px;padding:6px 0 2px">🚇 대중교통 탑승 안내 불러오는 중...</div>
+        </div>
       `;
       document.getElementById("resultsGrid").appendChild(card);
       calcTransitCard(uLat,uLng,s.lat,s.lng,`tr_${s.id}`);
       if(nb) calcNaviCard(s.lat,s.lng,company.lat,company.lng,nb,`nav_${s.id}`);
       else   document.getElementById(`nav_${s.id}`).querySelector(".time-row-val").textContent="배차없음";
+      // 대중교통 경로 바로 로드
+      loadTransitDetail(s.lat,s.lng,uLat,uLng,s.name,`td_${s.id}`);
 
     } else {
       const nd=getNext(s.deptTimes,now2);
@@ -847,10 +855,9 @@ function renderResults(ranked,uLat,uLng){
           <span class="time-row-label">집 도착 예정</span>
           <span class="time-row-val">계산중...</span>
         </div>
-        <button class="btn-route" id="rbtn_${s.id}" onclick="showTransitRoute(${s.lat},${s.lng},${uLat},${uLng},'${s.name}','${s.id}')">
-          🚇 정류장→집 대중교통 탑승 안내 보기
-        </button>
-        <div class="transit-detail" id="td_${s.id}"><div style="color:var(--muted);font-size:12px;text-align:center;padding:8px">경로 불러오는 중...</div></div>
+        <div class="transit-detail open" id="td_${s.id}">
+          <div style="color:var(--muted);font-size:11px;padding:6px 0 2px">🚇 대중교통 탑승 안내 불러오는 중...</div>
+        </div>
       `;
       document.getElementById("resultsGrid").appendChild(card);
       if(nd){
@@ -859,50 +866,31 @@ function renderResults(ranked,uLat,uLng){
       } else {
         [`nav_${s.id}`,`tr_${s.id}`,`home_${s.id}`].forEach(id=>document.getElementById(id)?.querySelector(".time-row-val")&&(document.getElementById(id).querySelector(".time-row-val").textContent="배차없음"));
       }
+      // 대중교통 경로 바로 로드
+      loadTransitDetail(s.lat,s.lng,uLat,uLng,s.name,`td_${s.id}`);
     }
   });
 }
 
 // ════════════════════════════════
-//  대중교통 경로 버튼 클릭 — 텍스트 안내만
+//  대중교통 안내 — 카드에 바로 표시
 // ════════════════════════════════
-async function showTransitRoute(sLat,sLng,homeLat,homeLng,stopName,sid){
-  const btn=document.getElementById(`rbtn_${sid}`);
-  const detail=document.getElementById(`td_${sid}`);
-
-  // 이미 열려있으면 닫기
-  if(detail.classList.contains("open")){
-    detail.classList.remove("open");
-    btn.classList.remove("active");
-    btn.innerHTML="🚇 대중교통 탑승 안내 보기";
-    return;
-  }
-
-  btn.classList.add("active");
-  btn.innerHTML="⏳ 경로 조회 중...";
-
+async function loadTransitDetail(sLat,sLng,homeLat,homeLng,stopName,tdId){
+  const el=document.getElementById(tdId);
+  if(!el) return;
   const oLat=mode==="work"?homeLat:sLat, oLng=mode==="work"?homeLng:sLng;
   const dLat=mode==="work"?sLat:homeLat,  dLng=mode==="work"?sLng:homeLng;
   const label=mode==="work"?`집 → ${stopName}`:`${stopName} → 집`;
-
   try{
     const data=await fetchTransit(oLat,oLng,dLat,dLng);
     const sections=data?.routes?.[0]?.sections;
     if(sections?.length){
-      detail.innerHTML=buildTransitDetail(sections,label);
-      detail.classList.add("open");
-      btn.innerHTML="🚇 탑승 안내 ▲ 닫기";
+      el.innerHTML=buildTransitDetail(sections,label);
     } else {
-      detail.innerHTML=`<div style="color:var(--muted);font-size:12px;padding:8px 0">대중교통 경로를 찾지 못했습니다.<br>REST API 키 또는 위치 좌표를 확인해주세요.</div>`;
-      detail.classList.add("open");
-      btn.innerHTML="🚇 대중교통 탑승 안내 보기";
-      btn.classList.remove("active");
+      el.innerHTML=`<div style="color:var(--muted);font-size:11px;padding:4px 0">경로를 불러오지 못했습니다. REST API 키를 확인해주세요.</div>`;
     }
   }catch(e){
-    detail.innerHTML=`<div style="color:#ef4444;font-size:12px;padding:8px 0">오류 발생: ${e.message}</div>`;
-    detail.classList.add("open");
-    btn.innerHTML="🚇 대중교통 탑승 안내 보기";
-    btn.classList.remove("active");
+    el.innerHTML=`<div style="color:var(--muted);font-size:11px;padding:4px 0">오류 발생 — ${e.message}</div>`;
   }
 }
 
