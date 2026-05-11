@@ -1,155 +1,180 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>NH통합IT센터 셔틀 안내</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Space+Mono:wght@400;700&display=swap');
-    :root{
-      --bg:#0d1117;--surface:#161b27;--surface2:#1c2333;--border:#21304a;
-      --accent:#1a7fe8;--accent2:#4da3ff;--glow:rgba(26,127,232,.2);
-      --work:#10b981;--home:#f59e0b;--text:#e6edf3;--muted:#57657a;--card:#13192a;--nh:#006633;
-      --transit:#8b5cf6;
-    }
-    *{margin:0;padding:0;box-sizing:border-box;}
-    body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NH통합IT센터 셔틀 안내</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Space+Mono:wght@400;700&display=swap');
+:root{
+  --bg:#0d1117;--surface:#161b27;--surface2:#1c2333;--border:#21304a;
+  --accent:#1a7fe8;--accent2:#4da3ff;--glow:rgba(26,127,232,.2);
+  --work:#10b981;--home:#f59e0b;--text:#e6edf3;--muted:#57657a;--card:#13192a;--nh:#006633;
+  --transit:#8b5cf6;--subway:#3b82f6;--bus:#10b981;--walk:#64748b;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
 
-    header{position:fixed;top:0;left:0;right:0;z-index:500;background:rgba(13,17,23,.96);backdrop-filter:blur(18px);border-bottom:1px solid var(--border);height:58px;padding:0 20px;display:flex;align-items:center;justify-content:space-between;}
-    .logo{display:flex;align-items:center;gap:10px;}
-    .logo-badge{background:var(--nh);color:#fff;font-weight:900;font-size:13px;padding:4px 10px;border-radius:6px;}
-    .logo-text{font-size:14px;font-weight:700;}
-    .logo-sub{font-size:11px;color:var(--muted);}
-    .hdr-r{display:flex;align-items:center;gap:8px;}
-    .clock{font-family:'Space Mono',monospace;font-size:13px;color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:4px 12px;border-radius:20px;}
-    .admin-btn{font-size:12px;color:var(--muted);background:transparent;border:1px solid var(--border);padding:5px 12px;border-radius:8px;cursor:pointer;font-family:inherit;transition:all .2s;}
-    .admin-btn:hover{border-color:var(--accent);color:var(--accent2);}
+header{position:fixed;top:0;left:0;right:0;z-index:500;background:rgba(13,17,23,.96);backdrop-filter:blur(18px);border-bottom:1px solid var(--border);height:58px;padding:0 20px;display:flex;align-items:center;justify-content:space-between;}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-badge{background:var(--nh);color:#fff;font-weight:900;font-size:13px;padding:4px 10px;border-radius:6px;}
+.logo-text{font-size:14px;font-weight:700;}
+.logo-sub{font-size:11px;color:var(--muted);}
+.hdr-r{display:flex;align-items:center;gap:8px;}
+.clock{font-family:'Space Mono',monospace;font-size:13px;color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:4px 12px;border-radius:20px;}
+.admin-btn{font-size:12px;color:var(--muted);background:transparent;border:1px solid var(--border);padding:5px 12px;border-radius:8px;cursor:pointer;font-family:inherit;transition:all .2s;}
+.admin-btn:hover{border-color:var(--accent);color:var(--accent2);}
 
-    main{padding:78px 16px 60px;max-width:1080px;margin:0 auto;}
+main{padding:78px 16px 60px;max-width:1080px;margin:0 auto;}
+.hero{text-align:center;margin-bottom:18px;}
+.hero h1{font-size:26px;font-weight:900;letter-spacing:-.03em;background:linear-gradient(135deg,#e6edf3,#4da3ff 55%,#7dd3fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:5px;}
+.hero p{font-size:13px;color:var(--muted);}
 
-    .hero{text-align:center;margin-bottom:20px;}
-    .hero h1{font-size:26px;font-weight:900;letter-spacing:-.03em;background:linear-gradient(135deg,#e6edf3,#4da3ff 55%,#7dd3fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px;}
-    .hero p{font-size:13px;color:var(--muted);}
+.map-status{display:flex;align-items:center;gap:8px;padding:7px 14px;border-radius:10px;font-size:12px;margin-bottom:12px;border:1px solid;}
+.map-status.ok{background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.25);color:#10b981;}
+.map-status.err{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.25);color:#ef4444;}
+.map-status.loading{background:rgba(26,127,232,.08);border-color:rgba(26,127,232,.25);color:var(--accent2);}
+.status-dot{width:8px;height:8px;border-radius:50%;background:currentColor;flex-shrink:0;}
 
-    .map-status{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:10px;font-size:12px;margin-bottom:14px;border:1px solid;}
-    .map-status.ok{background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.25);color:#10b981;}
-    .map-status.err{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.25);color:#ef4444;}
-    .map-status.loading{background:rgba(26,127,232,.08);border-color:rgba(26,127,232,.25);color:var(--accent2);}
-    .status-dot{width:8px;height:8px;border-radius:50%;background:currentColor;flex-shrink:0;}
+.mode-toggle{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:4px;max-width:300px;margin:0 auto 16px;gap:4px;}
+.mode-btn{flex:1;padding:10px 0;border-radius:10px;border:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;background:transparent;color:var(--muted);transition:all .25s;}
+.mode-btn.aw{background:var(--work);color:#fff;box-shadow:0 0 14px rgba(16,185,129,.3);}
+.mode-btn.ah{background:var(--home);color:#fff;box-shadow:0 0 14px rgba(245,158,11,.3);}
 
-    .mode-toggle{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:4px;max-width:300px;margin:0 auto 18px;gap:4px;}
-    .mode-btn{flex:1;padding:10px 0;border-radius:10px;border:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;background:transparent;color:var(--muted);transition:all .25s;}
-    .mode-btn.aw{background:var(--work);color:#fff;box-shadow:0 0 14px rgba(16,185,129,.3);}
-    .mode-btn.ah{background:var(--home);color:#fff;box-shadow:0 0 14px rgba(245,158,11,.3);}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px;}
+.card-title{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
 
-    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px;}
-    .card-title{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+.search-row{display:flex;gap:8px;}
+.si-wrap{flex:1;position:relative;}
+.si-wrap input{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:12px 16px 12px 42px;color:var(--text);font-family:inherit;font-size:14px;outline:none;transition:border-color .2s;}
+.si-wrap input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--glow);}
+.si-wrap input::placeholder{color:var(--muted);}
+.si-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none;}
+.btn-gps{padding:12px 14px;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;font-size:18px;cursor:pointer;transition:all .2s;color:var(--text);}
+.btn-gps:hover{border-color:var(--accent);color:var(--accent);}
+.btn-search{padding:12px 20px;background:var(--accent);border:none;border-radius:12px;color:#fff;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 0 14px var(--glow);white-space:nowrap;transition:all .2s;}
+.btn-search:hover{background:var(--accent2);transform:translateY(-1px);}
+.notice{background:rgba(26,127,232,.07);border:1px solid rgba(26,127,232,.2);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--muted);line-height:1.6;margin-top:10px;}
+.notice strong{color:var(--accent2);}
 
-    .search-row{display:flex;gap:8px;}
-    .si-wrap{flex:1;position:relative;}
-    .si-wrap input{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:12px 16px 12px 42px;color:var(--text);font-family:inherit;font-size:14px;outline:none;transition:border-color .2s;}
-    .si-wrap input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--glow);}
-    .si-wrap input::placeholder{color:var(--muted);}
-    .si-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none;}
-    .btn-gps{padding:12px 14px;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;font-size:18px;cursor:pointer;transition:all .2s;color:var(--text);}
-    .btn-gps:hover{border-color:var(--accent);color:var(--accent);}
-    .btn-search{padding:12px 20px;background:var(--accent);border:none;border-radius:12px;color:#fff;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 0 14px var(--glow);white-space:nowrap;transition:all .2s;}
-    .btn-search:hover{background:var(--accent2);transform:translateY(-1px);}
-    .notice{background:rgba(26,127,232,.07);border:1px solid rgba(26,127,232,.2);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--muted);line-height:1.6;margin-top:10px;}
-    .notice strong{color:var(--accent2);}
+/* 지도 */
+#map{width:100%;height:400px;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:var(--surface2);position:relative;}
+.map-ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--muted);font-size:13px;text-align:center;}
+.map-ph-icon{font-size:36px;opacity:.3;}
 
-    #map{width:100%;height:300px;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:var(--surface2);position:relative;}
-    .map-ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--muted);font-size:13px;text-align:center;padding:20px;}
-    .map-ph-icon{font-size:36px;opacity:.3;}
+/* 지도 범례 */
+.map-legend{display:flex;flex-wrap:wrap;gap:10px;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-top:none;border-radius:0 0 12px 12px;font-size:11px;align-items:center;}
+.leg{display:flex;align-items:center;gap:5px;color:var(--muted);}
+.leg-line{width:18px;height:4px;border-radius:2px;}
+.leg-dash{width:18px;height:0;border-top:3px dashed #64748b;}
+.leg-clear{margin-left:auto;font-size:11px;color:var(--muted);background:transparent;border:1px solid var(--border);padding:3px 10px;border-radius:6px;cursor:pointer;font-family:inherit;}
+.leg-clear:hover{border-color:#ef4444;color:#ef4444;}
 
-    /* 정류장 결과 카드 */
-    .results-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
-    .stop-card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:15px;cursor:pointer;transition:all .22s;position:relative;overflow:hidden;}
-    .stop-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--accent);border-radius:3px 0 0 3px;}
-    .stop-card.near::before{background:var(--work);}
-    .stop-card.hm::before{background:var(--home);}
-    .stop-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.35);}
-    .sn{font-size:14px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
-    .badge{font-size:10px;font-weight:700;letter-spacing:.06em;padding:2px 7px;border-radius:20px;white-space:nowrap;}
-    .b-near{background:var(--work);color:#fff;}
-    .b-home{background:var(--home);color:#fff;}
-    .b-course{background:var(--surface2);color:var(--accent2);border:1px solid var(--border);}
-    .sa{font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.5;}
-    .sm{display:flex;justify-content:space-between;font-size:12px;margin-bottom:8px;}
-    .sd{color:var(--accent2);font-weight:700;font-family:'Space Mono',monospace;}
-    .sw{color:var(--muted);}
-    .sl{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:5px;}
-    .chips{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;}
-    .chip{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:3px 8px;font-family:'Space Mono',monospace;font-size:11px;color:var(--text);}
-    .chip.next{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 0 8px var(--glow);}
-    .chip.passed{opacity:.3;text-decoration:line-through;}
+/* 요약 배너 */
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.sum-box{border-radius:14px;padding:16px 18px;}
+.sum-box.work-sum{background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(16,185,129,.04));border:1.5px solid rgba(16,185,129,.25);}
+.sum-box.home-sum{background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.04));border:1.5px solid rgba(245,158,11,.25);}
+.sum-label{font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:700;}
+.sum-time{font-family:'Space Mono',monospace;font-size:26px;font-weight:700;line-height:1;margin-bottom:4px;}
+.sum-box.work-sum .sum-time{color:var(--work);}
+.sum-box.home-sum .sum-time{color:var(--home);}
+.sum-detail{font-size:11px;color:var(--muted);line-height:1.5;}
 
-    /* 시간 정보 행 */
-    .time-row{display:flex;align-items:center;gap:6px;padding:7px 10px;border-radius:9px;margin-bottom:5px;font-size:12px;}
-    .time-row.transit{background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.2);}
-    .time-row.navi{background:rgba(26,127,232,.1);border:1px solid rgba(26,127,232,.2);}
-    .time-row.arrival{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);}
-    .time-row-icon{font-size:14px;flex-shrink:0;}
-    .time-row-label{color:var(--muted);flex:1;}
-    .time-row-val{font-family:'Space Mono',monospace;font-weight:700;font-size:13px;}
-    .time-row.transit .time-row-val{color:#a78bfa;}
-    .time-row.navi .time-row-val{color:var(--accent2);}
-    .time-row.arrival .time-row-val{color:var(--home);}
-    .time-row-sub{font-size:10px;color:var(--muted);}
+/* 결과 카드 */
+.results-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px;}
+.stop-card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:15px;transition:all .22s;position:relative;overflow:hidden;}
+.stop-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--accent);border-radius:3px 0 0 3px;}
+.stop-card.near::before{background:var(--work);}
+.stop-card.hm::before{background:var(--home);}
+.stop-card:hover{border-color:var(--accent);box-shadow:0 6px 20px rgba(0,0,0,.3);}
+.sn{font-size:14px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap;}
+.b-near{background:var(--work);color:#fff;}
+.b-home{background:var(--home);color:#fff;}
+.b-course{background:var(--surface2);color:var(--accent2);border:1px solid var(--border);}
+.sa{font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.5;}
+.sm{display:flex;justify-content:space-between;font-size:12px;margin-bottom:8px;}
+.sd{color:var(--accent2);font-weight:700;font-family:'Space Mono',monospace;}
+.sw{color:var(--muted);}
+.sl{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:5px;}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;}
+.chip{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:3px 8px;font-family:'Space Mono',monospace;font-size:11px;color:var(--text);}
+.chip.next{background:var(--accent);border-color:var(--accent);color:#fff;}
+.chip.passed{opacity:.3;text-decoration:line-through;}
 
-    /* 요약 배너 */
-    .summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
-    .sum-box{border-radius:14px;padding:16px 18px;}
-    .sum-box.work-sum{background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(16,185,129,.04));border:1.5px solid rgba(16,185,129,.25);}
-    .sum-box.home-sum{background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.04));border:1.5px solid rgba(245,158,11,.25);}
-    .sum-label{font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:700;letter-spacing:.05em;}
-    .sum-time{font-family:'Space Mono',monospace;font-size:28px;font-weight:700;line-height:1;margin-bottom:4px;}
-    .sum-box.work-sum .sum-time{color:var(--work);}
-    .sum-box.home-sum .sum-time{color:var(--home);}
-    .sum-detail{font-size:11px;color:var(--muted);line-height:1.5;}
+/* 시간 행 */
+.time-row{display:flex;align-items:center;gap:7px;padding:7px 10px;border-radius:9px;margin-bottom:5px;font-size:12px;}
+.time-row.transit-row{background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.2);}
+.time-row.navi-row{background:rgba(26,127,232,.1);border:1px solid rgba(26,127,232,.2);}
+.time-row.arrival-row{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);}
+.time-row-icon{font-size:14px;flex-shrink:0;}
+.time-row-label{color:var(--muted);flex:1;font-size:11px;}
+.time-row-val{font-family:'Space Mono',monospace;font-weight:700;font-size:13px;white-space:nowrap;}
+.time-row.transit-row .time-row-val{color:#a78bfa;}
+.time-row.navi-row .time-row-val{color:var(--accent2);}
+.time-row.arrival-row .time-row-val{color:var(--home);}
 
-    /* ADMIN */
-    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:900;display:flex;align-items:center;justify-content:center;padding:16px;}
-    .modal{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px;width:100%;max-width:580px;max-height:90vh;overflow-y:auto;}
-    .modal h2{font-size:17px;font-weight:900;margin-bottom:4px;}
-    .modal-sub{font-size:12px;color:var(--muted);margin-bottom:18px;line-height:1.6;}
-    .fl{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
-    .fi{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-family:'Space Mono',monospace;font-size:12px;outline:none;margin-bottom:12px;}
-    .fi:focus{border-color:var(--accent);}
-    .fi::placeholder{color:var(--muted);}
-    .divider{border:none;border-top:1px solid var(--border);margin:12px 0;}
-    .stop-list{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;max-height:200px;overflow-y:auto;}
-    .si-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;}
-    .si-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;}
-    .si-nm{font-weight:700;font-size:12px;}
-    .si-del{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:15px;}
-    .si-del:hover{color:#ef4444;}
-    .si-tm{color:var(--muted);font-family:'Space Mono',monospace;font-size:10px;}
-    .add-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;}
-    .add-grid input{background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:8px 11px;color:var(--text);font-family:inherit;font-size:12px;outline:none;}
-    .add-grid input:focus{border-color:var(--accent);}
-    .add-grid input::placeholder{color:var(--muted);}
-    .btn-add{width:100%;padding:9px;background:var(--surface2);border:1.5px dashed var(--border);border-radius:10px;color:var(--muted);font-family:inherit;font-size:13px;cursor:pointer;margin-bottom:12px;transition:all .2s;}
-    .btn-add:hover{border-color:var(--accent);color:var(--accent2);}
-    .modal-btns{display:flex;gap:8px;}
-    .btn-save{flex:1;padding:11px;background:var(--accent);border:none;border-radius:10px;color:#fff;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;}
-    .btn-cancel{padding:11px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-family:inherit;font-size:14px;cursor:pointer;}
+/* 경로 보기 버튼 */
+.btn-route{width:100%;margin-top:8px;padding:7px 12px;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;color:var(--accent2);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.btn-route:hover{border-color:var(--accent);background:rgba(26,127,232,.1);}
+.btn-route.active{background:rgba(26,127,232,.15);border-color:var(--accent);color:#fff;}
 
-    .hidden{display:none!important;}
-    .spinner{width:26px;height:26px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px;}
-    .loading-wrap{text-align:center;padding:36px;color:var(--muted);font-size:13px;}
-    @keyframes spin{to{transform:rotate(360deg);}}
-    @media(max-width:600px){
-      .hero h1{font-size:21px;}
-      .search-row{flex-wrap:wrap;}
-      .btn-search{flex:1;}
-      .add-grid{grid-template-columns:1fr;}
-      .summary-grid{grid-template-columns:1fr;}
-    }
-  </style>
+/* 대중교통 경로 상세 */
+.transit-detail{margin-top:8px;border-top:1px solid var(--border);padding-top:10px;display:none;}
+.transit-detail.open{display:block;}
+.t-step{display:flex;gap:8px;margin-bottom:10px;align-items:flex-start;}
+.t-step-icon{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px;}
+.t-step-icon.walk{background:rgba(100,116,139,.2);color:#94a3b8;}
+.t-step-icon.subway{background:rgba(59,130,246,.2);color:#60a5fa;}
+.t-step-icon.bus{background:rgba(16,185,129,.2);color:#34d399;}
+.t-step-body{flex:1;}
+.t-step-name{font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px;}
+.t-step-sub{font-size:11px;color:var(--muted);line-height:1.5;}
+.t-step-line{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;margin-right:4px;}
+.t-connector{width:2px;height:12px;background:var(--border);margin:0 11px 4px;}
+
+/* ADMIN */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:900;display:flex;align-items:center;justify-content:center;padding:16px;}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px;width:100%;max-width:580px;max-height:90vh;overflow-y:auto;}
+.modal h2{font-size:17px;font-weight:900;margin-bottom:4px;}
+.modal-sub{font-size:12px;color:var(--muted);margin-bottom:18px;line-height:1.6;}
+.fl{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.fi{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-family:'Space Mono',monospace;font-size:12px;outline:none;margin-bottom:12px;}
+.fi:focus{border-color:var(--accent);}
+.fi::placeholder{color:var(--muted);}
+.divider{border:none;border-top:1px solid var(--border);margin:12px 0;}
+.stop-list{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;max-height:200px;overflow-y:auto;}
+.si-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;}
+.si-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;}
+.si-nm{font-weight:700;font-size:12px;}
+.si-del{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:15px;}
+.si-del:hover{color:#ef4444;}
+.si-tm{color:var(--muted);font-family:'Space Mono',monospace;font-size:10px;}
+.add-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;}
+.add-grid input{background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:8px 11px;color:var(--text);font-family:inherit;font-size:12px;outline:none;}
+.add-grid input:focus{border-color:var(--accent);}
+.add-grid input::placeholder{color:var(--muted);}
+.btn-add{width:100%;padding:9px;background:var(--surface2);border:1.5px dashed var(--border);border-radius:10px;color:var(--muted);font-family:inherit;font-size:13px;cursor:pointer;margin-bottom:12px;transition:all .2s;}
+.btn-add:hover{border-color:var(--accent);color:var(--accent2);}
+.modal-btns{display:flex;gap:8px;}
+.btn-save{flex:1;padding:11px;background:var(--accent);border:none;border-radius:10px;color:#fff;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;}
+.btn-cancel{padding:11px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-family:inherit;font-size:14px;cursor:pointer;}
+
+.hidden{display:none!important;}
+.spinner{width:26px;height:26px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px;}
+.loading-wrap{text-align:center;padding:36px;color:var(--muted);font-size:13px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+@media(max-width:600px){
+  .hero h1{font-size:21px;}
+  .search-row{flex-wrap:wrap;}
+  .btn-search{flex:1;}
+  .add-grid{grid-template-columns:1fr;}
+  .summary-grid{grid-template-columns:1fr;}
+}
+</style>
 </head>
 <body>
-
 <header>
   <div class="logo">
     <div class="logo-badge">NH</div>
@@ -167,7 +192,7 @@
 <main>
   <div class="hero">
     <h1>🚌 NH 셔틀버스 안내</h1>
-    <p>출발지를 입력하면 가장 가까운 정류장과 예상 시간을 안내합니다</p>
+    <p>출발지를 입력하면 셔틀 정류장과 대중교통 안내를 제공합니다</p>
   </div>
 
   <div class="map-status loading" id="mapStatus">
@@ -191,17 +216,25 @@
       <button class="btn-search" onclick="doSearch()">검색</button>
     </div>
     <div class="notice" id="notice">
-      <strong>출근 모드</strong> — 집 → 정류장 대중교통 시간 · 셔틀 탑승 시간 · 회사 도착 시간을 안내합니다.
+      <strong>출근 모드</strong> — 🚇 집→정류장 대중교통 안내 · 🚌 셔틀 탑승시간 · 🏢 회사 도착시간을 안내합니다.
     </div>
   </div>
 
-  <div class="card">
-    <div class="card-title">🗺 지도</div>
+  <!-- 지도 + 범례 -->
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div style="padding:14px 18px 10px;"><div class="card-title" style="margin:0">🗺 지도 — 셔틀 노선 및 대중교통 경로</div></div>
     <div id="map">
       <div class="map-ph" id="mapPh">
         <div class="map-ph-icon">🗺</div>
         <div id="mapPhMsg">카카오 지도 초기화 중...</div>
       </div>
+    </div>
+    <div class="map-legend" id="mapLegend">
+      <div class="leg"><div class="leg-line" style="background:#f59e0b"></div>셔틀노선</div>
+      <div class="leg"><div class="leg-line" style="background:#60a5fa"></div>지하철</div>
+      <div class="leg"><div class="leg-line" style="background:#34d399"></div>버스</div>
+      <div class="leg"><div class="leg-dash"></div>도보</div>
+      <button class="leg-clear hidden" id="btnClearRoute" onclick="clearRoutes()">경로 지우기 ✕</button>
     </div>
   </div>
 
@@ -210,9 +243,7 @@
   </div>
 
   <div id="results" class="hidden">
-    <!-- 요약 배너 -->
     <div class="summary-grid" id="summaryGrid"></div>
-
     <div class="card">
       <div class="card-title" id="resultsTitle">🚌 가까운 탑승 정류장</div>
       <div class="results-grid" id="resultsGrid"></div>
@@ -220,43 +251,33 @@
   </div>
 </main>
 
-<!-- ADMIN MODAL -->
+<!-- ADMIN -->
 <div class="overlay hidden" id="adminOverlay">
   <div class="modal">
     <h2>⚙ 관리자 설정</h2>
-    <div class="modal-sub">
-      카카오 API 키 2종류와 회사·정류장 정보를 설정합니다.<br>
-      저장하면 브라우저에 자동 보관됩니다.
-    </div>
-
+    <div class="modal-sub">API 키 2종류와 회사·정류장 정보를 설정합니다. 저장 시 브라우저에 보관됩니다.</div>
     <div class="fl">🗺 카카오 JavaScript 키 (지도용)</div>
     <input class="fi" id="adminJsKey" type="text" placeholder="카카오 JavaScript 앱 키"/>
-
     <div class="fl">🧭 카카오 REST API 키 (네비·대중교통용)</div>
     <input class="fi" id="adminRestKey" type="text" placeholder="카카오 REST API 키"/>
-
     <div class="fl">회사 이름</div>
-    <input class="fi" id="adminCompanyName" type="text" placeholder="NH통합IT센터(정문)"/>
+    <input class="fi" id="adminCompanyName" type="text"/>
     <div class="fl">회사 주소</div>
-    <input class="fi" id="adminCompanyAddr" type="text" placeholder="경기도 의왕시 이미로 40"/>
-
+    <input class="fi" id="adminCompanyAddr" type="text"/>
     <hr class="divider"/>
-
     <div class="fl">등록된 정류장 (<span id="stopCount">0</span>개)</div>
     <div class="stop-list" id="adminStopList"></div>
-
     <div class="fl">정류장 추가</div>
     <div class="add-grid">
       <input id="ns_name"   placeholder="정류장 이름 *"/>
-      <input id="ns_course" placeholder="코스명 (예: 코스1 금정역)"/>
+      <input id="ns_course" placeholder="코스명"/>
       <input id="ns_addr"   placeholder="주소 *"/>
       <input id="ns_lat"    placeholder="위도"/>
       <input id="ns_lng"    placeholder="경도"/>
       <input id="ns_btime"  placeholder="탑승시간 (예: 08:00,08:30)"/>
-      <input id="ns_dtime"  placeholder="회사출발시간 (예: 18:20,19:00)"/>
+      <input id="ns_dtime"  placeholder="회사출발시간 (예: 18:20)"/>
     </div>
     <button class="btn-add" onclick="addStop()">+ 정류장 추가</button>
-
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeAdmin()">취소</button>
       <button class="btn-save" onclick="saveAdmin()">💾 저장 및 적용</button>
@@ -265,15 +286,38 @@
 </div>
 
 <script>
-// ══════════════════════════════════════
-//  API 키 (기본값)
-// ══════════════════════════════════════
-const DEFAULT_JS_KEY   = "f2e87ea7cec3c21fa55d8a5f58c81dea";  // 카카오맵 SDK용
-const DEFAULT_REST_KEY = "9642e6e4e92954d552e94eb32af57a8b";  // 네비 + 대중교통용
+// ════════════════════════════════
+//  키 & 기본 데이터
+// ════════════════════════════════
+const DEFAULT_JS_KEY   = "f2e87ea7cec3c21fa55d8a5f58c81dea";
+const DEFAULT_REST_KEY = "9642e6e4e92954d552e94eb32af57a8b";
 
-// ══════════════════════════════════════
-//  셔틀 정류장 데이터
-// ══════════════════════════════════════
+// 코스별 셔틀 경로 좌표 (회사→정류장 순서)
+const SHUTTLE_ROUTES = {
+  "코스1 금정역": [
+    {lat:37.3635,lng:126.9654},{lat:37.3700,lng:126.9620},{lat:37.3800,lng:126.9580},
+    {lat:37.3940,lng:126.9520},{lat:37.3960,lng:126.9450},{lat:37.3985,lng:126.9488},
+    {lat:37.4004,lng:126.9531},{lat:37.4013,lng:126.9549},{lat:37.3615,lng:126.9320}
+  ],
+  "코스2 정자역": [
+    {lat:37.3635,lng:126.9654},{lat:37.3700,lng:127.0000},{lat:37.3731,lng:127.1122},{lat:37.3604,lng:127.1116}
+  ],
+  "코스3 사당역": [
+    {lat:37.3635,lng:126.9654},{lat:37.4000,lng:126.9700},{lat:37.4500,lng:126.9750},{lat:37.4762,lng:126.9815}
+  ],
+  "코스4 평촌": [
+    {lat:37.3635,lng:126.9654},{lat:37.3700,lng:126.9600},{lat:37.3900,lng:126.9520},
+    {lat:37.3990,lng:126.9540},{lat:37.3998,lng:126.9485},{lat:37.4010,lng:126.9498},
+    {lat:37.4020,lng:126.9510},{lat:37.4040,lng:126.9531}
+  ],
+  "코스5 판교역": [
+    {lat:37.3635,lng:126.9654},{lat:37.3700,lng:127.0000},{lat:37.3800,lng:127.0500},{lat:37.3946,lng:127.1112}
+  ],
+  "순환 인덕원역": [
+    {lat:37.3635,lng:126.9654},{lat:37.3800,lng:126.9600},{lat:37.4013,lng:126.9549}
+  ],
+};
+
 const DEFAULT_STOPS = [
   {id:1,  name:"금정역 3번 출구",               course:"코스1 금정역",  addr:"경기 군포시 금정동",              lat:37.3615,lng:126.9320, boardTimes:["08:00"],deptTimes:["18:20"]},
   {id:2,  name:"평촌셋별한양6단지(상가)",        course:"코스1 금정역",  addr:"경기 안양시 동안구 평촌대로",     lat:37.3940,lng:126.9520, boardTimes:["08:15"],deptTimes:["18:20"]},
@@ -295,41 +339,36 @@ const DEFAULT_STOPS = [
   {id:60, name:"의왕 출발(의왕→서대문)",        course:"의왕↔서대문",   addr:"경기 의왕시",                    lat:37.3449,lng:126.9694, boardTimes:["09:30","10:20","13:00","16:00","17:00"],deptTimes:[]},
   {id:61, name:"서대문 도착(의왕→서대문)",      course:"의왕↔서대문",   addr:"서울 서대문구",                  lat:37.5714,lng:126.9375, boardTimes:[],deptTimes:["09:20","10:30","13:30","16:00"]},
 ];
+const DEFAULT_COMPANY={name:"NH통합IT센터(정문)",addr:"경기 의왕시 이미로 40",lat:37.3635,lng:126.9654};
 
-const DEFAULT_COMPANY = {
-  name:"NH통합IT센터(정문)", addr:"경기 의왕시 이미로 40", lat:37.3635, lng:126.9654
-};
-
-// ══════════════════════════════════════
+// ════════════════════════════════
 //  상태
-// ══════════════════════════════════════
-let mapObj=null, kakaoReady=false, mapInitPromise=null;
-let mode="work";
-let stops=[], company={}, jsKey="", restKey="";
+// ════════════════════════════════
+let mapObj=null,kakaoReady=false,mapInitPromise=null;
+let mode="work", stops=[], company={}, jsKey="", restKey="";
+let userLat=null, userLng=null;
 let tempStops=[];
-let userLat=null, userLng=null; // 검색한 위치 좌표
+let routePolylines=[], routeMarkers=[];
+let shuttlePolylines=[]; // 항상 표시되는 셔틀 노선
 
 function loadData(){
   try{
-    const raw=localStorage.getItem("nh_shuttle_v4");
-    const d=raw?JSON.parse(raw):{};
-    stops   =d.stops   ||JSON.parse(JSON.stringify(DEFAULT_STOPS));
-    company =d.company ||JSON.parse(JSON.stringify(DEFAULT_COMPANY));
-    jsKey   =d.jsKey   ||DEFAULT_JS_KEY;
-    restKey =d.restKey ||DEFAULT_REST_KEY;
+    const d=JSON.parse(localStorage.getItem("nh_v5")||"{}");
+    stops=d.stops||JSON.parse(JSON.stringify(DEFAULT_STOPS));
+    company=d.company||JSON.parse(JSON.stringify(DEFAULT_COMPANY));
+    jsKey=d.jsKey||DEFAULT_JS_KEY;
+    restKey=d.restKey||DEFAULT_REST_KEY;
   }catch{
     stops=JSON.parse(JSON.stringify(DEFAULT_STOPS));
     company=JSON.parse(JSON.stringify(DEFAULT_COMPANY));
     jsKey=DEFAULT_JS_KEY; restKey=DEFAULT_REST_KEY;
   }
 }
-function saveData(){
-  localStorage.setItem("nh_shuttle_v4",JSON.stringify({stops,company,jsKey,restKey}));
-}
+function saveData(){localStorage.setItem("nh_v5",JSON.stringify({stops,company,jsKey,restKey}));}
 
-// ══════════════════════════════════════
-//  카카오 SDK 초기화
-// ══════════════════════════════════════
+// ════════════════════════════════
+//  카카오 SDK
+// ════════════════════════════════
 function initKakao(){
   if(mapInitPromise) return mapInitPromise;
   mapInitPromise=new Promise(resolve=>{
@@ -344,10 +383,10 @@ function initKakao(){
           setMapStatus("ok","카카오 지도 연결됨 ✓");
           resolve(true);
         });
-      }catch(e){setMapStatus("err","지도 초기화 오류 — 검색은 사용 가능합니다");resolve(false);}
+      }catch(e){setMapStatus("err","지도 초기화 오류");resolve(false);}
     };
     s.onerror=()=>{
-      setMapStatus("err",`도메인 미등록 또는 JS 키 오류 — 카카오 디벨로퍼스에서 도메인(${location.hostname||'localhost'})을 Web 플랫폼에 등록해주세요`);
+      setMapStatus("err",`도메인 미등록 — 카카오 디벨로퍼스 > 플랫폼 > Web 에 https://9et1t.github.io 등록 필요`);
       resolve(false);
     };
     document.head.appendChild(s);
@@ -359,8 +398,9 @@ function buildMap(){
   if(!kakaoReady||mapObj) return;
   document.getElementById("mapPh").style.display="none";
   mapObj=new kakao.maps.Map(document.getElementById("map"),{
-    center:new kakao.maps.LatLng(company.lat,company.lng), level:9
+    center:new kakao.maps.LatLng(company.lat,company.lng),level:9
   });
+  // 정류장 마커
   stops.forEach(s=>{
     if(!s.lat||!s.lng) return;
     const m=new kakao.maps.Marker({position:new kakao.maps.LatLng(s.lat,s.lng),map:mapObj});
@@ -369,87 +409,135 @@ function buildMap(){
     });
     kakao.maps.event.addListener(m,"click",()=>iw.open(mapObj,m));
   });
+  // 회사 마커
   const cm=new kakao.maps.Marker({position:new kakao.maps.LatLng(company.lat,company.lng),map:mapObj});
-  const ciw=new kakao.maps.InfoWindow({
-    content:`<div style="padding:5px 9px;font-size:12px;font-family:sans-serif;color:#006633;font-weight:bold">${company.name}</div>`
-  });
+  const ciw=new kakao.maps.InfoWindow({content:`<div style="padding:5px 9px;font-size:12px;font-family:sans-serif;color:#006633;font-weight:bold">${company.name}</div>`});
   kakao.maps.event.addListener(cm,"click",()=>ciw.open(mapObj,cm));
+  // 셔틀 노선 그리기
+  drawShuttleRoutes();
 }
 
+// ════════════════════════════════
+//  셔틀 노선 지도에 그리기
+// ════════════════════════════════
+const COURSE_COLORS={"코스1 금정역":"#f59e0b","코스2 정자역":"#f97316","코스3 사당역":"#ec4899","코스4 평촌":"#a78bfa","코스5 판교역":"#34d399","순환 인덕원역":"#60a5fa"};
+
+function drawShuttleRoutes(){
+  if(!mapObj) return;
+  shuttlePolylines.forEach(p=>p.setMap(null));
+  shuttlePolylines=[];
+  Object.entries(SHUTTLE_ROUTES).forEach(([course,pts])=>{
+    const color=COURSE_COLORS[course]||"#f59e0b";
+    const path=pts.map(p=>new kakao.maps.LatLng(p.lat,p.lng));
+    const poly=new kakao.maps.Polyline({
+      path, strokeWeight:4, strokeColor:color, strokeOpacity:.8,
+      strokeStyle:"solid", map:mapObj
+    });
+    shuttlePolylines.push(poly);
+  });
+}
+
+// ════════════════════════════════
+//  대중교통 경로 지도에 그리기
+// ════════════════════════════════
+function clearRoutes(){
+  routePolylines.forEach(p=>p.setMap(null));
+  routeMarkers.forEach(m=>m.setMap(null));
+  routePolylines=[]; routeMarkers=[];
+  document.getElementById("btnClearRoute").classList.add("hidden");
+}
+
+function drawTransitRoute(sections){
+  if(!mapObj||!sections?.length) return;
+  clearRoutes();
+  const TYPE_CFG={
+    WALK:  {color:"#94a3b8",weight:3,dash:true},
+    SUBWAY:{color:"#60a5fa",weight:5,dash:false},
+    BUS:   {color:"#34d399",weight:5,dash:false},
+  };
+  const bounds=new kakao.maps.LatLngBounds();
+  sections.forEach(sec=>{
+    if(!sec.path?.length) return;
+    const lls=sec.path.map(p=>new kakao.maps.LatLng(p.y,p.x));
+    lls.forEach(ll=>bounds.extend(ll));
+    const cfg=TYPE_CFG[sec.type]||TYPE_CFG.WALK;
+    const poly=new kakao.maps.Polyline({
+      path:lls, strokeWeight:cfg.weight, strokeColor:cfg.color,
+      strokeOpacity:.9, strokeStyle:cfg.dash?"shortdot":"solid", map:mapObj
+    });
+    routePolylines.push(poly);
+    // 구간 시작 마커 (버스/지하철)
+    if(sec.type!=="WALK"&&lls.length){
+      const oval=new kakao.maps.Circle({
+        center:lls[0], radius:40,
+        strokeWeight:0, fillColor:cfg.color, fillOpacity:.9, map:mapObj
+      });
+      routeMarkers.push(oval);
+    }
+  });
+  try{mapObj.setBounds(bounds);}catch(e){}
+  document.getElementById("btnClearRoute").classList.remove("hidden");
+}
+
+// ════════════════════════════════
+//  상태 표시
+// ════════════════════════════════
 function setMapStatus(type,msg){
-  const el=document.getElementById("mapStatus");
-  el.className=`map-status ${type}`;
+  document.getElementById("mapStatus").className=`map-status ${type}`;
   document.getElementById("mapStatusMsg").textContent=msg;
   if(type!=="ok") document.getElementById("mapPhMsg").textContent=msg;
 }
+setInterval(()=>document.getElementById("clock").textContent=new Date().toLocaleTimeString("ko-KR",{hour12:false}),1000);
 
-// ══════════════════════════════════════
-//  시계
-// ══════════════════════════════════════
-setInterval(()=>{
-  document.getElementById("clock").textContent=new Date().toLocaleTimeString("ko-KR",{hour12:false});
-},1000);
-
-// ══════════════════════════════════════
+// ════════════════════════════════
 //  모드
-// ══════════════════════════════════════
+// ════════════════════════════════
 function setMode(m){
   mode=m;
   document.getElementById("btnWork").className="mode-btn"+(m==="work"?" aw":"");
   document.getElementById("btnHome").className="mode-btn"+(m==="home"?" ah":"");
-  const isWork=m==="work";
-  document.getElementById("searchLabel").textContent=isWork?"📍 출발 위치 (집) 입력":"📍 귀가 목적지 입력";
-  document.getElementById("addrInput").placeholder=isWork
-    ?"집 주소 또는 역명 (예: 금정역, 안양시 동안구...)"
-    :"귀가 목적지 주소 또는 장소명";
-  document.getElementById("notice").innerHTML=isWork
-    ?"<strong>출근 모드</strong> — 🚶 집→정류장 대중교통 시간 · 🚌 셔틀 탑승 시간 · 🏢 회사 도착 시간을 안내합니다."
-    :"<strong>퇴근 모드</strong> — 🚌 회사→정류장 도착 시간 · 🚇 정류장→집 대중교통 시간을 안내합니다.";
+  document.getElementById("searchLabel").textContent=m==="work"?"📍 출발 위치 (집) 입력":"📍 귀가 목적지 입력";
+  document.getElementById("addrInput").placeholder=m==="work"?"집 주소 또는 역명":"귀가 목적지 주소 또는 장소명";
+  document.getElementById("notice").innerHTML=m==="work"
+    ?"<strong>출근 모드</strong> — 🚇 집→정류장 대중교통 안내 · 🚌 셔틀 탑승시간 · 🏢 회사 도착시간"
+    :"<strong>퇴근 모드</strong> — 🚌 회사→정류장 도착시간 · 🚇 정류장→집 대중교통 안내 · 🏠 집 도착시간";
   document.getElementById("results").classList.add("hidden");
+  clearRoutes();
 }
 
-// ══════════════════════════════════════
+// ════════════════════════════════
 //  GPS
-// ══════════════════════════════════════
+// ════════════════════════════════
 function useGPS(){
   if(!navigator.geolocation){alert("위치 서비스 미지원");return;}
   setLoading(true,"현재 위치 가져오는 중...");
   navigator.geolocation.getCurrentPosition(
-    pos=>{
-      userLat=pos.coords.latitude; userLng=pos.coords.longitude;
+    pos=>{userLat=pos.coords.latitude;userLng=pos.coords.longitude;
       document.getElementById("addrInput").value=`현재 위치 (${userLat.toFixed(5)}, ${userLng.toFixed(5)})`;
-      doSearchByCoords(userLat,userLng);
-    },
+      doSearchByCoords(userLat,userLng);},
     ()=>{setLoading(false);alert("위치 권한을 허용해주세요.");}
   );
 }
 
-// ══════════════════════════════════════
+// ════════════════════════════════
 //  검색
-// ══════════════════════════════════════
+// ════════════════════════════════
 async function doSearch(){
   const q=document.getElementById("addrInput").value.trim();
   if(!q){alert("위치를 입력해주세요.");return;}
   setLoading(true,"카카오 지도 초기화 중...");
   const ok=await initKakao();
-
-  if(!ok||!kakaoReady){
-    setLoading(false);
-    fuzzySearch(q);
-    return;
-  }
+  if(!ok||!kakaoReady){setLoading(false);fuzzySearch(q);return;}
   setLoading(true,"주소 검색 중...");
   const gc=new kakao.maps.services.Geocoder();
   const pl=new kakao.maps.services.Places();
   gc.addressSearch(q,(r,st)=>{
     if(st===kakao.maps.services.Status.OK){
-      userLat=parseFloat(r[0].y); userLng=parseFloat(r[0].x);
-      doSearchByCoords(userLat,userLng);
+      userLat=parseFloat(r[0].y);userLng=parseFloat(r[0].x);doSearchByCoords(userLat,userLng);
     } else {
       pl.keywordSearch(q,(r2,st2)=>{
         if(st2===kakao.maps.services.Status.OK){
-          userLat=parseFloat(r2[0].y); userLng=parseFloat(r2[0].x);
-          doSearchByCoords(userLat,userLng);
+          userLat=parseFloat(r2[0].y);userLng=parseFloat(r2[0].x);doSearchByCoords(userLat,userLng);
         } else {setLoading(false);fuzzySearch(q);}
       });
     }
@@ -460,14 +548,14 @@ function fuzzySearch(q){
   const kw=q.toLowerCase();
   const hit=stops.find(s=>s.name.toLowerCase().includes(kw)||s.addr.toLowerCase().includes(kw)||s.course.toLowerCase().includes(kw));
   if(hit){userLat=hit.lat;userLng=hit.lng;doSearchByCoords(hit.lat,hit.lng,true);}
-  else alert("주소를 찾지 못했습니다.\n정류장명(예: 금정역, 인덕원역)으로 검색하거나\n카카오 디벨로퍼스에 도메인을 등록해주세요.");
+  else alert("주소를 찾지 못했습니다.\n카카오 디벨로퍼스에서 도메인 https://9et1t.github.io 을 Web 플랫폼에 등록하면 주소 검색이 가능합니다.");
 }
 
 function doSearchByCoords(lat,lng,skipMap){
   setLoading(false);
   if(mapObj&&!skipMap){
     mapObj.setCenter(new kakao.maps.LatLng(lat,lng));
-    mapObj.setLevel(7);
+    mapObj.setLevel(8);
     new kakao.maps.Marker({
       position:new kakao.maps.LatLng(lat,lng),map:mapObj,
       image:new kakao.maps.MarkerImage("https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",new kakao.maps.Size(24,35))
@@ -480,61 +568,48 @@ function doSearchByCoords(lat,lng,skipMap){
   renderResults(ranked,lat,lng);
 }
 
-// ══════════════════════════════════════
+// ════════════════════════════════
 //  렌더
-// ══════════════════════════════════════
+// ════════════════════════════════
 function renderResults(ranked,uLat,uLng){
   document.getElementById("results").classList.remove("hidden");
-  document.getElementById("resultsTitle").textContent=
-    mode==="work"?"🚌 가까운 탑승 정류장 (출근)":"🏠 가까운 하차 정류장 (퇴근)";
+  document.getElementById("resultsTitle").textContent=mode==="work"?"🚌 가까운 탑승 정류장 (출근)":"🏠 가까운 하차 정류장 (퇴근)";
   document.getElementById("summaryGrid").innerHTML="";
   document.getElementById("resultsGrid").innerHTML="";
+  const now=new Date(), top=ranked.slice(0,4);
+  if(!top.length) return;
+  const best=top[0];
 
-  const now=new Date();
-  const top=ranked.slice(0,4);
-
-  // 요약 배너 (가장 가까운 정류장 기준)
-  if(top.length){
-    const best=top[0];
-    if(mode==="work"){
-      const nextBoard=getNext(best.boardTimes,now);
-      document.getElementById("summaryGrid").innerHTML=`
-        <div class="sum-box work-sum">
-          <div class="sum-label">🏢 회사 도착 예정</div>
-          <div class="sum-time" id="sum-company-arr">계산중...</div>
-          <div class="sum-detail" id="sum-company-detail">카카오 네비 계산 중</div>
-        </div>
-        <div class="sum-box work-sum">
-          <div class="sum-label">🚌 다음 탑승 시간 (${best.name})</div>
-          <div class="sum-time" style="color:var(--work)">${nextBoard||"배차없음"}</div>
-          <div class="sum-detail">🚶 집→정류장 대중교통: <span id="sum-transit-work">계산중...</span></div>
-        </div>
-      `;
-      // 대중교통: 집→정류장
-      calcTransit(uLat,uLng,best.lat,best.lng,"sum-transit-work");
-      // 네비: 정류장→회사 (셔틀 소요 시간으로 회사 도착)
-      if(nextBoard) calcNaviArrival(best.lat,best.lng,company.lat,company.lng,nextBoard,"sum-company-arr","sum-company-detail","회사");
-    } else {
-      const nextDept=getNext(best.deptTimes,now);
-      document.getElementById("summaryGrid").innerHTML=`
-        <div class="sum-box home-sum">
-          <div class="sum-label">🏠 집 도착 예정</div>
-          <div class="sum-time" id="sum-home-arr">계산중...</div>
-          <div class="sum-detail" id="sum-home-detail">정류장→집 대중교통 계산 중</div>
-        </div>
-        <div class="sum-box home-sum">
-          <div class="sum-label">🚌 셔틀 정류장 도착 (${best.name})</div>
-          <div class="sum-time" id="sum-stop-arr">계산중...</div>
-          <div class="sum-detail">회사 ${nextDept||"배차없음"} 출발 기준</div>
-        </div>
-      `;
-      if(nextDept){
-        // 네비: 회사→정류장
-        calcNaviArrival(company.lat,company.lng,best.lat,best.lng,nextDept,"sum-stop-arr",null,"정류장");
-        // 대중교통: 정류장→집
-        calcTransitFromStop(best,uLat,uLng,nextDept,"sum-home-arr","sum-home-detail");
-      }
-    }
+  // 요약 배너
+  if(mode==="work"){
+    const nb=getNext(best.boardTimes,now);
+    document.getElementById("summaryGrid").innerHTML=`
+      <div class="sum-box work-sum">
+        <div class="sum-label">🏢 오늘 회사 도착 예정</div>
+        <div class="sum-time" id="sum-arr">--:--</div>
+        <div class="sum-detail" id="sum-arr-d">계산 중...</div>
+      </div>
+      <div class="sum-box work-sum">
+        <div class="sum-label">🚌 다음 탑승 (${best.name})</div>
+        <div class="sum-time" style="color:var(--work)">${nb||"배차없음"}</div>
+        <div class="sum-detail">🚇 집→정류장: <span id="sum-tr">계산 중...</span></div>
+      </div>`;
+    calcTransitMinutes(uLat,uLng,best.lat,best.lng,"sum-tr");
+    if(nb) calcNaviAndShow(best.lat,best.lng,company.lat,company.lng,nb,"sum-arr","sum-arr-d");
+  } else {
+    const nd=getNext(best.deptTimes,now);
+    document.getElementById("summaryGrid").innerHTML=`
+      <div class="sum-box home-sum">
+        <div class="sum-label">🏠 오늘 집 도착 예정</div>
+        <div class="sum-time" id="sum-home">--:--</div>
+        <div class="sum-detail" id="sum-home-d">계산 중...</div>
+      </div>
+      <div class="sum-box home-sum">
+        <div class="sum-label">🚌 셔틀 정류장 도착 (${best.name})</div>
+        <div class="sum-time" id="sum-stop">--:--</div>
+        <div class="sum-detail">${nd?`회사 ${nd} 출발`:"배차없음"}</div>
+      </div>`;
+    if(nd) calcHomeChain(best,uLat,uLng,nd,"sum-stop","sum-home","sum-home-d");
   }
 
   // 정류장 카드
@@ -542,90 +617,183 @@ function renderResults(ranked,uLat,uLng){
     const now2=new Date();
     const card=document.createElement("div");
     card.className="stop-card"+(i===0?" near":"")+(mode==="home"?" hm":"");
-    const walk=Math.round(s.dist/70);
 
     if(mode==="work"){
-      const nextBoard=getNext(s.boardTimes,now2);
+      const nb=getNext(s.boardTimes,now2);
       card.innerHTML=`
         <div class="sn">${s.name}${i===0?'<span class="badge b-near">가장 가까운</span>':''}<span class="badge b-course">${s.course}</span></div>
         <div class="sa">${s.addr}</div>
-        <div class="sm"><span class="sd">${fmtDist(s.dist)}</span><span class="sw">직선 ${walk}분 거리</span></div>
+        <div class="sm"><span class="sd">${fmtDist(s.dist)}</span><span class="sw">직선거리</span></div>
         <div class="sl">탑승 시간</div>
-        <div class="chips">${s.boardTimes.map(t=>`<span class="chip ${chipCls(t,now2,nextBoard)}">${t}</span>`).join("")}</div>
-        <div class="time-row transit" id="tr_${s.id}">
+        <div class="chips">${s.boardTimes.map(t=>`<span class="chip ${chipCls(t,now2,nb)}">${t}</span>`).join("")}</div>
+        <div class="time-row transit-row" id="tr_${s.id}">
           <span class="time-row-icon">🚇</span>
           <span class="time-row-label">집 → 이 정류장 (대중교통)</span>
           <span class="time-row-val">계산중...</span>
         </div>
-        <div class="time-row navi" id="nav_${s.id}">
+        <div class="time-row navi-row" id="nav_${s.id}">
           <span class="time-row-icon">🏢</span>
-          <span class="time-row-label">셔틀 탑승 → 회사 도착</span>
+          <span class="time-row-label">탑승 후 회사 도착</span>
           <span class="time-row-val">계산중...</span>
         </div>
+        <button class="btn-route" id="rbtn_${s.id}" onclick="showTransitRoute(${s.lat},${s.lng},${uLat},${uLng},'${s.name}','${s.id}')">
+          🗺 대중교통 경로 지도에 보기
+        </button>
+        <div class="transit-detail" id="td_${s.id}"><div style="color:var(--muted);font-size:12px;text-align:center;padding:8px">경로 불러오는 중...</div></div>
       `;
-      card.onclick=()=>focusStop(s);
       document.getElementById("resultsGrid").appendChild(card);
-      // 대중교통 집→정류장
-      calcTransitCard(userLat,userLng,s.lat,s.lng,`tr_${s.id}`);
-      // 네비 정류장→회사
-      if(nextBoard) calcNaviCard(s.lat,s.lng,company.lat,company.lng,nextBoard,`nav_${s.id}`,"회사 도착");
-      else document.getElementById(`nav_${s.id}`).querySelector(".time-row-val").textContent="배차없음";
+      calcTransitCard(uLat,uLng,s.lat,s.lng,`tr_${s.id}`);
+      if(nb) calcNaviCard(s.lat,s.lng,company.lat,company.lng,nb,`nav_${s.id}`);
+      else   document.getElementById(`nav_${s.id}`).querySelector(".time-row-val").textContent="배차없음";
 
     } else {
-      const nextDept=getNext(s.deptTimes,now2);
+      const nd=getNext(s.deptTimes,now2);
       card.innerHTML=`
         <div class="sn">${s.name}${i===0?'<span class="badge b-home">추천 하차</span>':''}<span class="badge b-course">${s.course}</span></div>
         <div class="sa">${s.addr}</div>
-        <div class="sm"><span class="sd">${fmtDist(s.dist)}</span><span class="sw">직선 ${walk}분 거리</span></div>
+        <div class="sm"><span class="sd">${fmtDist(s.dist)}</span><span class="sw">직선거리</span></div>
         <div class="sl">회사 출발 시간</div>
-        <div class="chips">${s.deptTimes.map(t=>`<span class="chip ${chipCls(t,now2,nextDept)}">${t}</span>`).join("")}</div>
-        <div class="time-row navi" id="nav_${s.id}">
+        <div class="chips">${s.deptTimes.map(t=>`<span class="chip ${chipCls(t,now2,nd)}">${t}</span>`).join("")}</div>
+        <div class="time-row navi-row" id="nav_${s.id}">
           <span class="time-row-icon">🚌</span>
           <span class="time-row-label">회사 출발 → 이 정류장 도착</span>
           <span class="time-row-val">계산중...</span>
         </div>
-        <div class="time-row transit" id="tr_${s.id}">
+        <div class="time-row transit-row" id="tr_${s.id}">
           <span class="time-row-icon">🚇</span>
           <span class="time-row-label">이 정류장 → 집 (대중교통)</span>
           <span class="time-row-val">계산중...</span>
         </div>
-        <div class="time-row arrival" id="home_${s.id}">
+        <div class="time-row arrival-row" id="home_${s.id}">
           <span class="time-row-icon">🏠</span>
           <span class="time-row-label">집 도착 예정</span>
           <span class="time-row-val">계산중...</span>
         </div>
+        <button class="btn-route" id="rbtn_${s.id}" onclick="showTransitRoute(${s.lat},${s.lng},${uLat},${uLng},'${s.name}','${s.id}')">
+          🗺 정류장→집 대중교통 경로 보기
+        </button>
+        <div class="transit-detail" id="td_${s.id}"><div style="color:var(--muted);font-size:12px;text-align:center;padding:8px">경로 불러오는 중...</div></div>
       `;
-      card.onclick=()=>focusStop(s);
       document.getElementById("resultsGrid").appendChild(card);
-      if(nextDept){
-        // 네비: 회사→정류장
-        calcNaviCard(company.lat,company.lng,s.lat,s.lng,nextDept,`nav_${s.id}`,"정류장 도착");
-        // 대중교통: 정류장→집 + 집도착
-        calcTransitAndHomeCard(s,userLat,userLng,nextDept,`tr_${s.id}`,`home_${s.id}`);
+      if(nd){
+        calcNaviCard(company.lat,company.lng,s.lat,s.lng,nd,`nav_${s.id}`);
+        calcHomeTransitCard(s,uLat,uLng,nd,`tr_${s.id}`,`home_${s.id}`);
       } else {
-        document.getElementById(`nav_${s.id}`).querySelector(".time-row-val").textContent="배차없음";
-        document.getElementById(`tr_${s.id}`).querySelector(".time-row-val").textContent="—";
-        document.getElementById(`home_${s.id}`).querySelector(".time-row-val").textContent="—";
+        [`nav_${s.id}`,`tr_${s.id}`,`home_${s.id}`].forEach(id=>document.getElementById(id)?.querySelector(".time-row-val")&&(document.getElementById(id).querySelector(".time-row-val").textContent="배차없음"));
       }
     }
   });
 }
 
-// ══════════════════════════════════════
-//  카카오 대중교통 API  (집→정류장 / 정류장→집)
-//  POST /v1/directions/transit
-// ══════════════════════════════════════
+// ════════════════════════════════
+//  대중교통 경로 버튼 클릭
+// ════════════════════════════════
+async function showTransitRoute(sLat,sLng,homeLat,homeLng,stopName,sid){
+  const btn=document.getElementById(`rbtn_${sid}`);
+  const detail=document.getElementById(`td_${sid}`);
+  btn.classList.add("active");
+  btn.textContent="⏳ 경로 불러오는 중...";
+
+  // 출근: 집→정류장 / 퇴근: 정류장→집
+  const oLat=mode==="work"?homeLat:sLat, oLng=mode==="work"?homeLng:sLng;
+  const dLat=mode==="work"?sLat:homeLat,  dLng=mode==="work"?sLng:homeLng;
+  const label=mode==="work"?`집 → ${stopName}`:`${stopName} → 집`;
+
+  try{
+    const data=await fetchTransit(oLat,oLng,dLat,dLng);
+    if(data?.routes?.[0]){
+      const route=data.routes[0];
+      const sections=route.sections||[];
+      // 지도에 그리기
+      const mapSecs=sections.map(sec=>({
+        type: sec.transportation?.type==="SUBWAY"?"SUBWAY":sec.transportation?.type==="BUS"?"BUS":"WALK",
+        path: sec.roads?.flatMap(r=>r.vertexes?chunkPairs(r.vertexes).map(([x,y])=>({x,y})):[]) || []
+      }));
+      drawTransitRoute(mapSecs);
+      // 지도 스크롤
+      mapObj?.getElement()?.scrollIntoView({behavior:"smooth",block:"center"});
+      // 상세 안내 텍스트
+      detail.innerHTML=buildTransitDetail(sections,label);
+      detail.classList.add("open");
+      btn.textContent="🗺 경로 표시됨 (지도 확인)";
+    } else {
+      detail.innerHTML=`<div style="color:var(--muted);font-size:12px;padding:8px">경로를 불러오지 못했습니다. REST API 키를 확인해주세요.</div>`;
+      detail.classList.add("open");
+      btn.textContent="🗺 대중교통 경로 보기";
+      btn.classList.remove("active");
+    }
+  }catch(e){
+    detail.innerHTML=`<div style="color:var(--muted);font-size:12px;padding:8px">오류: ${e.message}</div>`;
+    detail.classList.add("open");
+    btn.textContent="🗺 대중교통 경로 보기";
+    btn.classList.remove("active");
+  }
+}
+
+// 대중교통 상세 안내 HTML 생성
+function buildTransitDetail(sections, label){
+  if(!sections?.length) return `<div style="color:var(--muted);font-size:12px;padding:8px">경로 정보 없음</div>`;
+  let html=`<div style="font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:10px">📍 ${label}</div>`;
+
+  sections.forEach((sec,i)=>{
+    const ttype=sec.transportation?.type||"WALK";
+    const isWalk=ttype==="WALK";
+    const isSubway=ttype==="SUBWAY";
+    const isBus=ttype==="BUS";
+    const iconCls=isSubway?"subway":isBus?"bus":"walk";
+    const iconEmoji=isSubway?"🚇":isBus?"🚌":"🚶";
+    const durMin=Math.round((sec.duration||0)/60);
+    const dist=sec.distance>=1000?`${(sec.distance/1000).toFixed(1)}km`:`${sec.distance||0}m`;
+
+    let name="", sub="";
+    if(isWalk){
+      name=`도보 ${durMin}분`;
+      sub=dist;
+    } else if(isSubway){
+      const line=sec.lanes?.[0]||{};
+      name=line.name||"지하철";
+      const from=sec.departure?.name||"";
+      const to=sec.arrival?.name||"";
+      sub=`${from} 승차 → ${to} 하차 (${durMin}분, ${dist})`;
+      if(line.name) name=line.name;
+    } else if(isBus){
+      const buses=(sec.lanes||[]).map(l=>l.busNo||l.name).filter(Boolean).join(", ");
+      name=buses?`버스 ${buses}`:"버스";
+      const from=sec.departure?.name||"";
+      const to=sec.arrival?.name||"";
+      sub=`${from} 승차 → ${to} 하차 (${durMin}분, ${dist})`;
+    }
+
+    html+=`
+      <div class="t-step">
+        <div class="t-step-icon ${iconCls}">${iconEmoji}</div>
+        <div class="t-step-body">
+          <div class="t-step-name">${name}</div>
+          ${sub?`<div class="t-step-sub">${sub}</div>`:""}
+        </div>
+      </div>`;
+    if(i<sections.length-1) html+=`<div class="t-connector"></div>`;
+  });
+  return html;
+}
+
+function chunkPairs(arr){const r=[];for(let i=0;i<arr.length-1;i+=2)r.push([arr[i],arr[i+1]]);return r;}
+
+// ════════════════════════════════
+//  API 함수
+// ════════════════════════════════
+async function fetchTransit(oLat,oLng,dLat,dLng){
+  const url=`https://apis-navi.kakaomobility.com/v1/directions/transit?origin=${oLng},${oLat}&destination=${dLng},${dLat}`;
+  const res=await fetch(url,{headers:{"Authorization":`KakaoAK ${restKey}`}});
+  return res.json();
+}
+
 async function transitTime(oLat,oLng,dLat,dLng){
   try{
-    const url=`https://apis-navi.kakaomobility.com/v1/directions/transit`
-      +`?origin=${oLng},${oLat}&destination=${dLng},${dLat}`;
-    const res=await fetch(url,{headers:{"Authorization":`KakaoAK ${restKey}`}});
-    const data=await res.json();
-    if(data.routes?.[0]?.summary?.duration) return data.routes[0].summary.duration;
+    const data=await fetchTransit(oLat,oLng,dLat,dLng);
+    if(data?.routes?.[0]?.summary?.duration) return data.routes[0].summary.duration;
   }catch{}
-  // fallback: Kakao 대중교통 없으면 직선 * 4 (대중교통 평균 속도 약 20km/h)
-  const km=haversine(oLat,oLng,dLat,dLng)/1000;
-  return Math.round(km/20*3600);
+  return Math.round(haversine(oLat,oLng,dLat,dLng)/1000/20*3600);
 }
 
 async function naviTime(oLat,oLng,dLat,dLng){
@@ -633,86 +801,62 @@ async function naviTime(oLat,oLng,dLat,dLng){
     const url=`https://apis-navi.kakaomobility.com/v1/directions?origin=${oLng},${oLat}&destination=${dLng},${dLat}&summary=true`;
     const res=await fetch(url,{headers:{"Authorization":`KakaoAK ${restKey}`}});
     const data=await res.json();
-    if(data.routes?.[0]?.summary?.duration) return data.routes[0].summary.duration;
+    if(data?.routes?.[0]?.summary?.duration) return data.routes[0].summary.duration;
   }catch{}
-  const km=haversine(oLat,oLng,dLat,dLng)/1000;
-  return Math.round(km/25*3600);
+  return Math.round(haversine(oLat,oLng,dLat,dLng)/1000/25*3600);
 }
 
-// 요약 배너용 - 대중교통 텍스트
-async function calcTransit(oLat,oLng,dLat,dLng,elId){
+async function calcTransitMinutes(oLat,oLng,dLat,dLng,elId){
   const el=document.getElementById(elId);
   if(!el) return;
   const sec=await transitTime(oLat,oLng,dLat,dLng);
   el.textContent=`약 ${Math.round(sec/60)}분`;
 }
 
-// 요약 배너용 - 네비 도착시간
-async function calcNaviArrival(oLat,oLng,dLat,dLng,deptTime,elId,detailId,label){
+async function calcNaviAndShow(oLat,oLng,dLat,dLng,deptTime,arrId,detId){
   const sec=await naviTime(oLat,oLng,dLat,dLng);
-  const arrTime=addSec(deptTime,sec);
-  const el=document.getElementById(elId);
-  const det=detailId?document.getElementById(detailId):null;
-  if(el) el.textContent=arrTime;
-  if(det) det.textContent=`${deptTime} 출발 · 약 ${Math.round(sec/60)}분 소요 (카카오 네비)`;
+  const arr=addSec(deptTime,sec);
+  const el=document.getElementById(arrId), det=document.getElementById(detId);
+  if(el) el.textContent=arr;
+  if(det) det.textContent=`${deptTime} 탑승 · 약 ${Math.round(sec/60)}분 소요 (카카오 네비)`;
 }
 
-// 요약 배너용 - 퇴근: 정류장→집 대중교통 + 집도착
-async function calcTransitFromStop(stop,homeLat,homeLng,deptTime,arrElId,detElId){
+async function calcHomeChain(stop,homeLat,homeLng,deptTime,stopElId,homeElId,homeDtId){
   const naviSec=await naviTime(company.lat,company.lng,stop.lat,stop.lng);
-  const stopArrTime=addSec(deptTime,naviSec);
+  const stopArr=addSec(deptTime,naviSec);
   const transSec=await transitTime(stop.lat,stop.lng,homeLat,homeLng);
-  const homeArrTime=addSec(stopArrTime,transSec);
-  const el=document.getElementById(arrElId);
-  const det=document.getElementById(detElId);
-  if(el) el.textContent=homeArrTime;
-  if(det) det.textContent=`${stopArrTime} 정류장 도착 + 대중교통 ${Math.round(transSec/60)}분`;
+  const homeArr=addSec(stopArr,transSec);
+  const se=document.getElementById(stopElId),he=document.getElementById(homeElId),hd=document.getElementById(homeDtId);
+  if(se) se.textContent=stopArr;
+  if(he) he.textContent=homeArr;
+  if(hd) hd.textContent=`${stopArr} 정류장 출발 · 대중교통 ${Math.round(transSec/60)}분`;
 }
 
-// 카드용 - 대중교통
 async function calcTransitCard(oLat,oLng,dLat,dLng,rowId){
-  const row=document.getElementById(rowId);
-  if(!row) return;
+  const row=document.getElementById(rowId); if(!row) return;
   const sec=await transitTime(oLat,oLng,dLat,dLng);
   row.querySelector(".time-row-val").textContent=`약 ${Math.round(sec/60)}분`;
 }
 
-// 카드용 - 네비
-async function calcNaviCard(oLat,oLng,dLat,dLng,deptTime,rowId,label){
-  const row=document.getElementById(rowId);
-  if(!row) return;
+async function calcNaviCard(oLat,oLng,dLat,dLng,deptTime,rowId){
+  const row=document.getElementById(rowId); if(!row) return;
   const sec=await naviTime(oLat,oLng,dLat,dLng);
-  const arrTime=addSec(deptTime,sec);
-  row.querySelector(".time-row-val").textContent=arrTime;
-  // sub 텍스트 추가
-  const sub=document.createElement("span");
-  sub.className="time-row-sub";
-  sub.textContent=` (${Math.round(sec/60)}분 소요)`;
-  row.querySelector(".time-row-val").appendChild(sub);
+  row.querySelector(".time-row-val").textContent=addSec(deptTime,sec);
 }
 
-// 카드용 - 퇴근: 정류장→집 대중교통 + 집도착
-async function calcTransitAndHomeCard(stop,homeLat,homeLng,deptTime,transRowId,homeRowId){
+async function calcHomeTransitCard(stop,homeLat,homeLng,deptTime,trRowId,homeRowId){
   const naviSec=await naviTime(company.lat,company.lng,stop.lat,stop.lng);
-  const stopArrTime=addSec(deptTime,naviSec);
+  const stopArr=addSec(deptTime,naviSec);
   const transSec=await transitTime(stop.lat,stop.lng,homeLat,homeLng);
-  const homeArrTime=addSec(stopArrTime,transSec);
-
-  const tr=document.getElementById(transRowId);
-  const hr=document.getElementById(homeRowId);
-  if(tr){
-    tr.querySelector(".time-row-val").textContent=`약 ${Math.round(transSec/60)}분`;
-    const sub=document.createElement("span");
-    sub.className="time-row-sub";
-    sub.textContent=` (${stopArrTime} 출발)`;
-    tr.querySelector(".time-row-val").appendChild(sub);
-  }
-  if(hr) hr.querySelector(".time-row-val").textContent=homeArrTime;
+  const homeArr=addSec(stopArr,transSec);
+  const tr=document.getElementById(trRowId), hr=document.getElementById(homeRowId);
+  if(tr) tr.querySelector(".time-row-val").textContent=`약 ${Math.round(transSec/60)}분`;
+  if(hr) hr.querySelector(".time-row-val").textContent=homeArr;
 }
 
-// ══════════════════════════════════════
+// ════════════════════════════════
 //  ADMIN
-// ══════════════════════════════════════
+// ════════════════════════════════
 function openAdmin(){
   tempStops=JSON.parse(JSON.stringify(stops));
   document.getElementById("adminJsKey").value=jsKey;
@@ -725,21 +869,18 @@ function openAdmin(){
 function closeAdmin(){document.getElementById("adminOverlay").classList.add("hidden");}
 function renderAdminList(){
   document.getElementById("stopCount").textContent=tempStops.length;
-  const list=document.getElementById("adminStopList");
-  list.innerHTML="";
+  const list=document.getElementById("adminStopList"); list.innerHTML="";
   tempStops.forEach((s,i)=>{
-    const d=document.createElement("div");d.className="si-item";
-    d.innerHTML=`<div class="si-top"><div class="si-nm">${s.name} <span style="color:var(--muted);font-size:10px">[${s.course}]</span></div><button class="si-del" onclick="delStop(${i})">✕</button></div><div class="si-tm">탑승: ${(s.boardTimes||[]).join(", ")||"-"} | 회사출발: ${(s.deptTimes||[]).join(", ")||"-"}</div>`;
+    const d=document.createElement("div"); d.className="si-item";
+    d.innerHTML=`<div class="si-top"><div class="si-nm">${s.name} <span style="color:var(--muted);font-size:10px">[${s.course}]</span></div><button class="si-del" onclick="delStop(${i})">✕</button></div><div class="si-tm">탑승: ${(s.boardTimes||[]).join(", ")||"-"} | 출발: ${(s.deptTimes||[]).join(", ")||"-"}</div>`;
     list.appendChild(d);
   });
 }
 function delStop(i){tempStops.splice(i,1);renderAdminList();}
 function addStop(){
-  const name=document.getElementById("ns_name").value.trim();
-  const addr=document.getElementById("ns_addr").value.trim();
-  if(!name||!addr){alert("이름과 주소는 필수입니다.");return;}
-  tempStops.push({
-    id:Date.now(),name,addr,
+  const name=document.getElementById("ns_name").value.trim(), addr=document.getElementById("ns_addr").value.trim();
+  if(!name||!addr){alert("이름과 주소 필수");return;}
+  tempStops.push({id:Date.now(),name,addr,
     course:document.getElementById("ns_course").value.trim()||"기타",
     lat:parseFloat(document.getElementById("ns_lat").value)||null,
     lng:parseFloat(document.getElementById("ns_lng").value)||null,
@@ -750,19 +891,18 @@ function addStop(){
   ["ns_name","ns_course","ns_addr","ns_lat","ns_lng","ns_btime","ns_dtime"].forEach(id=>document.getElementById(id).value="");
 }
 function saveAdmin(){
-  jsKey  =document.getElementById("adminJsKey").value.trim()||jsKey;
+  jsKey=document.getElementById("adminJsKey").value.trim()||jsKey;
   restKey=document.getElementById("adminRestKey").value.trim()||restKey;
   company.name=document.getElementById("adminCompanyName").value.trim()||company.name;
   company.addr=document.getElementById("adminCompanyAddr").value.trim()||company.addr;
-  stops=tempStops;
-  saveData();closeAdmin();
+  stops=tempStops; saveData(); closeAdmin();
   if(!kakaoReady){mapInitPromise=null;initKakao();}
   alert("저장 완료!");
 }
 
-// ══════════════════════════════════════
+// ════════════════════════════════
 //  유틸
-// ══════════════════════════════════════
+// ════════════════════════════════
 function haversine(la1,ln1,la2,ln2){
   const R=6371000,r=Math.PI/180,dLa=(la2-la1)*r,dLn=(ln2-ln1)*r;
   const a=Math.sin(dLa/2)**2+Math.cos(la1*r)*Math.cos(la2*r)*Math.sin(dLn/2)**2;
@@ -783,22 +923,20 @@ function addSec(timeStr,sec){
   d.setHours(h,m,0,0);d.setTime(d.getTime()+sec*1000);
   return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
 }
-function focusStop(s){if(mapObj&&s.lat){mapObj.setCenter(new kakao.maps.LatLng(s.lat,s.lng));mapObj.setLevel(4);}}
+function focusStop(s){if(mapObj&&s.lat){mapObj.setCenter(new kakao.maps.LatLng(s.lat,s.lng));mapObj.setLevel(5);}}
 function setLoading(on,msg){
   document.getElementById("loading").classList.toggle("hidden",!on);
   if(msg) document.getElementById("loadingMsg").textContent=msg;
   if(on) document.getElementById("results").classList.add("hidden");
 }
 
-// ══════════════════════════════════════
+// ════════════════════════════════
 //  부팅
-// ══════════════════════════════════════
+// ════════════════════════════════
 document.addEventListener("DOMContentLoaded",()=>{
   loadData();
   initKakao();
-  document.getElementById("addrInput").addEventListener("keydown",e=>{
-    if(e.key==="Enter") doSearch();
-  });
+  document.getElementById("addrInput").addEventListener("keydown",e=>{if(e.key==="Enter")doSearch();});
 });
 </script>
 </body>
