@@ -44,15 +44,26 @@ main{padding:78px 16px 60px;max-width:1080px;margin:0 auto;}
 .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px;}
 .card-title{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
 
-.search-row{display:flex;gap:8px;}
-.si-wrap{flex:1;position:relative;}
-.si-wrap input{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:12px 16px 12px 42px;color:var(--text);font-family:inherit;font-size:14px;outline:none;transition:border-color .2s;}
+.search-row{display:flex;gap:8px;align-items:flex-start;}
+.si-wrap{flex:1;position:relative;min-width:0;}
+.si-wrap input{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:12px 46px 12px 16px;color:var(--text);font-family:inherit;font-size:14px;outline:none;transition:border-color .2s;}
 .si-wrap input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--glow);}
 .si-wrap input::placeholder{color:var(--muted);}
-.si-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none;}
-.btn-gps{padding:12px 14px;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;font-size:18px;cursor:pointer;transition:all .2s;color:var(--text);}
+.si-icon-btn{position:absolute;right:0;top:0;bottom:0;width:44px;background:transparent;border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;border-radius:0 12px 12px 0;color:var(--muted);transition:color .2s;z-index:1;}
+.si-icon-btn:hover{color:var(--accent2);}
+
+/* 자동완성 드롭다운 */
+.autocomplete-list{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface);border:1.5px solid var(--accent);border-radius:12px;z-index:300;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.4);max-height:260px;overflow-y:auto;}
+.ac-item{display:flex;align-items:flex-start;gap:10px;padding:11px 14px;cursor:pointer;transition:background .15s;border-bottom:1px solid var(--border);}
+.ac-item:last-child{border-bottom:none;}
+.ac-item:hover,.ac-item.focused{background:rgba(26,127,232,.12);}
+.ac-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+.ac-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px;}
+.ac-addr{font-size:11px;color:var(--muted);}
+
+.btn-gps{padding:12px 14px;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;font-size:18px;cursor:pointer;transition:all .2s;color:var(--text);flex-shrink:0;}
 .btn-gps:hover{border-color:var(--accent);color:var(--accent);}
-.btn-search{padding:12px 20px;background:var(--accent);border:none;border-radius:12px;color:#fff;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 0 14px var(--glow);white-space:nowrap;transition:all .2s;}
+.btn-search{padding:12px 20px;background:var(--accent);border:none;border-radius:12px;color:#fff;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 0 14px var(--glow);white-space:nowrap;transition:all .2s;flex-shrink:0;}
 .btn-search:hover{background:var(--accent2);transform:translateY(-1px);}
 .notice{background:rgba(26,127,232,.07);border:1px solid rgba(26,127,232,.2);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--muted);line-height:1.6;margin-top:10px;}
 .notice strong{color:var(--accent2);}
@@ -161,6 +172,26 @@ main{padding:78px 16px 60px;max-width:1080px;margin:0 auto;}
 .btn-save{flex:1;padding:11px;background:var(--accent);border:none;border-radius:10px;color:#fff;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;}
 .btn-cancel{padding:11px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-family:inherit;font-size:14px;cursor:pointer;}
 
+/* 출발시간 + 필터 옵션 행 */
+.opt-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.opt-label{font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap;min-width:90px;}
+.opt-controls{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+
+/* 라디오 버튼 스타일 */
+.radio-wrap{display:flex;align-items:center;cursor:pointer;}
+.radio-wrap input[type=radio]{display:none;}
+.radio-btn{padding:5px 12px;border-radius:8px;font-size:12px;font-weight:700;border:1.5px solid var(--border);color:var(--muted);background:var(--surface2);cursor:pointer;transition:all .2s;white-space:nowrap;}
+.radio-wrap input[type=radio]:checked+.radio-btn{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 0 8px var(--glow);}
+
+/* 시간 입력 */
+.time-input{background:var(--surface2);border:1.5px solid var(--accent);border-radius:8px;padding:5px 10px;color:var(--text);font-family:'Space Mono',monospace;font-size:13px;outline:none;cursor:pointer;}
+.time-input::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.6;cursor:pointer;}
+
+/* 대중교통 필터 버튼 */
+.filter-btn{padding:5px 11px;border-radius:8px;font-size:12px;font-weight:700;border:1.5px solid var(--border);color:var(--muted);background:var(--surface2);cursor:pointer;font-family:inherit;transition:all .2s;white-space:nowrap;}
+.filter-btn:hover{border-color:var(--transit);color:#a78bfa;}
+.filter-btn.active{background:var(--transit);border-color:var(--transit);color:#fff;box-shadow:0 0 8px rgba(139,92,246,.3);}
+
 .hidden{display:none!important;}
 .spinner{width:26px;height:26px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px;}
 .loading-wrap{text-align:center;padding:36px;color:var(--muted);font-size:13px;}
@@ -209,12 +240,44 @@ main{padding:78px 16px 60px;max-width:1080px;margin:0 auto;}
     <div class="card-title" id="searchLabel">📍 출발 위치 (집) 입력</div>
     <div class="search-row">
       <div class="si-wrap">
-        <span class="si-icon">🔍</span>
-        <input type="text" id="addrInput" placeholder="집 주소 또는 역명 (예: 금정역, 안양시 동안구...)"/>
+        <button class="si-icon-btn" onclick="doSearch()" title="검색">🔍</button>
+        <input type="text" id="addrInput"
+          placeholder="집 주소 또는 역명 (예: 금정역, 안양시 동안구...)"
+          autocomplete="off"
+          oninput="onAddrInput()"
+          onkeydown="onAddrKeydown(event)"/>
+        <div class="autocomplete-list hidden" id="acList"></div>
       </div>
-      <button class="btn-gps" onclick="useGPS()" title="현재위치">📡</button>
-      <button class="btn-search" onclick="doSearch()">검색</button>
+      <button class="btn-gps" id="btnGps" onclick="useGPS()" title="현재위치">📡</button>
     </div>
+
+    <!-- 출발 시간 설정 -->
+    <div class="opt-row" style="margin-top:12px;">
+      <div class="opt-label">⏰ 출발 시간</div>
+      <div class="opt-controls">
+        <label class="radio-wrap">
+          <input type="radio" name="deptMode" value="now" checked onchange="onDeptModeChange()"/>
+          <span class="radio-btn">지금 출발</span>
+        </label>
+        <label class="radio-wrap">
+          <input type="radio" name="deptMode" value="custom" onchange="onDeptModeChange()"/>
+          <span class="radio-btn">시간 지정</span>
+        </label>
+        <input type="time" id="customTime" class="time-input hidden" value="08:00" onchange="onCustomTimeChange()"/>
+      </div>
+    </div>
+
+    <!-- 대중교통 필터 -->
+    <div class="opt-row" style="margin-top:10px;">
+      <div class="opt-label">🚇 대중교통 우선</div>
+      <div class="opt-controls" id="transitFilters">
+        <button class="filter-btn active" data-val="RECOMMEND"   onclick="setTransitFilter(this)">추천순</button>
+        <button class="filter-btn"        data-val="TRANSFER"    onclick="setTransitFilter(this)">최소환승</button>
+        <button class="filter-btn"        data-val="WAITINGTIME" onclick="setTransitFilter(this)">최소대기</button>
+        <button class="filter-btn"        data-val="WALK"        onclick="setTransitFilter(this)">최소도보</button>
+      </div>
+    </div>
+
     <div class="notice" id="notice">
       <strong>출근 모드</strong> — 🚇 집→정류장 대중교통 안내 · 🚌 셔틀 탑승시간 · 🏢 회사 도착시간을 안내합니다.
     </div>
@@ -230,11 +293,12 @@ main{padding:78px 16px 60px;max-width:1080px;margin:0 auto;}
       </div>
     </div>
     <div class="map-legend" id="mapLegend">
-      <div class="leg"><div class="leg-line" style="background:#f59e0b"></div>셔틀노선</div>
-      <div class="leg"><div class="leg-line" style="background:#60a5fa"></div>지하철</div>
-      <div class="leg"><div class="leg-line" style="background:#34d399"></div>버스</div>
-      <div class="leg"><div class="leg-dash"></div>도보</div>
-      <button class="leg-clear hidden" id="btnClearRoute" onclick="clearRoutes()">경로 지우기 ✕</button>
+      <div class="leg"><div class="leg-line" style="background:#f59e0b"></div>코스1 금정역</div>
+      <div class="leg"><div class="leg-line" style="background:#f97316"></div>코스2 정자역</div>
+      <div class="leg"><div class="leg-line" style="background:#ec4899"></div>코스3 사당역</div>
+      <div class="leg"><div class="leg-line" style="background:#a78bfa"></div>코스4 평촌</div>
+      <div class="leg"><div class="leg-line" style="background:#34d399"></div>코스5 판교역</div>
+      <div class="leg"><div class="leg-line" style="background:#60a5fa"></div>순환 인덕원</div>
     </div>
   </div>
 
@@ -292,32 +356,6 @@ main{padding:78px 16px 60px;max-width:1080px;margin:0 auto;}
 const DEFAULT_JS_KEY   = "f2e87ea7cec3c21fa55d8a5f58c81dea";
 const DEFAULT_REST_KEY = "9642e6e4e92954d552e94eb32af57a8b";
 
-// 코스별 셔틀 경로 좌표 (회사→정류장 순서)
-const SHUTTLE_ROUTES = {
-  "코스1 금정역": [
-    {lat:37.3635,lng:126.9654},{lat:37.3700,lng:126.9620},{lat:37.3800,lng:126.9580},
-    {lat:37.3940,lng:126.9520},{lat:37.3960,lng:126.9450},{lat:37.3985,lng:126.9488},
-    {lat:37.4004,lng:126.9531},{lat:37.4013,lng:126.9549},{lat:37.3615,lng:126.9320}
-  ],
-  "코스2 정자역": [
-    {lat:37.3635,lng:126.9654},{lat:37.3700,lng:127.0000},{lat:37.3731,lng:127.1122},{lat:37.3604,lng:127.1116}
-  ],
-  "코스3 사당역": [
-    {lat:37.3635,lng:126.9654},{lat:37.4000,lng:126.9700},{lat:37.4500,lng:126.9750},{lat:37.4762,lng:126.9815}
-  ],
-  "코스4 평촌": [
-    {lat:37.3635,lng:126.9654},{lat:37.3700,lng:126.9600},{lat:37.3900,lng:126.9520},
-    {lat:37.3990,lng:126.9540},{lat:37.3998,lng:126.9485},{lat:37.4010,lng:126.9498},
-    {lat:37.4020,lng:126.9510},{lat:37.4040,lng:126.9531}
-  ],
-  "코스5 판교역": [
-    {lat:37.3635,lng:126.9654},{lat:37.3700,lng:127.0000},{lat:37.3800,lng:127.0500},{lat:37.3946,lng:127.1112}
-  ],
-  "순환 인덕원역": [
-    {lat:37.3635,lng:126.9654},{lat:37.3800,lng:126.9600},{lat:37.4013,lng:126.9549}
-  ],
-};
-
 const DEFAULT_STOPS = [
   {id:1,  name:"금정역 3번 출구",               course:"코스1 금정역",  addr:"경기 군포시 금정동",              lat:37.3615,lng:126.9320, boardTimes:["08:00"],deptTimes:["18:20"]},
   {id:2,  name:"평촌셋별한양6단지(상가)",        course:"코스1 금정역",  addr:"경기 안양시 동안구 평촌대로",     lat:37.3940,lng:126.9520, boardTimes:["08:15"],deptTimes:["18:20"]},
@@ -349,7 +387,43 @@ let mode="work", stops=[], company={}, jsKey="", restKey="";
 let userLat=null, userLng=null;
 let tempStops=[];
 let routePolylines=[], routeMarkers=[];
-let shuttlePolylines=[]; // 항상 표시되는 셔틀 노선
+let shuttlePolylines=[];
+
+// 출발 시간 상태
+let deptMode="now";    // "now" | "custom"
+let customTimeVal="08:00";
+
+// 대중교통 필터 상태
+let transitFilter="RECOMMEND"; // RECOMMEND | TRANSFER | WAITINGTIME | WALK
+
+function onDeptModeChange(){
+  deptMode=document.querySelector('input[name="deptMode"]:checked').value;
+  const inp=document.getElementById("customTime");
+  if(deptMode==="custom"){
+    inp.classList.remove("hidden");
+    customTimeVal=inp.value;
+  } else {
+    inp.classList.add("hidden");
+  }
+}
+
+function onCustomTimeChange(){
+  customTimeVal=document.getElementById("customTime").value;
+}
+
+// 현재 기준 시각 반환 (지금 or 지정 시간)
+function getBaseTime(){
+  if(deptMode==="now") return new Date();
+  const [h,m]=customTimeVal.split(":").map(Number);
+  const d=new Date(); d.setHours(h,m,0,0);
+  return d;
+}
+
+function setTransitFilter(btn){
+  document.querySelectorAll(".filter-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  transitFilter=btn.dataset.val;
+} // 항상 표시되는 셔틀 노선
 
 function loadData(){
   try{
@@ -418,65 +492,73 @@ function buildMap(){
 }
 
 // ════════════════════════════════
-//  셔틀 노선 지도에 그리기
+//  셔틀 노선 — 카카오 네비 API로 실제 도로 경로 그리기
 // ════════════════════════════════
-const COURSE_COLORS={"코스1 금정역":"#f59e0b","코스2 정자역":"#f97316","코스3 사당역":"#ec4899","코스4 평촌":"#a78bfa","코스5 판교역":"#34d399","순환 인덕원역":"#60a5fa"};
+const COURSE_COLORS={
+  "코스1 금정역":"#f59e0b","코스2 정자역":"#f97316","코스3 사당역":"#ec4899",
+  "코스4 평촌":"#a78bfa","코스5 판교역":"#34d399","순환 인덕원역":"#60a5fa"
+};
 
-function drawShuttleRoutes(){
+// 코스별 경유 정류장 순서 (회사 출발 → 마지막 정류장)
+const COURSE_WAYPOINTS = {
+  "코스1 금정역":  [{lat:37.3635,lng:126.9654},{lat:37.4013,lng:126.9549},{lat:37.4004,lng:126.9531},{lat:37.3985,lng:126.9488},{lat:37.3960,lng:126.9450},{lat:37.3940,lng:126.9520},{lat:37.3615,lng:126.9320}],
+  "코스2 정자역":  [{lat:37.3635,lng:126.9654},{lat:37.3731,lng:127.1122},{lat:37.3604,lng:127.1116}],
+  "코스3 사당역":  [{lat:37.3635,lng:126.9654},{lat:37.4762,lng:126.9815}],
+  "코스4 평촌":    [{lat:37.3635,lng:126.9654},{lat:37.3990,lng:126.9540},{lat:37.3998,lng:126.9485},{lat:37.4010,lng:126.9498},{lat:37.4020,lng:126.9510},{lat:37.4040,lng:126.9531}],
+  "코스5 판교역":  [{lat:37.3635,lng:126.9654},{lat:37.3946,lng:127.1112}],
+  "순환 인덕원역": [{lat:37.3635,lng:126.9654},{lat:37.4013,lng:126.9549}],
+};
+
+async function drawShuttleRoutes(){
   if(!mapObj) return;
   shuttlePolylines.forEach(p=>p.setMap(null));
   shuttlePolylines=[];
-  Object.entries(SHUTTLE_ROUTES).forEach(([course,pts])=>{
-    const color=COURSE_COLORS[course]||"#f59e0b";
-    const path=pts.map(p=>new kakao.maps.LatLng(p.lat,p.lng));
-    const poly=new kakao.maps.Polyline({
-      path, strokeWeight:4, strokeColor:color, strokeOpacity:.8,
-      strokeStyle:"solid", map:mapObj
-    });
-    shuttlePolylines.push(poly);
-  });
+
+  for(const [course, wpts] of Object.entries(COURSE_WAYPOINTS)){
+    const color = COURSE_COLORS[course]||"#f59e0b";
+    // 구간별로 카카오 네비 경로 요청 (origin→destination 2점씩)
+    for(let i=0;i<wpts.length-1;i++){
+      const o=wpts[i], d=wpts[i+1];
+      try{
+        const url=`https://apis-navi.kakaomobility.com/v1/directions?origin=${o.lng},${o.lat}&destination=${d.lng},${d.lat}&summary=false`;
+        const res=await fetch(url,{headers:{"Authorization":`KakaoAK ${restKey}`}});
+        const data=await res.json();
+        const vx=data?.routes?.[0]?.sections?.[0]?.roads?.flatMap(r=>r.vertexes||[])||[];
+        if(vx.length>=2){
+          // vertexes: [lng1,lat1,lng2,lat2,...]
+          const path=[];
+          for(let j=0;j<vx.length-1;j+=2) path.push(new kakao.maps.LatLng(vx[j+1],vx[j]));
+          const poly=new kakao.maps.Polyline({
+            path, strokeWeight:5, strokeColor:color, strokeOpacity:.85,
+            strokeStyle:"solid", map:mapObj
+          });
+          shuttlePolylines.push(poly);
+        } else {
+          // fallback: 직선
+          const poly=new kakao.maps.Polyline({
+            path:[new kakao.maps.LatLng(o.lat,o.lng),new kakao.maps.LatLng(d.lat,d.lng)],
+            strokeWeight:4,strokeColor:color,strokeOpacity:.6,strokeStyle:"dashed",map:mapObj
+          });
+          shuttlePolylines.push(poly);
+        }
+      }catch{
+        const poly=new kakao.maps.Polyline({
+          path:[new kakao.maps.LatLng(o.lat,o.lng),new kakao.maps.LatLng(d.lat,d.lng)],
+          strokeWeight:4,strokeColor:color,strokeOpacity:.5,strokeStyle:"dashed",map:mapObj
+        });
+        shuttlePolylines.push(poly);
+      }
+    }
+  }
 }
 
 // ════════════════════════════════
-//  대중교통 경로 지도에 그리기
+//  대중교통 경로 — 지도 표시 없음, 텍스트만
 // ════════════════════════════════
 function clearRoutes(){
   routePolylines.forEach(p=>p.setMap(null));
   routeMarkers.forEach(m=>m.setMap(null));
   routePolylines=[]; routeMarkers=[];
-  document.getElementById("btnClearRoute").classList.add("hidden");
-}
-
-function drawTransitRoute(sections){
-  if(!mapObj||!sections?.length) return;
-  clearRoutes();
-  const TYPE_CFG={
-    WALK:  {color:"#94a3b8",weight:3,dash:true},
-    SUBWAY:{color:"#60a5fa",weight:5,dash:false},
-    BUS:   {color:"#34d399",weight:5,dash:false},
-  };
-  const bounds=new kakao.maps.LatLngBounds();
-  sections.forEach(sec=>{
-    if(!sec.path?.length) return;
-    const lls=sec.path.map(p=>new kakao.maps.LatLng(p.y,p.x));
-    lls.forEach(ll=>bounds.extend(ll));
-    const cfg=TYPE_CFG[sec.type]||TYPE_CFG.WALK;
-    const poly=new kakao.maps.Polyline({
-      path:lls, strokeWeight:cfg.weight, strokeColor:cfg.color,
-      strokeOpacity:.9, strokeStyle:cfg.dash?"shortdot":"solid", map:mapObj
-    });
-    routePolylines.push(poly);
-    // 구간 시작 마커 (버스/지하철)
-    if(sec.type!=="WALK"&&lls.length){
-      const oval=new kakao.maps.Circle({
-        center:lls[0], radius:40,
-        strokeWeight:0, fillColor:cfg.color, fillOpacity:.9, map:mapObj
-      });
-      routeMarkers.push(oval);
-    }
-  });
-  try{mapObj.setBounds(bounds);}catch(e){}
-  document.getElementById("btnClearRoute").classList.remove("hidden");
 }
 
 // ════════════════════════════════
@@ -497,17 +579,111 @@ function setMode(m){
   document.getElementById("btnWork").className="mode-btn"+(m==="work"?" aw":"");
   document.getElementById("btnHome").className="mode-btn"+(m==="home"?" ah":"");
   document.getElementById("searchLabel").textContent=m==="work"?"📍 출발 위치 (집) 입력":"📍 귀가 목적지 입력";
-  document.getElementById("addrInput").placeholder=m==="work"?"집 주소 또는 역명":"귀가 목적지 주소 또는 장소명";
+  document.getElementById("addrInput").placeholder=m==="work"
+    ?"집 주소 또는 역명 (예: 금정역, 안양시 동안구...)"
+    :"귀가 목적지 주소 또는 장소명";
   document.getElementById("notice").innerHTML=m==="work"
     ?"<strong>출근 모드</strong> — 🚇 집→정류장 대중교통 안내 · 🚌 셔틀 탑승시간 · 🏢 회사 도착시간"
     :"<strong>퇴근 모드</strong> — 🚌 회사→정류장 도착시간 · 🚇 정류장→집 대중교통 안내 · 🏠 집 도착시간";
+  // 퇴근 모드에서는 GPS 버튼 숨김
+  document.getElementById("btnGps").style.display = m==="work" ? "" : "none";
   document.getElementById("results").classList.add("hidden");
   clearRoutes();
+  closeAcList();
 }
 
 // ════════════════════════════════
-//  GPS
+//  자동완성 (카카오 Places 키워드 검색)
 // ════════════════════════════════
+let acDebounce=null;
+let acFocusIdx=-1;
+let acResults=[];
+
+function onAddrInput(){
+  const q=document.getElementById("addrInput").value.trim();
+  clearTimeout(acDebounce);
+  if(!q||q.length<2){closeAcList();return;}
+  acDebounce=setTimeout(()=>fetchAcResults(q),300);
+}
+
+async function fetchAcResults(q){
+  if(!kakaoReady){
+    // kakao 미준비 시 정류장명 직접 매칭
+    const kw=q.toLowerCase();
+    const hits=stops.filter(s=>s.name.includes(q)||s.addr.includes(q)).slice(0,5);
+    renderAcList(hits.map(s=>({place_name:s.name,address_name:s.addr,x:String(s.lng),y:String(s.lat)})));
+    return;
+  }
+  const ps=new kakao.maps.services.Places();
+  ps.keywordSearch(q,(results,status)=>{
+    if(status===kakao.maps.services.Status.OK){
+      renderAcList(results.slice(0,6));
+    } else {
+      closeAcList();
+    }
+  });
+}
+
+function renderAcList(results){
+  acResults=results;
+  acFocusIdx=-1;
+  const list=document.getElementById("acList");
+  if(!results.length){closeAcList();return;}
+  list.innerHTML="";
+  results.forEach((item,i)=>{
+    const div=document.createElement("div");
+    div.className="ac-item";
+    div.dataset.idx=i;
+    div.innerHTML=`
+      <div class="ac-icon">📍</div>
+      <div>
+        <div class="ac-name">${item.place_name||item.name}</div>
+        <div class="ac-addr">${item.road_address_name||item.address_name||""}</div>
+      </div>`;
+    div.addEventListener("mousedown",e=>{e.preventDefault();selectAcItem(i);});
+    list.appendChild(div);
+  });
+  list.classList.remove("hidden");
+}
+
+function selectAcItem(idx){
+  const item=acResults[idx];
+  if(!item) return;
+  document.getElementById("addrInput").value=item.place_name||item.name||"";
+  userLat=parseFloat(item.y); userLng=parseFloat(item.x);
+  closeAcList();
+  doSearchByCoords(userLat,userLng);
+}
+
+function onAddrKeydown(e){
+  const list=document.getElementById("acList");
+  if(list.classList.contains("hidden")) return;
+  const items=list.querySelectorAll(".ac-item");
+  if(e.key==="ArrowDown"){
+    e.preventDefault();
+    acFocusIdx=Math.min(acFocusIdx+1,items.length-1);
+    items.forEach((el,i)=>el.classList.toggle("focused",i===acFocusIdx));
+  } else if(e.key==="ArrowUp"){
+    e.preventDefault();
+    acFocusIdx=Math.max(acFocusIdx-1,0);
+    items.forEach((el,i)=>el.classList.toggle("focused",i===acFocusIdx));
+  } else if(e.key==="Enter"){
+    if(acFocusIdx>=0){e.preventDefault();selectAcItem(acFocusIdx);}
+    else{closeAcList();doSearch();}
+  } else if(e.key==="Escape"){
+    closeAcList();
+  }
+}
+
+function closeAcList(){
+  document.getElementById("acList").classList.add("hidden");
+  acResults=[]; acFocusIdx=-1;
+}
+
+// 외부 클릭 시 드롭다운 닫기
+document.addEventListener("click",e=>{
+  if(!e.target.closest(".si-wrap")) closeAcList();
+});
 function useGPS(){
   if(!navigator.geolocation){alert("위치 서비스 미지원");return;}
   setLoading(true,"현재 위치 가져오는 중...");
@@ -525,6 +701,7 @@ function useGPS(){
 async function doSearch(){
   const q=document.getElementById("addrInput").value.trim();
   if(!q){alert("위치를 입력해주세요.");return;}
+  closeAcList();
   setLoading(true,"카카오 지도 초기화 중...");
   const ok=await initKakao();
   if(!ok||!kakaoReady){setLoading(false);fuzzySearch(q);return;}
@@ -576,16 +753,17 @@ function renderResults(ranked,uLat,uLng){
   document.getElementById("resultsTitle").textContent=mode==="work"?"🚌 가까운 탑승 정류장 (출근)":"🏠 가까운 하차 정류장 (퇴근)";
   document.getElementById("summaryGrid").innerHTML="";
   document.getElementById("resultsGrid").innerHTML="";
-  const now=new Date(), top=ranked.slice(0,4);
+  const now=getBaseTime(), top=ranked.slice(0,4);
   if(!top.length) return;
   const best=top[0];
 
   // 요약 배너
+  const deptLabel = deptMode==="custom" ? ` (${customTimeVal} 기준)` : "";
   if(mode==="work"){
     const nb=getNext(best.boardTimes,now);
     document.getElementById("summaryGrid").innerHTML=`
       <div class="sum-box work-sum">
-        <div class="sum-label">🏢 오늘 회사 도착 예정</div>
+        <div class="sum-label">🏢 회사 도착 예정${deptLabel}</div>
         <div class="sum-time" id="sum-arr">--:--</div>
         <div class="sum-detail" id="sum-arr-d">계산 중...</div>
       </div>
@@ -600,12 +778,12 @@ function renderResults(ranked,uLat,uLng){
     const nd=getNext(best.deptTimes,now);
     document.getElementById("summaryGrid").innerHTML=`
       <div class="sum-box home-sum">
-        <div class="sum-label">🏠 오늘 집 도착 예정</div>
+        <div class="sum-label">🏠 집 도착 예정${deptLabel}</div>
         <div class="sum-time" id="sum-home">--:--</div>
         <div class="sum-detail" id="sum-home-d">계산 중...</div>
       </div>
       <div class="sum-box home-sum">
-        <div class="sum-label">🚌 셔틀 정류장 도착 (${best.name})</div>
+        <div class="sum-label">🚌 정류장 도착 (${best.name})</div>
         <div class="sum-time" id="sum-stop">--:--</div>
         <div class="sum-detail">${nd?`회사 ${nd} 출발`:"배차없음"}</div>
       </div>`;
@@ -614,7 +792,7 @@ function renderResults(ranked,uLat,uLng){
 
   // 정류장 카드
   top.forEach((s,i)=>{
-    const now2=new Date();
+    const now2=getBaseTime();
     const card=document.createElement("div");
     card.className="stop-card"+(i===0?" near":"")+(mode==="home"?" hm":"");
 
@@ -637,7 +815,7 @@ function renderResults(ranked,uLat,uLng){
           <span class="time-row-val">계산중...</span>
         </div>
         <button class="btn-route" id="rbtn_${s.id}" onclick="showTransitRoute(${s.lat},${s.lng},${uLat},${uLng},'${s.name}','${s.id}')">
-          🗺 대중교통 경로 지도에 보기
+          🚇 집→정류장 대중교통 탑승 안내 보기
         </button>
         <div class="transit-detail" id="td_${s.id}"><div style="color:var(--muted);font-size:12px;text-align:center;padding:8px">경로 불러오는 중...</div></div>
       `;
@@ -670,7 +848,7 @@ function renderResults(ranked,uLat,uLng){
           <span class="time-row-val">계산중...</span>
         </div>
         <button class="btn-route" id="rbtn_${s.id}" onclick="showTransitRoute(${s.lat},${s.lng},${uLat},${uLng},'${s.name}','${s.id}')">
-          🗺 정류장→집 대중교통 경로 보기
+          🚇 정류장→집 대중교통 탑승 안내 보기
         </button>
         <div class="transit-detail" id="td_${s.id}"><div style="color:var(--muted);font-size:12px;text-align:center;padding:8px">경로 불러오는 중...</div></div>
       `;
@@ -686,104 +864,132 @@ function renderResults(ranked,uLat,uLng){
 }
 
 // ════════════════════════════════
-//  대중교통 경로 버튼 클릭
+//  대중교통 경로 버튼 클릭 — 텍스트 안내만
 // ════════════════════════════════
 async function showTransitRoute(sLat,sLng,homeLat,homeLng,stopName,sid){
   const btn=document.getElementById(`rbtn_${sid}`);
   const detail=document.getElementById(`td_${sid}`);
-  btn.classList.add("active");
-  btn.textContent="⏳ 경로 불러오는 중...";
 
-  // 출근: 집→정류장 / 퇴근: 정류장→집
+  // 이미 열려있으면 닫기
+  if(detail.classList.contains("open")){
+    detail.classList.remove("open");
+    btn.classList.remove("active");
+    btn.innerHTML="🚇 대중교통 탑승 안내 보기";
+    return;
+  }
+
+  btn.classList.add("active");
+  btn.innerHTML="⏳ 경로 조회 중...";
+
   const oLat=mode==="work"?homeLat:sLat, oLng=mode==="work"?homeLng:sLng;
   const dLat=mode==="work"?sLat:homeLat,  dLng=mode==="work"?sLng:homeLng;
   const label=mode==="work"?`집 → ${stopName}`:`${stopName} → 집`;
 
   try{
     const data=await fetchTransit(oLat,oLng,dLat,dLng);
-    if(data?.routes?.[0]){
-      const route=data.routes[0];
-      const sections=route.sections||[];
-      // 지도에 그리기
-      const mapSecs=sections.map(sec=>({
-        type: sec.transportation?.type==="SUBWAY"?"SUBWAY":sec.transportation?.type==="BUS"?"BUS":"WALK",
-        path: sec.roads?.flatMap(r=>r.vertexes?chunkPairs(r.vertexes).map(([x,y])=>({x,y})):[]) || []
-      }));
-      drawTransitRoute(mapSecs);
-      // 지도 스크롤
-      mapObj?.getElement()?.scrollIntoView({behavior:"smooth",block:"center"});
-      // 상세 안내 텍스트
+    const sections=data?.routes?.[0]?.sections;
+    if(sections?.length){
       detail.innerHTML=buildTransitDetail(sections,label);
       detail.classList.add("open");
-      btn.textContent="🗺 경로 표시됨 (지도 확인)";
+      btn.innerHTML="🚇 탑승 안내 ▲ 닫기";
     } else {
-      detail.innerHTML=`<div style="color:var(--muted);font-size:12px;padding:8px">경로를 불러오지 못했습니다. REST API 키를 확인해주세요.</div>`;
+      detail.innerHTML=`<div style="color:var(--muted);font-size:12px;padding:8px 0">대중교통 경로를 찾지 못했습니다.<br>REST API 키 또는 위치 좌표를 확인해주세요.</div>`;
       detail.classList.add("open");
-      btn.textContent="🗺 대중교통 경로 보기";
+      btn.innerHTML="🚇 대중교통 탑승 안내 보기";
       btn.classList.remove("active");
     }
   }catch(e){
-    detail.innerHTML=`<div style="color:var(--muted);font-size:12px;padding:8px">오류: ${e.message}</div>`;
+    detail.innerHTML=`<div style="color:#ef4444;font-size:12px;padding:8px 0">오류 발생: ${e.message}</div>`;
     detail.classList.add("open");
-    btn.textContent="🗺 대중교통 경로 보기";
+    btn.innerHTML="🚇 대중교통 탑승 안내 보기";
     btn.classList.remove("active");
   }
 }
 
-// 대중교통 상세 안내 HTML 생성
+// 대중교통 텍스트 안내 생성
+// 지하철: "수인분당선(4호선) — 인덕원역 승차 → 금정역 하차 (3정거장 · 약 5분)"
+// 버스:   "버스 11번 — 인덕원역 승차 → 금정역 하차 (5정류장 · 약 8분)"
+// 도보:   "도보 350m (약 4분)"
 function buildTransitDetail(sections, label){
-  if(!sections?.length) return `<div style="color:var(--muted);font-size:12px;padding:8px">경로 정보 없음</div>`;
-  let html=`<div style="font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:10px">📍 ${label}</div>`;
+  if(!sections?.length) return `<div style="color:var(--muted);font-size:12px">경로 정보 없음</div>`;
+
+  const filterLabel={"RECOMMEND":"추천순","TRANSFER":"최소환승","WAITINGTIME":"최소대기","WALK":"최소도보"}[transitFilter]||"추천순";
+  const timeLabel=deptMode==="custom"?` · ${customTimeVal} 출발 기준`:"";
+  let html=`<div style="font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:10px;padding-top:2px">📍 ${label} 탑승 안내 <span style="font-size:10px;color:var(--muted);font-weight:400">[${filterLabel}${timeLabel}]</span></div>`;
 
   sections.forEach((sec,i)=>{
     const ttype=sec.transportation?.type||"WALK";
-    const isWalk=ttype==="WALK";
-    const isSubway=ttype==="SUBWAY";
-    const isBus=ttype==="BUS";
-    const iconCls=isSubway?"subway":isBus?"bus":"walk";
-    const iconEmoji=isSubway?"🚇":isBus?"🚌":"🚶";
-    const durMin=Math.round((sec.duration||0)/60);
-    const dist=sec.distance>=1000?`${(sec.distance/1000).toFixed(1)}km`:`${sec.distance||0}m`;
+    const isWalk  = ttype==="WALK";
+    const isSubway= ttype==="SUBWAY";
+    const isBus   = ttype==="BUS";
 
-    let name="", sub="";
+    const durMin = Math.round((sec.duration||0)/60);
+    const distTxt= sec.distance>=1000?`${(sec.distance/1000).toFixed(1)}km`:`${sec.distance||0}m`;
+
+    let iconCls, iconEmoji, mainText, subText;
+
     if(isWalk){
-      name=`도보 ${durMin}분`;
-      sub=dist;
+      iconCls="walk"; iconEmoji="🚶";
+      mainText=`도보`;
+      subText=`${distTxt} · 약 ${durMin}분`;
+
     } else if(isSubway){
-      const line=sec.lanes?.[0]||{};
-      name=line.name||"지하철";
-      const from=sec.departure?.name||"";
-      const to=sec.arrival?.name||"";
-      sub=`${from} 승차 → ${to} 하차 (${durMin}분, ${dist})`;
-      if(line.name) name=line.name;
+      iconCls="subway"; iconEmoji="🚇";
+      // lanes 배열에서 호선명 추출 — "4호선", "수인분당선" 등
+      const lineNames=(sec.lanes||[]).map(l=>l.name||l.lineName||"").filter(Boolean);
+      const lineTxt = lineNames.length ? lineNames.join(" / ") : "지하철";
+      const from = sec.departure?.name||"";
+      const to   = sec.arrival?.name||"";
+      const stops= sec.passStopCount ? `${sec.passStopCount}정거장 · ` : "";
+      mainText=`${lineTxt} 탑승`;
+      subText=`${from} 승차 → ${to} 하차  (${stops}약 ${durMin}분)`;
+
     } else if(isBus){
-      const buses=(sec.lanes||[]).map(l=>l.busNo||l.name).filter(Boolean).join(", ");
-      name=buses?`버스 ${buses}`:"버스";
-      const from=sec.departure?.name||"";
-      const to=sec.arrival?.name||"";
-      sub=`${from} 승차 → ${to} 하차 (${durMin}분, ${dist})`;
+      iconCls="bus"; iconEmoji="🚌";
+      // lanes 배열에서 버스 번호 추출
+      const busNos=(sec.lanes||[]).map(l=>l.busNo||l.name||"").filter(Boolean);
+      const busTxt= busNos.length ? busNos.join(" · ")+"번" : "버스";
+      const from = sec.departure?.name||"";
+      const to   = sec.arrival?.name||"";
+      const stops= sec.passStopCount ? `${sec.passStopCount}정류장 · ` : "";
+      mainText=`버스 ${busTxt} 탑승`;
+      subText=`${from} 승차 → ${to} 하차  (${stops}약 ${durMin}분)`;
+
+    } else {
+      iconCls="walk"; iconEmoji="🔄";
+      mainText="환승 이동";
+      subText=`약 ${durMin}분`;
     }
 
     html+=`
       <div class="t-step">
         <div class="t-step-icon ${iconCls}">${iconEmoji}</div>
         <div class="t-step-body">
-          <div class="t-step-name">${name}</div>
-          ${sub?`<div class="t-step-sub">${sub}</div>`:""}
+          <div class="t-step-name">${mainText}</div>
+          <div class="t-step-sub">${subText}</div>
         </div>
       </div>`;
     if(i<sections.length-1) html+=`<div class="t-connector"></div>`;
   });
+
+  // 총 소요 시간
+  const totalMin=sections.reduce((s,sec)=>s+Math.round((sec.duration||0)/60),0);
+  html+=`<div style="margin-top:10px;padding:8px 10px;background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.2);border-radius:8px;font-size:12px;color:#a78bfa;font-weight:700">⏱ 총 소요 약 ${totalMin}분</div>`;
   return html;
 }
-
-function chunkPairs(arr){const r=[];for(let i=0;i<arr.length-1;i+=2)r.push([arr[i],arr[i+1]]);return r;}
 
 // ════════════════════════════════
 //  API 함수
 // ════════════════════════════════
 async function fetchTransit(oLat,oLng,dLat,dLng){
-  const url=`https://apis-navi.kakaomobility.com/v1/directions/transit?origin=${oLng},${oLat}&destination=${dLng},${dLat}`;
+  // 출발 시간 (지금 or 지정) → yyyyMMddHHmm 형식
+  const base=getBaseTime();
+  const deptStr=`${base.getFullYear()}${String(base.getMonth()+1).padStart(2,"0")}${String(base.getDate()).padStart(2,"0")}${String(base.getHours()).padStart(2,"0")}${String(base.getMinutes()).padStart(2,"0")}`;
+  // 필터: RECOMMEND | TRANSFER | WAITINGTIME | WALK
+  const url=`https://apis-navi.kakaomobility.com/v1/directions/transit`
+    +`?origin=${oLng},${oLat}&destination=${dLng},${dLat}`
+    +`&priority=${transitFilter}`
+    +`&departureTime=${deptStr}`;
   const res=await fetch(url,{headers:{"Authorization":`KakaoAK ${restKey}`}});
   return res.json();
 }
@@ -935,8 +1141,8 @@ function setLoading(on,msg){
 // ════════════════════════════════
 document.addEventListener("DOMContentLoaded",()=>{
   loadData();
+  setMode("work"); // 초기 모드 설정 (GPS 버튼 표시 상태 포함)
   initKakao();
-  document.getElementById("addrInput").addEventListener("keydown",e=>{if(e.key==="Enter")doSearch();});
 });
 </script>
 </body>
