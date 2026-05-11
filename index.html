@@ -192,7 +192,11 @@ main{padding:78px 16px 60px;max-width:1080px;margin:0 auto;}
 .filter-btn:hover{border-color:var(--transit);color:#a78bfa;}
 .filter-btn.active{background:var(--transit);border-color:var(--transit);color:#fff;box-shadow:0 0 8px rgba(139,92,246,.3);}
 
-.hidden{display:none!important;}
+/* 관리자 탭 */
+.admin-tabs{display:flex;gap:4px;background:var(--surface2);border-radius:10px;padding:3px;margin-bottom:16px;}
+.atab{flex:1;padding:7px 0;border-radius:8px;border:none;cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;background:transparent;color:var(--muted);transition:all .2s;}
+.atab.active{background:var(--card);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.3);}
+.atab-content{animation:fadeUp .2s ease;}
 .spinner{width:26px;height:26px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px;}
 .loading-wrap{text-align:center;padding:36px;color:var(--muted);font-size:13px;}
 @keyframes spin{to{transform:rotate(360deg);}}
@@ -319,33 +323,104 @@ main{padding:78px 16px 60px;max-width:1080px;margin:0 auto;}
 <!-- ADMIN -->
 <div class="overlay hidden" id="adminOverlay">
   <div class="modal">
-    <h2>⚙ 관리자 설정</h2>
-    <div class="modal-sub">API 키 2종류와 회사·정류장 정보를 설정합니다. 저장 시 브라우저에 보관됩니다.</div>
-    <div class="fl">🗺 카카오 JavaScript 키 (지도용)</div>
-    <input class="fi" id="adminJsKey" type="text" placeholder="카카오 JavaScript 앱 키"/>
-    <div class="fl">🧭 카카오 REST API 키 (네비용)</div>
-    <input class="fi" id="adminRestKey" type="text" placeholder="카카오 REST API 키"/>
-    <div class="fl">🚇 ODsay API 키 (대중교통 경로용 · <a href="https://lab.odsay.com" target="_blank" style="color:var(--accent2)">무료 발급</a>)</div>
-    <input class="fi" id="adminOdsayKey" type="text" placeholder="ODsay API 키 (lab.odsay.com 무료 발급)"/>
-    <div class="fl">회사 이름</div>
-    <input class="fi" id="adminCompanyName" type="text"/>
-    <div class="fl">회사 주소</div>
-    <input class="fi" id="adminCompanyAddr" type="text"/>
-    <hr class="divider"/>
-    <div class="fl">등록된 정류장 (<span id="stopCount">0</span>개)</div>
-    <div class="stop-list" id="adminStopList"></div>
-    <div class="fl">정류장 추가</div>
-    <div class="add-grid">
-      <input id="ns_name"   placeholder="정류장 이름 *"/>
-      <input id="ns_course" placeholder="코스명"/>
-      <input id="ns_addr"   placeholder="주소 *"/>
-      <input id="ns_lat"    placeholder="위도"/>
-      <input id="ns_lng"    placeholder="경도"/>
-      <input id="ns_btime"  placeholder="탑승시간 (예: 08:00,08:30)"/>
-      <input id="ns_dtime"  placeholder="회사출발시간 (예: 18:20)"/>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+      <h2>⚙ 관리자 설정</h2>
+      <button onclick="closeAdmin()" style="background:transparent;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;">✕</button>
     </div>
-    <button class="btn-add" onclick="addStop()">+ 정류장 추가</button>
-    <div class="modal-btns">
+    <div class="modal-sub">설정 저장 시 브라우저에 자동 보관됩니다.</div>
+
+    <!-- 탭 -->
+    <div class="admin-tabs">
+      <button class="atab active" onclick="switchAdminTab('key',this)">🔑 API 키</button>
+      <button class="atab" onclick="switchAdminTab('company',this)">🏢 회사</button>
+      <button class="atab" onclick="switchAdminTab('course',this)">🛣 코스</button>
+      <button class="atab" onclick="switchAdminTab('stop',this)">📍 정류장</button>
+    </div>
+
+    <!-- ── 탭1: API 키 ── -->
+    <div class="atab-content" id="tab-key">
+      <div class="fl">🗺 카카오 JavaScript 키 (지도용)</div>
+      <input class="fi" id="adminJsKey" type="text" placeholder="카카오 JavaScript 앱 키"/>
+      <div class="fl">🧭 카카오 REST API 키 (네비용)</div>
+      <input class="fi" id="adminRestKey" type="text" placeholder="카카오 REST API 키"/>
+      <div class="fl">🚇 ODsay API 키 (<a href="https://lab.odsay.com" target="_blank" style="color:var(--accent2)">lab.odsay.com 무료 발급</a>)</div>
+      <input class="fi" id="adminOdsayKey" type="text" placeholder="ODsay API 키"/>
+    </div>
+
+    <!-- ── 탭2: 회사 ── -->
+    <div class="atab-content hidden" id="tab-company">
+      <div class="fl">회사 이름</div>
+      <input class="fi" id="adminCompanyName" type="text" placeholder="예: NH통합IT센터(정문)"/>
+      <div class="fl">회사 주소 검색</div>
+      <div style="position:relative;margin-bottom:12px;">
+        <input class="fi" id="adminCompanySearch" type="text" placeholder="주소 또는 장소명 검색..." oninput="onAdminCompanyInput()" onkeydown="onAdminCompanyKeydown(event)" autocomplete="off" style="margin:0;padding-right:42px;"/>
+        <button onclick="adminCompanySearch()" style="position:absolute;right:0;top:0;bottom:0;width:40px;background:var(--accent);border:none;border-radius:0 10px 10px 0;color:#fff;cursor:pointer;font-size:14px;">🔍</button>
+        <div class="autocomplete-list hidden" id="acCompany"></div>
+      </div>
+      <div id="companySelected" style="display:none;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);border-radius:10px;padding:10px 14px;font-size:12px;margin-bottom:12px;">
+        <div style="font-weight:700;color:var(--work)" id="companySelName"></div>
+        <div style="color:var(--muted);margin-top:2px" id="companySelAddr"></div>
+        <div style="color:var(--muted);font-family:'Space Mono',monospace;font-size:10px;margin-top:2px" id="companySelCoord"></div>
+      </div>
+    </div>
+
+    <!-- ── 탭3: 코스 ── -->
+    <div class="atab-content hidden" id="tab-course">
+      <div class="fl">등록된 코스 (<span id="courseCount">0</span>개)</div>
+      <div class="stop-list" id="adminCourseList" style="max-height:220px;"></div>
+      <div class="fl" style="margin-top:12px;">코스 추가</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <input id="nc_name" class="fi" placeholder="코스명 (예: 코스1 금정역)" style="margin:0;flex:1;"/>
+        <div style="position:relative;width:14px;height:14px;margin:auto 0;">
+          <input id="nc_color" type="color" value="#f59e0b" style="width:36px;height:36px;border:none;background:none;cursor:pointer;padding:0;border-radius:8px;"/>
+        </div>
+      </div>
+      <button class="btn-add" onclick="addCourse()">+ 코스 추가</button>
+    </div>
+
+    <!-- ── 탭4: 정류장 ── -->
+    <div class="atab-content hidden" id="tab-stop">
+      <div class="fl">등록된 정류장 (<span id="stopCount">0</span>개)</div>
+      <div class="stop-list" id="adminStopList"></div>
+
+      <div class="fl" style="margin-top:12px;">정류장 추가</div>
+
+      <!-- 코스 선택 -->
+      <div class="fl" style="margin-top:0;margin-bottom:4px;font-size:10px;">코스 선택</div>
+      <select id="ns_course_sel" class="fi" style="margin-bottom:10px;cursor:pointer;">
+        <option value="">-- 코스 선택 --</option>
+      </select>
+
+      <!-- 정류장 검색 -->
+      <div class="fl" style="font-size:10px;margin-bottom:4px;">정류장 위치 검색 (카카오맵)</div>
+      <div style="position:relative;margin-bottom:8px;">
+        <input class="fi" id="ns_search" type="text" placeholder="정류장명 또는 주소 검색..." oninput="onNsSearchInput()" onkeydown="onNsSearchKeydown(event)" autocomplete="off" style="margin:0;padding-right:42px;"/>
+        <button onclick="nsDoSearch()" style="position:absolute;right:0;top:0;bottom:0;width:40px;background:var(--accent);border:none;border-radius:0 10px 10px 0;color:#fff;cursor:pointer;font-size:14px;">🔍</button>
+        <div class="autocomplete-list hidden" id="acNsStop"></div>
+      </div>
+
+      <!-- 검색 결과 선택 표시 -->
+      <div id="nsSelected" style="display:none;background:rgba(26,127,232,.1);border:1px solid rgba(26,127,232,.25);border-radius:10px;padding:10px 14px;font-size:12px;margin-bottom:10px;">
+        <div style="font-weight:700;color:var(--accent2)" id="nsSelName"></div>
+        <div style="color:var(--muted);font-size:11px;margin-top:2px" id="nsSelAddr"></div>
+        <div style="color:var(--muted);font-family:'Space Mono',monospace;font-size:10px;margin-top:2px" id="nsSelCoord"></div>
+      </div>
+
+      <!-- 시간 입력 -->
+      <div class="add-grid" style="grid-template-columns:1fr 1fr;">
+        <div>
+          <div style="font-size:10px;color:var(--muted);margin-bottom:3px;">탑승 시간 (쉼표 구분)</div>
+          <input id="ns_btime" class="fi" placeholder="예: 08:00,08:30" style="margin:0;"/>
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--muted);margin-bottom:3px;">회사 출발 시간 (쉼표 구분)</div>
+          <input id="ns_dtime" class="fi" placeholder="예: 18:20,19:00" style="margin:0;"/>
+        </div>
+      </div>
+      <button class="btn-add" style="margin-top:8px;" onclick="addStop()">+ 정류장 추가</button>
+    </div>
+
+    <div class="modal-btns" style="margin-top:16px;">
       <button class="btn-cancel" onclick="closeAdmin()">취소</button>
       <button class="btn-save" onclick="saveAdmin()">💾 저장 및 적용</button>
     </div>
@@ -388,10 +463,14 @@ const DEFAULT_COMPANY={name:"NH통합IT센터(정문)",addr:"경기 의왕시 �
 // ════════════════════════════════
 let mapObj=null,kakaoReady=false,mapInitPromise=null;
 let mode="work", stops=[], company={}, jsKey="", restKey="", odsayKey="";
+let courses=[]; // 코스 목록 [{id,name,color}]
 let userLat=null, userLng=null;
-let tempStops=[];
+let tempStops=[], tempCourses=[];
 let routePolylines=[], routeMarkers=[];
 let shuttlePolylines=[];
+// 관리자 내 선택된 장소 임시 저장
+let adminCompanySel=null; // {name,addr,lat,lng}
+let nsStopSel=null;       // {name,addr,lat,lng}
 
 // 출발 시간 상태
 let deptMode="now";    // "now" | "custom"
@@ -432,18 +511,28 @@ function setTransitFilter(btn){
 function loadData(){
   try{
     const d=JSON.parse(localStorage.getItem("nh_v5")||"{}");
-    stops=d.stops||JSON.parse(JSON.stringify(DEFAULT_STOPS));
-    company=d.company||JSON.parse(JSON.stringify(DEFAULT_COMPANY));
-    jsKey=d.jsKey||DEFAULT_JS_KEY;
-    restKey=d.restKey||DEFAULT_REST_KEY;
+    stops   =d.stops   ||JSON.parse(JSON.stringify(DEFAULT_STOPS));
+    company =d.company ||JSON.parse(JSON.stringify(DEFAULT_COMPANY));
+    jsKey   =d.jsKey   ||DEFAULT_JS_KEY;
+    restKey =d.restKey ||DEFAULT_REST_KEY;
     odsayKey=d.odsayKey||DEFAULT_ODSAY_KEY;
+    courses =d.courses ||[
+      {id:"c1",name:"코스1 금정역", color:"#f59e0b"},
+      {id:"c2",name:"코스2 정자역", color:"#f97316"},
+      {id:"c3",name:"코스3 사당역", color:"#ec4899"},
+      {id:"c4",name:"코스4 평촌",   color:"#a78bfa"},
+      {id:"c5",name:"코스5 판교역", color:"#34d399"},
+      {id:"c6",name:"순환 인덕원역",color:"#60a5fa"},
+      {id:"c7",name:"의왕↔서대문",  color:"#38bdf8"},
+    ];
   }catch{
     stops=JSON.parse(JSON.stringify(DEFAULT_STOPS));
     company=JSON.parse(JSON.stringify(DEFAULT_COMPANY));
     jsKey=DEFAULT_JS_KEY; restKey=DEFAULT_REST_KEY; odsayKey=DEFAULT_ODSAY_KEY;
+    courses=[];
   }
 }
-function saveData(){localStorage.setItem("nh_v5",JSON.stringify({stops,company,jsKey,restKey,odsayKey}));}
+function saveData(){localStorage.setItem("nh_v5",JSON.stringify({stops,company,jsKey,restKey,odsayKey,courses}));}
 
 // ════════════════════════════════
 //  카카오 SDK
@@ -785,6 +874,32 @@ function renderResults(ranked,uLat,uLng){
       </div>`;
     calcRecommendDepart(uLat,uLng,best,"sum-depart","sum-depart-d");
     if(nb) calcNaviAndShow(best.lat,best.lng,company.lat,company.lng,nb,"sum-arr","sum-arr-d");
+
+    // 대중교통 직행 vs 셔틀 비교 배너
+    const compareBox=document.createElement("div");
+    compareBox.id="compare-box";
+    compareBox.style.cssText="margin-bottom:14px;";
+    compareBox.innerHTML=`
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px 18px;">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px">⚡ 이동 수단 비교</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:120px;background:var(--card);border-radius:10px;padding:10px 14px;border:1.5px solid var(--border);" id="cmp-shuttle">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">🚌 셔틀버스</div>
+            <div style="font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--work)" id="cmp-shuttle-time">계산중...</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px" id="cmp-shuttle-detail">도착 시간 계산 중</div>
+          </div>
+          <div style="flex:1;min-width:120px;background:var(--card);border-radius:10px;padding:10px 14px;border:1.5px solid var(--border);" id="cmp-transit">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">🚇 대중교통 직행</div>
+            <div style="font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--transit)" id="cmp-transit-time">계산중...</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px" id="cmp-transit-detail">소요시간 계산 중</div>
+          </div>
+        </div>
+        <div style="margin-top:10px;padding:8px 12px;border-radius:9px;font-size:12px;font-weight:700;display:none;" id="cmp-result"></div>
+      </div>`;
+    document.getElementById("results").insertBefore(compareBox, document.querySelector(".card:last-child"));
+    // 비교 계산 실행
+    compareTransitVsShuttle(uLat,uLng,best,nb,now);
+
   } else {
     const nd=getNext(best.deptTimes,now);
     document.getElementById("summaryGrid").innerHTML=`
@@ -883,7 +998,82 @@ function renderResults(ranked,uLat,uLng){
 }
 
 // ════════════════════════════════
-//  추천 집 출발 시간 계산
+//  셔틀 vs 대중교통 직행 비교
+// ════════════════════════════════
+async function compareTransitVsShuttle(uLat,uLng,bestStop,nextBoard,now){
+  // ① 셔틀 이용 시 회사 도착 시간 계산
+  //    = 탑승 시간 + (정류장→회사 셔틀 소요시간)
+  let shuttleArrMin = null;
+  if(nextBoard){
+    const shuttleSec=await naviTime(bestStop.lat,bestStop.lng,company.lat,company.lng);
+    const [bh,bm]=nextBoard.split(":").map(Number);
+    shuttleArrMin=bh*60+bm+Math.round(shuttleSec/60);
+    const shuttleArrStr=`${String(Math.floor(shuttleArrMin/60)%24).padStart(2,"0")}:${String(shuttleArrMin%60).padStart(2,"0")}`;
+    const el=document.getElementById("cmp-shuttle-time");
+    const det=document.getElementById("cmp-shuttle-detail");
+    if(el) el.textContent=shuttleArrStr;
+    if(det) det.textContent=`${nextBoard} 탑승 → 회사 도착`;
+  } else {
+    const el=document.getElementById("cmp-shuttle-time");
+    const det=document.getElementById("cmp-shuttle-detail");
+    if(el) el.textContent="배차없음";
+    if(det) det.textContent="오늘 남은 셔틀 없음";
+  }
+
+  // ② 대중교통 직행 집→회사 소요시간
+  const transitSec=await transitTime(uLat,uLng,company.lat,company.lng);
+  const transitMin=Math.round(transitSec/60);
+  const nowMin=now.getHours()*60+now.getMinutes();
+  const transitArrMin=nowMin+transitMin;
+  const transitArrStr=`${String(Math.floor(transitArrMin/60)%24).padStart(2,"0")}:${String(transitArrMin%60).padStart(2,"0")}`;
+  const el2=document.getElementById("cmp-transit-time");
+  const det2=document.getElementById("cmp-transit-detail");
+  if(el2) el2.textContent=transitArrStr;
+  if(det2) det2.textContent=`지금 출발 시 약 ${transitMin}분 소요`;
+
+  // ③ 결과 비교
+  const result=document.getElementById("cmp-result");
+  if(!result) return;
+  result.style.display="block";
+
+  if(shuttleArrMin===null){
+    // 셔틀 배차 없음 → 무조건 대중교통 추천
+    result.style.background="rgba(139,92,246,.15)";
+    result.style.border="1px solid rgba(139,92,246,.3)";
+    result.style.color="#a78bfa";
+    result.innerHTML=`🚇 셔틀 배차가 없으니 <b>대중교통 직행</b>을 이용하세요! (약 ${transitMin}분 소요)`;
+  } else {
+    const diff=shuttleArrMin-transitArrMin;
+    if(diff>5){
+      // 대중교통이 5분 이상 빠름 → 대중교통 추천
+      result.style.background="rgba(139,92,246,.15)";
+      result.style.border="1px solid rgba(139,92,246,.3)";
+      result.style.color="#a78bfa";
+      result.innerHTML=`🚇 대중교통 직행이 셔틀보다 <b>${diff}분 더 빠릅니다!</b> 대중교통 이용을 추천해요.`;
+      // 셔틀 카드 강조 제거
+      const shuttleCard=document.getElementById("cmp-shuttle");
+      if(shuttleCard) shuttleCard.style.opacity="0.5";
+      const transitCard=document.getElementById("cmp-transit");
+      if(transitCard){ transitCard.style.borderColor="var(--transit)"; transitCard.style.boxShadow="0 0 10px rgba(139,92,246,.25)"; }
+    } else if(diff<-5){
+      // 셔틀이 5분 이상 빠름 → 셔틀 추천
+      result.style.background="rgba(16,185,129,.12)";
+      result.style.border="1px solid rgba(16,185,129,.25)";
+      result.style.color="var(--work)";
+      result.innerHTML=`🚌 셔틀버스가 대중교통보다 <b>${Math.abs(diff)}분 더 빠릅니다!</b> 셔틀을 이용하세요.`;
+      const transitCard=document.getElementById("cmp-transit");
+      if(transitCard) transitCard.style.opacity="0.5";
+      const shuttleCard=document.getElementById("cmp-shuttle");
+      if(shuttleCard){ shuttleCard.style.borderColor="var(--work)"; shuttleCard.style.boxShadow="0 0 10px rgba(16,185,129,.25)"; }
+    } else {
+      // 비슷함
+      result.style.background="rgba(245,158,11,.1)";
+      result.style.border="1px solid rgba(245,158,11,.25)";
+      result.style.color="var(--home)";
+      result.innerHTML=`⚖️ 셔틀과 대중교통 도착 시간이 비슷합니다. 편한 방법을 선택하세요!`;
+    }
+  }
+}
 //  = 셔틀 탑승 시간 - 대중교통 소요시간 - 여유 5분
 // ════════════════════════════════
 async function calcRecommendDepart(uLat,uLng,stop,timeElId,detailElId){
@@ -1040,7 +1230,7 @@ function buildOdsayDetail(path, label){
   });
 
   html+=`<div style="margin-top:8px;padding:7px 10px;background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.2);border-radius:8px;font-size:12px;color:#a78bfa;font-weight:700">
-    ⏱ 총 ${info.totalTime}분 · 환승 ${info.transferCount}회 · 도보 ${info.totalWalk>=1000?(info.totalWalk/1000).toFixed(1)+"km":info.totalWalk+"m"}
+    ⏱ 총 ${info.totalTime||"?"}분 · 환승 ${info.transferCount??0}회 · 도보 ${(info.totalWalk||0)>=1000?((info.totalWalk/1000).toFixed(1)+"km"):((info.totalWalk||0)+"m")}
   </div>`;
   return html;
 }
@@ -1137,49 +1327,229 @@ async function calcHomeTransitCard(stop,homeLat,homeLng,deptTime,trRowId,homeRow
 }
 
 // ════════════════════════════════
-//  ADMIN
+//  ADMIN — 탭 전환
 // ════════════════════════════════
+function switchAdminTab(tab, btn){
+  document.querySelectorAll(".atab").forEach(b=>b.classList.remove("active"));
+  document.querySelectorAll(".atab-content").forEach(c=>c.classList.add("hidden"));
+  btn.classList.add("active");
+  document.getElementById("tab-"+tab).classList.remove("hidden");
+}
+
 function openAdmin(){
   tempStops=JSON.parse(JSON.stringify(stops));
+  tempCourses=JSON.parse(JSON.stringify(courses));
+  adminCompanySel=null; nsStopSel=null;
+
+  // 탭1 API키
   document.getElementById("adminJsKey").value=jsKey;
   document.getElementById("adminRestKey").value=restKey;
   document.getElementById("adminOdsayKey").value=odsayKey;
+
+  // 탭2 회사
   document.getElementById("adminCompanyName").value=company.name;
-  document.getElementById("adminCompanyAddr").value=company.addr;
+  document.getElementById("adminCompanySearch").value=company.addr||"";
+  document.getElementById("companySelected").style.display="none";
+
+  // 탭3 코스 / 탭4 정류장
+  renderCourseList();
   renderAdminList();
+  renderCourseSelect();
+
+  // 첫 탭으로 초기화
+  document.querySelectorAll(".atab")[0].click();
   document.getElementById("adminOverlay").classList.remove("hidden");
 }
-function closeAdmin(){document.getElementById("adminOverlay").classList.add("hidden");}
-function renderAdminList(){
-  document.getElementById("stopCount").textContent=tempStops.length;
-  const list=document.getElementById("adminStopList"); list.innerHTML="";
-  tempStops.forEach((s,i)=>{
+function closeAdmin(){
+  document.getElementById("adminOverlay").classList.add("hidden");
+  document.getElementById("acCompany").classList.add("hidden");
+  document.getElementById("acNsStop").classList.add("hidden");
+}
+
+// ── 코스 관련 ──
+function renderCourseList(){
+  document.getElementById("courseCount").textContent=tempCourses.length;
+  const list=document.getElementById("adminCourseList"); list.innerHTML="";
+  tempCourses.forEach((c,i)=>{
     const d=document.createElement("div"); d.className="si-item";
-    d.innerHTML=`<div class="si-top"><div class="si-nm">${s.name} <span style="color:var(--muted);font-size:10px">[${s.course}]</span></div><button class="si-del" onclick="delStop(${i})">✕</button></div><div class="si-tm">탑승: ${(s.boardTimes||[]).join(", ")||"-"} | 출발: ${(s.deptTimes||[]).join(", ")||"-"}</div>`;
+    const stopCnt=tempStops.filter(s=>s.course===c.name).length;
+    d.innerHTML=`
+      <div class="si-top">
+        <div class="si-nm" style="display:flex;align-items:center;gap:8px;">
+          <span style="width:12px;height:12px;border-radius:50%;background:${c.color};display:inline-block;flex-shrink:0"></span>
+          ${c.name}
+          <span style="color:var(--muted);font-size:10px;font-weight:400">정류장 ${stopCnt}개</span>
+        </div>
+        <button class="si-del" onclick="delCourse(${i})">✕</button>
+      </div>`;
     list.appendChild(d);
   });
 }
+function delCourse(i){
+  if(!confirm(`"${tempCourses[i].name}" 코스를 삭제할까요?\n해당 코스의 정류장도 모두 삭제됩니다.`)) return;
+  const cName=tempCourses[i].name;
+  tempCourses.splice(i,1);
+  tempStops=tempStops.filter(s=>s.course!==cName);
+  renderCourseList(); renderAdminList(); renderCourseSelect();
+}
+function addCourse(){
+  const name=document.getElementById("nc_name").value.trim();
+  const color=document.getElementById("nc_color").value;
+  if(!name){alert("코스명을 입력해주세요.");return;}
+  if(tempCourses.find(c=>c.name===name)){alert("이미 같은 이름의 코스가 있습니다.");return;}
+  tempCourses.push({id:"c"+Date.now(),name,color});
+  document.getElementById("nc_name").value="";
+  renderCourseList(); renderCourseSelect();
+}
+
+// ── 정류장 관련 ──
+function renderCourseSelect(){
+  const sel=document.getElementById("ns_course_sel");
+  const cur=sel.value;
+  sel.innerHTML=`<option value="">-- 코스 선택 --</option>`;
+  tempCourses.forEach(c=>{
+    sel.innerHTML+=`<option value="${c.name}" ${c.name===cur?"selected":""}>${c.name}</option>`;
+  });
+}
+function renderAdminList(){
+  document.getElementById("stopCount").textContent=tempStops.length;
+  const list=document.getElementById("adminStopList"); list.innerHTML="";
+  // 코스별로 그룹
+  const grouped={};
+  tempStops.forEach(s=>{ if(!grouped[s.course]) grouped[s.course]=[]; grouped[s.course].push(s); });
+  Object.entries(grouped).forEach(([course,ss])=>{
+    const hd=document.createElement("div");
+    hd.style.cssText="font-size:10px;font-weight:700;color:var(--muted);padding:6px 4px 3px;letter-spacing:.08em;text-transform:uppercase;";
+    const c=tempCourses.find(c=>c.name===course);
+    hd.innerHTML=`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${c?.color||"#888"};margin-right:5px;"></span>${course}`;
+    list.appendChild(hd);
+    ss.forEach((s,i)=>{
+      const realIdx=tempStops.indexOf(s);
+      const d=document.createElement("div"); d.className="si-item";
+      d.innerHTML=`<div class="si-top"><div class="si-nm">${s.name}</div><button class="si-del" onclick="delStop(${realIdx})">✕</button></div><div class="si-tm">탑승: ${(s.boardTimes||[]).join(", ")||"-"} | 출발: ${(s.deptTimes||[]).join(", ")||"-"}</div>`;
+      list.appendChild(d);
+    });
+  });
+}
 function delStop(i){tempStops.splice(i,1);renderAdminList();}
+
 function addStop(){
-  const name=document.getElementById("ns_name").value.trim(), addr=document.getElementById("ns_addr").value.trim();
-  if(!name||!addr){alert("이름과 주소 필수");return;}
-  tempStops.push({id:Date.now(),name,addr,
-    course:document.getElementById("ns_course").value.trim()||"기타",
-    lat:parseFloat(document.getElementById("ns_lat").value)||null,
-    lng:parseFloat(document.getElementById("ns_lng").value)||null,
-    boardTimes:document.getElementById("ns_btime").value.trim().split(",").map(s=>s.trim()).filter(Boolean),
-    deptTimes: document.getElementById("ns_dtime").value.trim().split(",").map(s=>s.trim()).filter(Boolean),
+  if(!nsStopSel){alert("정류장 위치를 카카오맵에서 검색해서 선택해주세요.");return;}
+  const course=document.getElementById("ns_course_sel").value;
+  if(!course){alert("코스를 선택해주세요.");return;}
+  const bt=document.getElementById("ns_btime").value.trim().split(",").map(s=>s.trim()).filter(Boolean);
+  const dt=document.getElementById("ns_dtime").value.trim().split(",").map(s=>s.trim()).filter(Boolean);
+  tempStops.push({
+    id:Date.now(), name:nsStopSel.name, addr:nsStopSel.addr,
+    course, lat:nsStopSel.lat, lng:nsStopSel.lng,
+    boardTimes:bt, deptTimes:dt,
   });
   renderAdminList();
-  ["ns_name","ns_course","ns_addr","ns_lat","ns_lng","ns_btime","ns_dtime"].forEach(id=>document.getElementById(id).value="");
+  nsStopSel=null;
+  document.getElementById("ns_search").value="";
+  document.getElementById("nsSelected").style.display="none";
+  document.getElementById("ns_btime").value="";
+  document.getElementById("ns_dtime").value="";
 }
+
+// ── 회사 위치 카카오 검색 ──
+let acCompanyDebounce=null, acCompanyResults=[], acCompanyIdx=-1;
+function onAdminCompanyInput(){
+  const q=document.getElementById("adminCompanySearch").value.trim();
+  clearTimeout(acCompanyDebounce);
+  if(!q||q.length<2){document.getElementById("acCompany").classList.add("hidden");return;}
+  acCompanyDebounce=setTimeout(()=>fetchAcAdmin(q,"acCompany",acCompanyResults,selectCompanyItem),300);
+}
+function onAdminCompanyKeydown(e){
+  handleAcKeydown(e,"acCompany",acCompanyResults,selectCompanyItem,acCompanyIdx,(i)=>{acCompanyIdx=i;});
+}
+function adminCompanySearch(){
+  const q=document.getElementById("adminCompanySearch").value.trim();
+  if(q) fetchAcAdmin(q,"acCompany",acCompanyResults,selectCompanyItem);
+}
+function selectCompanyItem(item){
+  adminCompanySel={name:item.place_name,addr:item.road_address_name||item.address_name,lat:parseFloat(item.y),lng:parseFloat(item.x)};
+  document.getElementById("adminCompanySearch").value=item.place_name;
+  document.getElementById("adminCompanyName").value=item.place_name;
+  document.getElementById("acCompany").classList.add("hidden");
+  document.getElementById("companySelected").style.display="block";
+  document.getElementById("companySelName").textContent=item.place_name;
+  document.getElementById("companySelAddr").textContent=adminCompanySel.addr;
+  document.getElementById("companySelCoord").textContent=`${adminCompanySel.lat.toFixed(5)}, ${adminCompanySel.lng.toFixed(5)}`;
+}
+
+// ── 정류장 위치 카카오 검색 ──
+let acNsDebounce=null, acNsResults=[], acNsIdx=-1;
+function onNsSearchInput(){
+  const q=document.getElementById("ns_search").value.trim();
+  clearTimeout(acNsDebounce);
+  if(!q||q.length<2){document.getElementById("acNsStop").classList.add("hidden");return;}
+  acNsDebounce=setTimeout(()=>fetchAcAdmin(q,"acNsStop",acNsResults,selectNsItem),300);
+}
+function onNsSearchKeydown(e){
+  handleAcKeydown(e,"acNsStop",acNsResults,selectNsItem,acNsIdx,(i)=>{acNsIdx=i;});
+}
+function nsDoSearch(){
+  const q=document.getElementById("ns_search").value.trim();
+  if(q) fetchAcAdmin(q,"acNsStop",acNsResults,selectNsItem);
+}
+function selectNsItem(item){
+  nsStopSel={name:item.place_name,addr:item.road_address_name||item.address_name,lat:parseFloat(item.y),lng:parseFloat(item.x)};
+  document.getElementById("ns_search").value=item.place_name;
+  document.getElementById("acNsStop").classList.add("hidden");
+  document.getElementById("nsSelected").style.display="block";
+  document.getElementById("nsSelName").textContent=item.place_name;
+  document.getElementById("nsSelAddr").textContent=nsStopSel.addr;
+  document.getElementById("nsSelCoord").textContent=`${nsStopSel.lat.toFixed(5)}, ${nsStopSel.lng.toFixed(5)}`;
+}
+
+// ── 공통 자동완성 (관리자용) ──
+function fetchAcAdmin(q, listId, resultsArr, selectFn){
+  if(!kakaoReady){alert("카카오 지도가 초기화된 후 검색 가능합니다.");return;}
+  const ps=new kakao.maps.services.Places();
+  ps.keywordSearch(q,(results,status)=>{
+    if(status===kakao.maps.services.Status.OK){
+      resultsArr.length=0; results.slice(0,6).forEach(r=>resultsArr.push(r));
+      renderAcAdmin(listId,resultsArr,selectFn);
+    } else {
+      document.getElementById(listId).classList.add("hidden");
+    }
+  });
+}
+function renderAcAdmin(listId, results, selectFn){
+  const list=document.getElementById(listId);
+  list.innerHTML="";
+  results.forEach((item,i)=>{
+    const d=document.createElement("div"); d.className="ac-item";
+    d.innerHTML=`<div class="ac-icon">📍</div><div><div class="ac-name">${item.place_name}</div><div class="ac-addr">${item.road_address_name||item.address_name||""}</div></div>`;
+    d.addEventListener("mousedown",e=>{e.preventDefault();selectFn(item);});
+    list.appendChild(d);
+  });
+  list.classList.remove("hidden");
+}
+function handleAcKeydown(e, listId, results, selectFn, curIdx, setIdx){
+  const list=document.getElementById(listId);
+  if(list.classList.contains("hidden")) return;
+  const items=list.querySelectorAll(".ac-item");
+  if(e.key==="ArrowDown"){e.preventDefault();const ni=Math.min(curIdx+1,items.length-1);setIdx(ni);items.forEach((el,i)=>el.classList.toggle("focused",i===ni));}
+  else if(e.key==="ArrowUp"){e.preventDefault();const ni=Math.max(curIdx-1,0);setIdx(ni);items.forEach((el,i)=>el.classList.toggle("focused",i===ni));}
+  else if(e.key==="Enter"){if(curIdx>=0){e.preventDefault();selectFn(results[curIdx]);}}
+  else if(e.key==="Escape"){list.classList.add("hidden");}
+}
+
 function saveAdmin(){
-  jsKey=document.getElementById("adminJsKey").value.trim()||jsKey;
-  restKey=document.getElementById("adminRestKey").value.trim()||restKey;
+  jsKey   =document.getElementById("adminJsKey").value.trim()||jsKey;
+  restKey =document.getElementById("adminRestKey").value.trim()||restKey;
   odsayKey=document.getElementById("adminOdsayKey").value.trim();
   company.name=document.getElementById("adminCompanyName").value.trim()||company.name;
-  company.addr=document.getElementById("adminCompanyAddr").value.trim()||company.addr;
-  stops=tempStops; saveData(); closeAdmin();
+  if(adminCompanySel){
+    company.name=adminCompanySel.name;
+    company.addr=adminCompanySel.addr;
+    company.lat =adminCompanySel.lat;
+    company.lng =adminCompanySel.lng;
+  }
+  stops=tempStops; courses=tempCourses;
+  saveData(); closeAdmin();
   if(!kakaoReady){mapInitPromise=null;initKakao();}
   alert("저장 완료!");
 }
